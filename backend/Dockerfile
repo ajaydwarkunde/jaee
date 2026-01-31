@@ -15,12 +15,12 @@ WORKDIR /app
 # Copy the built jar
 COPY --from=build /app/build/libs/jaee-backend-1.0.0.jar app.jar
 
+# Render provides PORT env variable - default to 8080
+ENV PORT=8080
+
 # Expose port
-EXPOSE 8080
+EXPOSE ${PORT}
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=60s \
-  CMD wget -q --spider http://localhost:8080/actuator/health || exit 1
-
-# Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Run the application with the PORT from environment
+# Using shell form to expand $PORT variable
+CMD java -Dserver.port=${PORT} -jar app.jar

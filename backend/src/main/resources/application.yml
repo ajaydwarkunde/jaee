@@ -17,7 +17,7 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
-  flyway:
+  flyway: 
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
@@ -35,7 +35,7 @@ spring:
             enable: true
 
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${PORT:${SERVER_PORT:8080}}
 
 # Application Configuration
 app:
