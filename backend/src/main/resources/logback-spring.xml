@@ -64,11 +64,12 @@
         </root>
     </springProfile>
 
-    <!-- Production Profile: Less verbose -->
+    <!-- Production Profile: Less verbose but still logs to console for cloud platforms -->
     <springProfile name="prod,production">
         <logger name="com.jaee" level="INFO" />
         
-        <root level="WARN">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
             <appender-ref ref="ASYNC_FILE" />
         </root>
     </springProfile>
