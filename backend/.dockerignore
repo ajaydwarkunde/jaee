@@ -1,0 +1,23 @@
+# Build outputs
+build/
+out/
+target/
+
+# Gradle
+.gradle/
+
+# IDE
+.idea/
+*.iml
+
+# Logs
+*.log
+logs/
+
+# Environment files
+.env
+*.env
+
+# Git
+.git/
+.gitignore
