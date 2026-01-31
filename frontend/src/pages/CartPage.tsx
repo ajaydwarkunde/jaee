@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ShoppingBag, Trash2, Minus, Plus, ArrowRight, ShoppingCart } from 'lucide-react'
+import { Trash2, Minus, Plus, ArrowRight, ShoppingCart } from 'lucide-react'
 import { cartService } from '@/services/cartService'
 import { checkoutService } from '@/services/checkoutService'
 import { productService } from '@/services/productService'
@@ -12,12 +12,12 @@ import { loadRazorpayScript, initializeRazorpay } from '@/lib/razorpay'
 import Button from '@/components/ui/Button'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import toast from 'react-hot-toast'
-import type { Cart, GuestCartItem, Product } from '@/types'
+import type { Product } from '@/types'
 
 export default function CartPage() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuthStore()
-  const { guestCart, updateGuestCartItem, removeFromGuestCart, clearGuestCart } = useCartStore()
+  const { guestCart, updateGuestCartItem, removeFromGuestCart } = useCartStore()
   const queryClient = useQueryClient()
   const [guestProducts, setGuestProducts] = useState<Map<number, Product>>(new Map())
   const [loadingGuestProducts, setLoadingGuestProducts] = useState(false)
