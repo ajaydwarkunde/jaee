@@ -1,0 +1,89 @@
+# ========================
+# Backend (Java/Spring Boot)
+# ========================
+
+# Build outputs
+backend/build/
+backend/out/
+backend/target/
+
+# Gradle
+backend/.gradle/
+.gradle/
+
+# IDE - IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Logs
+*.log
+backend/logs/
+
+# ========================
+# Frontend (React/Vite)
+# ========================
+
+# Dependencies
+frontend/node_modules/
+node_modules/
+
+# Build outputs
+frontend/dist/
+frontend/build/
+
+# Vite
+frontend/.vite/
+
+# ========================
+# Environment & Secrets
+# ========================
+.env
+.env.local
+.env.*.local
+*.env
+backend/.env
+frontend/.env
+
+# ========================
+# OS Files
+# ========================
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ========================
+# Editor & IDE
+# ========================
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# ========================
+# Misc
+# ========================
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Local development
+*.local
+.cache/
+tmp/
+temp/
+
+# Test outputs
+coverage/
+*.lcov
