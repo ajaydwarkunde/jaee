@@ -87,3 +87,4 @@ temp/
 # Test outputs
 coverage/
 *.lcov
+sample-images/
