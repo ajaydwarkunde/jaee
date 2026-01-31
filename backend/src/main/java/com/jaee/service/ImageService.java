@@ -1,32 +1,25 @@
 package com.jaee.service;
 
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
+import com.jaee.config.SupabaseConfig;
 import com.jaee.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import okhttp3.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class ImageService {
 
-    private final Cloudinary cloudinary;
-
-    public ImageService(@org.springframework.lang.Nullable Cloudinary cloudinary) {
-        this.cloudinary = cloudinary;
-    }
-
-    @Value("${app.cloudinary.folder:jaee}")
-    private String folder;
+    private final OkHttpClient okHttpClient;
+    private final SupabaseConfig supabaseConfig;
 
     private static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(
             "image/jpeg",
@@ -38,143 +31,120 @@ public class ImageService {
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
     /**
-     * Upload an image to Cloudinary
+     * Upload an image to Supabase Storage
      * @param file The image file to upload
-     * @param subfolder Optional subfolder (e.g., "products", "categories")
-     * @return The URL of the uploaded image
+     * @param folder Folder path (e.g., "products", "categories")
+     * @return The public URL of the uploaded image
      */
-    public String uploadImage(MultipartFile file, String subfolder) {
+    public String uploadImage(MultipartFile file, String folder) {
         validateFile(file);
 
-        if (cloudinary == null) {
-            log.warn("Cloudinary not configured. Using placeholder image URL.");
+        if (!supabaseConfig.isConfigured()) {
+            log.warn("Supabase not configured. Using placeholder image URL.");
             return generatePlaceholderUrl(file.getOriginalFilename());
         }
 
-        try {
-            String publicId = generatePublicId(subfolder, file.getOriginalFilename());
-            
-            @SuppressWarnings("unchecked")
-            Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
-                    "public_id", publicId,
-                    "folder", folder,
-                    "resource_type", "image",
-                    "overwrite", true,
-                    "transformation", ObjectUtils.asMap(
-                            "quality", "auto:good",
-                            "fetch_format", "auto"
-                    )
-            ));
+        String fileName = generateFileName(file.getOriginalFilename());
+        String filePath = folder + "/" + fileName;
 
-            String secureUrl = (String) uploadResult.get("secure_url");
-            log.info("Image uploaded successfully: {}", secureUrl);
-            return secureUrl;
+        try {
+            // Build the upload URL
+            String uploadUrl = String.format("%s/storage/v1/object/%s/%s",
+                    supabaseConfig.getSupabaseUrl(),
+                    supabaseConfig.getStorageBucket(),
+                    filePath);
+
+            // Create request body with file content
+            RequestBody requestBody = RequestBody.create(
+                    file.getBytes(),
+                    MediaType.parse(file.getContentType())
+            );
+
+            // Build the request
+            Request request = new Request.Builder()
+                    .url(uploadUrl)
+                    .addHeader("Authorization", "Bearer " + supabaseConfig.getSupabaseKey())
+                    .addHeader("Content-Type", file.getContentType())
+                    .addHeader("x-upsert", "true") // Overwrite if exists
+                    .post(requestBody)
+                    .build();
+
+            // Execute request
+            try (Response response = okHttpClient.newCall(request).execute()) {
+                if (!response.isSuccessful()) {
+                    String errorBody = response.body() != null ? response.body().string() : "Unknown error";
+                    log.error("Failed to upload image to Supabase: {} - {}", response.code(), errorBody);
+                    throw new BadRequestException("Failed to upload image: " + response.message());
+                }
+
+                // Return the public URL
+                String publicUrl = String.format("%s/storage/v1/object/public/%s/%s",
+                        supabaseConfig.getSupabaseUrl(),
+                        supabaseConfig.getStorageBucket(),
+                        filePath);
+
+                log.info("Image uploaded successfully: {}", publicUrl);
+                return publicUrl;
+            }
 
         } catch (IOException e) {
-            log.error("Failed to upload image to Cloudinary", e);
+            log.error("Failed to upload image to Supabase", e);
             throw new BadRequestException("Failed to upload image: " + e.getMessage());
         }
     }
 
     /**
-     * Upload a product image with optimized transformations
+     * Upload a product image
      */
     public String uploadProductImage(MultipartFile file) {
-        validateFile(file);
-
-        if (cloudinary == null) {
-            return generatePlaceholderUrl(file.getOriginalFilename());
-        }
-
-        try {
-            String publicId = generatePublicId("products", file.getOriginalFilename());
-            
-            @SuppressWarnings("unchecked")
-            Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
-                    "public_id", publicId,
-                    "folder", folder + "/products",
-                    "resource_type", "image",
-                    "overwrite", true,
-                    "eager", Arrays.asList(
-                            ObjectUtils.asMap(
-                                    "width", 800,
-                                    "height", 800,
-                                    "crop", "fill",
-                                    "quality", "auto:good"
-                            ),
-                            ObjectUtils.asMap(
-                                    "width", 400,
-                                    "height", 400,
-                                    "crop", "fill",
-                                    "quality", "auto:good"
-                            )
-                    )
-            ));
-
-            String secureUrl = (String) uploadResult.get("secure_url");
-            log.info("Product image uploaded: {}", secureUrl);
-            return secureUrl;
-
-        } catch (IOException e) {
-            log.error("Failed to upload product image", e);
-            throw new BadRequestException("Failed to upload image: " + e.getMessage());
-        }
+        return uploadImage(file, "products");
     }
 
     /**
      * Upload a category image
      */
     public String uploadCategoryImage(MultipartFile file) {
-        validateFile(file);
-
-        if (cloudinary == null) {
-            return generatePlaceholderUrl(file.getOriginalFilename());
-        }
-
-        try {
-            String publicId = generatePublicId("categories", file.getOriginalFilename());
-            
-            @SuppressWarnings("unchecked")
-            Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
-                    "public_id", publicId,
-                    "folder", folder + "/categories",
-                    "resource_type", "image",
-                    "overwrite", true,
-                    "transformation", ObjectUtils.asMap(
-                            "width", 600,
-                            "height", 400,
-                            "crop", "fill",
-                            "quality", "auto:good"
-                    )
-            ));
-
-            String secureUrl = (String) uploadResult.get("secure_url");
-            log.info("Category image uploaded: {}", secureUrl);
-            return secureUrl;
-
-        } catch (IOException e) {
-            log.error("Failed to upload category image", e);
-            throw new BadRequestException("Failed to upload image: " + e.getMessage());
-        }
+        return uploadImage(file, "categories");
     }
 
     /**
-     * Delete an image from Cloudinary
+     * Delete an image from Supabase Storage
      */
     public void deleteImage(String imageUrl) {
-        if (cloudinary == null || imageUrl == null || imageUrl.isEmpty()) {
+        if (!supabaseConfig.isConfigured() || imageUrl == null || imageUrl.isEmpty()) {
             return;
         }
 
         try {
-            // Extract public ID from URL
-            String publicId = extractPublicId(imageUrl);
-            if (publicId != null) {
-                cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
-                log.info("Image deleted: {}", publicId);
+            // Extract file path from URL
+            String filePath = extractFilePath(imageUrl);
+            if (filePath == null) {
+                log.warn("Could not extract file path from URL: {}", imageUrl);
+                return;
             }
+
+            // Build the delete URL
+            String deleteUrl = String.format("%s/storage/v1/object/%s/%s",
+                    supabaseConfig.getSupabaseUrl(),
+                    supabaseConfig.getStorageBucket(),
+                    filePath);
+
+            Request request = new Request.Builder()
+                    .url(deleteUrl)
+                    .addHeader("Authorization", "Bearer " + supabaseConfig.getSupabaseKey())
+                    .delete()
+                    .build();
+
+            try (Response response = okHttpClient.newCall(request).execute()) {
+                if (response.isSuccessful()) {
+                    log.info("Image deleted: {}", filePath);
+                } else {
+                    log.warn("Failed to delete image: {} - {}", response.code(), response.message());
+                }
+            }
+
         } catch (IOException e) {
-            log.warn("Failed to delete image from Cloudinary: {}", e.getMessage());
+            log.warn("Failed to delete image from Supabase: {}", e.getMessage());
         }
     }
 
@@ -193,39 +163,30 @@ public class ImageService {
         }
     }
 
-    private String generatePublicId(String subfolder, String originalFilename) {
-        String baseName = originalFilename != null 
-                ? originalFilename.replaceAll("\\.[^.]+$", "") 
-                : "image";
-        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-        
-        if (subfolder != null && !subfolder.isEmpty()) {
-            return subfolder + "/" + baseName + "_" + uniqueId;
+    private String generateFileName(String originalFilename) {
+        String extension = "";
+        if (originalFilename != null && originalFilename.contains(".")) {
+            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         }
-        return baseName + "_" + uniqueId;
+        return UUID.randomUUID().toString() + extension;
     }
 
-    private String extractPublicId(String imageUrl) {
-        // Extract public ID from Cloudinary URL
-        // URL format: https://res.cloudinary.com/{cloud_name}/image/upload/{version}/{folder}/{public_id}.{format}
+    private String extractFilePath(String imageUrl) {
+        // URL format: https://xxx.supabase.co/storage/v1/object/public/bucket/folder/file.jpg
         try {
-            String[] parts = imageUrl.split("/upload/");
-            if (parts.length > 1) {
-                String path = parts[1];
-                // Remove version prefix (v123456/)
-                path = path.replaceFirst("v\\d+/", "");
-                // Remove file extension
-                return path.replaceAll("\\.[^.]+$", "");
+            String marker = "/object/public/" + supabaseConfig.getStorageBucket() + "/";
+            int index = imageUrl.indexOf(marker);
+            if (index != -1) {
+                return imageUrl.substring(index + marker.length());
             }
         } catch (Exception e) {
-            log.warn("Could not extract public ID from URL: {}", imageUrl);
+            log.warn("Could not extract file path from URL: {}", imageUrl);
         }
         return null;
     }
 
     private String generatePlaceholderUrl(String filename) {
-        // Generate a placeholder URL when Cloudinary is not configured
-        return "https://placehold.co/800x800/F5E6E0/2D2D2D?text=" + 
-               (filename != null ? filename.replaceAll("\\.[^.]+$", "") : "Image");
+        return "https://placehold.co/800x800/F5E6E0/2D2D2D?text=" +
+                (filename != null ? filename.replaceAll("\\.[^.]+$", "") : "Image");
     }
 }

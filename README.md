@@ -117,11 +117,10 @@ TWILIO_ACCOUNT_SID=AC...
 TWILIO_AUTH_TOKEN=...
 TWILIO_PHONE_NUMBER=+1...
 
-# Cloudinary (Image Storage)
-CLOUDINARY_CLOUD_NAME=your-cloud-name
-CLOUDINARY_API_KEY=your-api-key
-CLOUDINARY_API_SECRET=your-api-secret
-CLOUDINARY_FOLDER=jaee
+# Supabase (Database + Image Storage)
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_KEY=your-service-role-key
+SUPABASE_STORAGE_BUCKET=images
 
 # Environment
 SPRING_PROFILES_ACTIVE=dev
@@ -181,10 +180,14 @@ stripe listen --forward-to localhost:8080/webhooks/stripe
 
 ## 🚢 Deployment Guide
 
-### Database (Neon)
-1. Create a free account at [neon.tech](https://neon.tech)
-2. Create a new project
-3. Copy the connection string to your backend environment
+### Database & Storage (Supabase)
+1. Create a free account at [supabase.com](https://supabase.com)
+2. Create a new project → Note your project URL and service role key
+3. Go to **Storage** → Create a bucket named `images` → Set it to **Public**
+4. Copy connection details to your backend environment:
+   - `DATABASE_URL`: Found in Settings → Database → Connection string (JDBC)
+   - `SUPABASE_URL`: Your project URL (e.g., `https://xxx.supabase.co`)
+   - `SUPABASE_SERVICE_KEY`: Found in Settings → API → Service role key
 
 ### Backend (Render)
 1. Create a new Web Service

@@ -73,11 +73,10 @@ app:
     max-attempts: 5
     cooldown-seconds: 60
 
-  cloudinary:
-    cloud-name: ${CLOUDINARY_CLOUD_NAME:}
-    api-key: ${CLOUDINARY_API_KEY:}
-    api-secret: ${CLOUDINARY_API_SECRET:}
-    folder: ${CLOUDINARY_FOLDER:jaee}
+  supabase:
+    url: ${SUPABASE_URL:}
+    key: ${SUPABASE_SERVICE_KEY:}
+    storage-bucket: ${SUPABASE_STORAGE_BUCKET:images}
 
 # Actuator
 management:
