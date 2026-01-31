@@ -1,0 +1,525 @@
+openapi: 3.0.3
+info:
+  title: Jaee E-Commerce API
+  version: 1.0.0
+  description: REST API for Jaee e-commerce platform
+  contact:
+    name: Jaee Support
+    email: support@jaee.com
+
+servers:
+  - url: http://localhost:8080
+    description: Local Development
+  - url: https://api.jaee.com
+    description: Production
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        mobileNumber:
+          type: string
+        role:
+          type: string
+          enum: [USER, ADMIN]
+
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
+        productCount:
+          type: integer
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        currency:
+          type: string
+        categoryId:
+          type: integer
+        categoryName:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        stockQty:
+          type: integer
+        active:
+          type: boolean
+        inStock:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    CartItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        productId:
+          type: integer
+        productName:
+          type: string
+        productSlug:
+          type: string
+        productImage:
+          type: string
+        unitPrice:
+          type: number
+        qty:
+          type: integer
+        subtotal:
+          type: number
+        inStock:
+          type: boolean
+        availableQty:
+          type: integer
+
+    Cart:
+      type: object
+      properties:
+        id:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+        subtotal:
+          type: number
+        itemCount:
+          type: integer
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+          enum: [PENDING, PAID, CANCELLED, SHIPPED, FULFILLED]
+        totalAmount:
+          type: number
+        currency:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        shippingAddress:
+          type: string
+        customerEmail:
+          type: string
+        customerPhone:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        paidAt:
+          type: string
+          format: date-time
+
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        productId:
+          type: integer
+        name:
+          type: string
+        price:
+          type: number
+        qty:
+          type: integer
+        subtotal:
+          type: number
+        imageUrl:
+          type: string
+
+paths:
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: Register with email and password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+      responses:
+        '200':
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AuthResponse'
+
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Login with email and password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+
+  /auth/otp/request:
+    post:
+      tags: [Authentication]
+      summary: Request OTP for mobile login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mobileNumber]
+              properties:
+                mobileNumber:
+                  type: string
+                  pattern: '^\+?[1-9]\d{9,14}$'
+      responses:
+        '200':
+          description: OTP sent
+
+  /auth/otp/verify:
+    post:
+      tags: [Authentication]
+      summary: Verify OTP and login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mobileNumber, otp]
+              properties:
+                mobileNumber:
+                  type: string
+                otp:
+                  type: string
+                  minLength: 6
+                  maxLength: 6
+      responses:
+        '200':
+          description: OTP verified, login successful
+
+  /me:
+    get:
+      tags: [User]
+      summary: Get current user profile
+      responses:
+        '200':
+          description: Current user
+
+  /categories:
+    get:
+      tags: [Categories]
+      summary: Get all categories
+      security: []
+      responses:
+        '200':
+          description: List of categories
+
+  /products:
+    get:
+      tags: [Products]
+      summary: Get products with filters
+      security: []
+      parameters:
+        - name: categoryId
+          in: query
+          schema:
+            type: integer
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [newest, price, name]
+        - name: sortDir
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 12
+      responses:
+        '200':
+          description: Paginated products
+
+  /products/{slug}:
+    get:
+      tags: [Products]
+      summary: Get product by slug
+      security: []
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Product details
+
+  /cart:
+    get:
+      tags: [Cart]
+      summary: Get current user's cart
+      responses:
+        '200':
+          description: User's cart
+
+  /cart/items:
+    post:
+      tags: [Cart]
+      summary: Add item to cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [productId, qty]
+              properties:
+                productId:
+                  type: integer
+                qty:
+                  type: integer
+                  minimum: 1
+      responses:
+        '200':
+          description: Updated cart
+
+  /cart/merge:
+    post:
+      tags: [Cart]
+      summary: Merge guest cart into user cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [guestItems]
+              properties:
+                guestItems:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      productId:
+                        type: integer
+                      qty:
+                        type: integer
+      responses:
+        '200':
+          description: Cart merged
+
+  /checkout/create-session:
+    post:
+      tags: [Checkout]
+      summary: Create Stripe checkout session
+      responses:
+        '200':
+          description: Checkout session created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionId:
+                    type: string
+                  url:
+                    type: string
+
+  /webhooks/stripe:
+    post:
+      tags: [Webhooks]
+      summary: Handle Stripe webhook events
+      security: []
+      responses:
+        '200':
+          description: Webhook processed
+
+  /orders:
+    get:
+      tags: [Orders]
+      summary: Get current user's orders
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: size
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User's orders
+
+  /admin/categories:
+    post:
+      tags: [Admin]
+      summary: Create a new category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                imageUrl:
+                  type: string
+      responses:
+        '200':
+          description: Category created
+
+  /admin/products:
+    post:
+      tags: [Admin]
+      summary: Create a new product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, price]
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                price:
+                  type: number
+                currency:
+                  type: string
+                categoryId:
+                  type: integer
+                images:
+                  type: array
+                  items:
+                    type: string
+                stockQty:
+                  type: integer
+                active:
+                  type: boolean
+      responses:
+        '200':
+          description: Product created
