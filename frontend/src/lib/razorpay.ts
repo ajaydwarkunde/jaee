@@ -67,7 +67,6 @@ export const loadRazorpayScript = (): Promise<boolean> => {
  */
 export const initializeRazorpay = (options: RazorpayOptions): RazorpayInstance | null => {
   if (!window.Razorpay) {
-    console.error('Razorpay SDK not loaded')
     return null
   }
   return new window.Razorpay(options)

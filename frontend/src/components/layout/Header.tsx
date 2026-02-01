@@ -67,7 +67,7 @@ export default function Header() {
             className="flex items-center hover:opacity-80 transition-opacity"
           >
             <img 
-              src="/logo.png" 
+              src="/logo.svg" 
               alt="Jaee" 
               className="h-10 md:h-12 w-auto"
             />

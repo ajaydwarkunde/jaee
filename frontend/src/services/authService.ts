@@ -88,4 +88,13 @@ export const authService = {
   disable2FA: async (data: TwoFactorVerifyData): Promise<void> => {
     await api.post('/me/2fa/disable', data)
   },
+
+  // Password Reset
+  forgotPassword: async (email: string): Promise<void> => {
+    await api.post('/auth/forgot-password', { email })
+  },
+
+  resetPassword: async (token: string, newPassword: string): Promise<void> => {
+    await api.post('/auth/reset-password', { token, newPassword })
+  },
 }

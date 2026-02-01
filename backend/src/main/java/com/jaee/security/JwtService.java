@@ -46,6 +46,40 @@ public class JwtService {
         return buildToken(new HashMap<>(), userDetails, refreshExpirationMs);
     }
 
+    /**
+     * Generate password reset token (15 minutes expiry)
+     */
+    public String generatePasswordResetToken(String email) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("type", "password_reset");
+        return Jwts.builder()
+                .claims(claims)
+                .subject(email)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + 15 * 60 * 1000)) // 15 minutes
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    /**
+     * Validate password reset token and extract email
+     */
+    public String validatePasswordResetToken(String token) {
+        try {
+            Claims claims = extractAllClaims(token);
+            String type = claims.get("type", String.class);
+            if (!"password_reset".equals(type)) {
+                return null;
+            }
+            if (claims.getExpiration().before(new Date())) {
+                return null;
+            }
+            return claims.getSubject();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     private String buildToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration) {
         return Jwts.builder()
                 .claims(extraClaims)

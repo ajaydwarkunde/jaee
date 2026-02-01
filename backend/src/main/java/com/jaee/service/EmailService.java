@@ -30,6 +30,82 @@ public class EmailService {
     @Value("${app.email.enabled:true}")
     private boolean emailEnabled;
 
+    @Value("${app.cors.allowed-origins:http://localhost:5173}")
+    private String frontendUrl;
+
+    /**
+     * Send password reset email
+     */
+    @Async
+    public void sendPasswordResetEmail(String toEmail, String resetToken) {
+        if (!emailEnabled) {
+            log.info("Email disabled - Password reset token for {}: {}", toEmail, resetToken);
+            return;
+        }
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            // Get the first allowed origin as the frontend URL
+            String baseUrl = frontendUrl.split(",")[0].trim();
+            String resetLink = baseUrl + "/reset-password?token=" + resetToken;
+
+            helper.setFrom(fromEmail, fromName);
+            helper.setTo(toEmail);
+            helper.setSubject("Reset Your Password - Jaee");
+            helper.setText(buildPasswordResetHtml(resetLink), true);
+
+            mailSender.send(message);
+            log.info("Password reset email sent to {}", toEmail);
+        } catch (MessagingException | java.io.UnsupportedEncodingException e) {
+            log.error("Failed to send password reset email: {}", e.getMessage());
+        }
+    }
+
+    private String buildPasswordResetHtml(String resetLink) {
+        return String.format("""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #FAF7F2; margin: 0; padding: 20px; }
+                    .container { max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+                    .header { background-color: #D4A5A5; padding: 30px; text-align: center; }
+                    .header h1 { color: #FFFFFF; margin: 0; font-size: 28px; letter-spacing: 2px; }
+                    .content { padding: 30px; text-align: center; }
+                    .btn { display: inline-block; background-color: #D4A5A5; color: #FFFFFF; text-decoration: none; padding: 15px 40px; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+                    .btn:hover { background-color: #C99999; }
+                    .footer { background-color: #FAF7F2; padding: 20px; text-align: center; color: #6B6B6B; font-size: 14px; }
+                    .note { color: #888; font-size: 13px; margin-top: 20px; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>JAEE</h1>
+                    </div>
+                    <div class="content">
+                        <h2 style="color: #2D2D2D;">Reset Your Password</h2>
+                        <p style="color: #6B6B6B; font-size: 16px;">
+                            We received a request to reset your password. Click the button below to create a new password.
+                        </p>
+                        <a href="%s" class="btn">Reset Password</a>
+                        <p class="note">
+                            This link will expire in 15 minutes.<br>
+                            If you didn't request this, you can safely ignore this email.
+                        </p>
+                    </div>
+                    <div class="footer">
+                        <p>© 2024 Jaee. All rights reserved.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """, resetLink);
+    }
+
     @Async
     public void sendOrderConfirmation(Order order) {
         if (!emailEnabled || order.getCustomerEmail() == null) {

@@ -53,8 +53,8 @@ export default function RegisterPage() {
           await cartService.mergeCart(guestCart)
           clearGuestCart()
           queryClient.invalidateQueries({ queryKey: ['cart'] })
-        } catch (error) {
-          console.error('Failed to merge cart', error)
+        } catch {
+          // Cart merge failed silently
         }
       }
       

@@ -68,8 +68,8 @@ export default function LoginPage() {
         await cartService.mergeCart(guestCart)
         clearGuestCart()
         queryClient.invalidateQueries({ queryKey: ['cart'] })
-      } catch (error) {
-        console.error('Failed to merge cart', error)
+      } catch {
+        // Cart merge failed silently
       }
     }
     navigate(from, { replace: true })
@@ -197,10 +197,19 @@ export default function LoginPage() {
                 />
               </div>
 
+              <div className="flex justify-end mt-2">
+                <Link 
+                  to="/forgot-password" 
+                  className="text-sm text-rose hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+
               <Button
                 type="submit"
                 loading={emailLoginMutation.isPending}
-                className="w-full mt-6"
+                className="w-full mt-4"
               >
                 Sign In
               </Button>

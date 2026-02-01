@@ -6,6 +6,7 @@ import com.jaee.entity.User;
 import com.jaee.exception.BadRequestException;
 import com.jaee.exception.UnauthorizedException;
 import com.jaee.repository.UserRepository;
+import com.jaee.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,6 +24,8 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final TotpService totpService;
     private final OtpService otpService;
+    private final JwtService jwtService;
+    private final EmailService emailService;
 
     /**
      * Update user profile (name only - email/mobile require verification)
@@ -186,6 +189,45 @@ public class UserService {
      */
     public AuthResponse.UserDto getCurrentUser(User user) {
         return toUserDto(user);
+    }
+
+    /**
+     * Request password reset - sends email with reset link
+     */
+    public void requestPasswordReset(String email) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        
+        // Always return success to prevent email enumeration
+        if (user == null) {
+            log.info("Password reset requested for non-existent email: {}", email);
+            return;
+        }
+
+        String resetToken = jwtService.generatePasswordResetToken(email);
+        emailService.sendPasswordResetEmail(email, resetToken);
+        
+        log.info("Password reset email sent to: {}", email);
+    }
+
+    /**
+     * Reset password using token
+     */
+    @Transactional
+    public void resetPassword(String token, String newPassword) {
+        String email = jwtService.validatePasswordResetToken(token);
+        
+        if (email == null) {
+            throw new BadRequestException("Invalid or expired reset link. Please request a new one.");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadRequestException("User not found"));
+
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        user.setPasswordChangedAt(LocalDateTime.now());
+        userRepository.save(user);
+
+        log.info("Password reset successful for user: {}", user.getId());
     }
 
     private AuthResponse.UserDto toUserDto(User user) {

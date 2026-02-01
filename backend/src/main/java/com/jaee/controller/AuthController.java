@@ -5,6 +5,7 @@ import com.jaee.dto.common.ApiResponse;
 import com.jaee.entity.User;
 import com.jaee.service.AuthService;
 import com.jaee.service.OtpService;
+import com.jaee.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -21,6 +22,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final OtpService otpService;
+    private final UserService userService;
 
     @PostMapping("/register")
     @Operation(summary = "Register a new user with email and password")
@@ -69,5 +71,19 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> verifyOtp(@Valid @RequestBody OtpVerifyRequest request) {
         AuthResponse response = otpService.verifyOtp(request);
         return ResponseEntity.ok(ApiResponse.success("OTP verified successfully", response));
+    }
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Request password reset email")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        userService.requestPasswordReset(request.getEmail());
+        return ResponseEntity.ok(ApiResponse.success("If an account exists with this email, you will receive a password reset link.", null));
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Reset password using token")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        userService.resetPassword(request.getToken(), request.getNewPassword());
+        return ResponseEntity.ok(ApiResponse.success("Password has been reset successfully. You can now login with your new password.", null));
     }
 }

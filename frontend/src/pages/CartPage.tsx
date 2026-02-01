@@ -45,8 +45,8 @@ export default function CartPage() {
           if (product) {
             products.set(item.productId, product)
           }
-        } catch (error) {
-          console.error('Failed to load product', item.productId)
+        } catch {
+          // Product load failed silently
         }
       }
       
@@ -162,7 +162,7 @@ export default function CartPage() {
         currency: orderData.currency,
         name: 'Jaee',
         description: 'Order Payment',
-        image: '/logo.png',
+        image: '/logo.svg',
         order_id: orderData.orderId,
         prefill: {
           name: orderData.prefill.name,
@@ -194,8 +194,7 @@ export default function CartPage() {
         toast.error('Failed to initialize payment')
         setCheckoutLoading(false)
       }
-    } catch (error) {
-      console.error('Checkout error:', error)
+    } catch {
       toast.error('Failed to start checkout')
       setCheckoutLoading(false)
     }
