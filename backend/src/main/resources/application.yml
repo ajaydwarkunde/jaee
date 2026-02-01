@@ -34,21 +34,6 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
-  mail:
-    host: ${MAIL_HOST:smtp.resend.com}
-    port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME:resend}
-    password: ${RESEND_API_KEY:${SENDGRID_API_KEY:}}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-          connectiontimeout: 5000
-          timeout: 5000
-          writetimeout: 5000
-
 server:
   port: ${PORT:${SERVER_PORT:8080}}
 
@@ -70,9 +55,10 @@ app:
     test-mode: ${RAZORPAY_TEST_MODE:true}  # Set to false when using real keys
 
   email:
-    from: ${EMAIL_FROM:orders@jaee.com}
+    from: ${EMAIL_FROM:onboarding@resend.dev}
     from-name: ${EMAIL_FROM_NAME:Jaee}
     enabled: ${EMAIL_ENABLED:true}
+    api-key: ${RESEND_API_KEY:}
 
   sms:
     provider: ${SMS_PROVIDER:twilio}

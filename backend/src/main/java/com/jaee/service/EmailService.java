@@ -2,24 +2,24 @@ package com.jaee.service;
 
 import com.jaee.entity.Order;
 import com.jaee.entity.OrderItem;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.*;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    private final OkHttpClient httpClient;
+
+    @Value("${app.email.api-key:}")
+    private String apiKey;
 
     @Value("${app.email.from}")
     private String fromEmail;
@@ -33,6 +33,80 @@ public class EmailService {
     @Value("${app.cors.allowed-origins:http://localhost:5173}")
     private String frontendUrl;
 
+    public EmailService() {
+        this.httpClient = new OkHttpClient.Builder()
+                .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                .build();
+    }
+
+    /**
+     * Send email using Resend HTTP API
+     */
+    private boolean sendEmail(String toEmail, String subject, String htmlContent) {
+        if (!emailEnabled || apiKey == null || apiKey.isBlank()) {
+            log.info("Email disabled or API key not configured. Would send to: {} subject: {}", toEmail, subject);
+            return false;
+        }
+
+        try {
+            String jsonBody = String.format("""
+                {
+                    "from": "%s <%s>",
+                    "to": ["%s"],
+                    "subject": "%s",
+                    "html": %s
+                }
+                """,
+                fromName,
+                fromEmail,
+                toEmail,
+                subject,
+                escapeJsonString(htmlContent)
+            );
+
+            RequestBody body = RequestBody.create(
+                    jsonBody,
+                    MediaType.parse("application/json")
+            );
+
+            Request request = new Request.Builder()
+                    .url("https://api.resend.com/emails")
+                    .addHeader("Authorization", "Bearer " + apiKey)
+                    .addHeader("Content-Type", "application/json")
+                    .post(body)
+                    .build();
+
+            try (Response response = httpClient.newCall(request).execute()) {
+                if (response.isSuccessful()) {
+                    log.info("Email sent successfully to {}", toEmail);
+                    return true;
+                } else {
+                    String responseBody = response.body() != null ? response.body().string() : "No response body";
+                    log.error("Failed to send email. Status: {}, Response: {}", response.code(), responseBody);
+                    return false;
+                }
+            }
+        } catch (IOException e) {
+            log.error("Failed to send email to {}: {}", toEmail, e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Escape string for JSON
+     */
+    private String escapeJsonString(String input) {
+        return "\"" + input
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t")
+                + "\"";
+    }
+
     /**
      * Send password reset email
      */
@@ -43,24 +117,11 @@ public class EmailService {
             return;
         }
 
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+        String baseUrl = frontendUrl.split(",")[0].trim();
+        String resetLink = baseUrl + "/reset-password?token=" + resetToken;
+        String htmlContent = buildPasswordResetHtml(resetLink);
 
-            // Get the first allowed origin as the frontend URL
-            String baseUrl = frontendUrl.split(",")[0].trim();
-            String resetLink = baseUrl + "/reset-password?token=" + resetToken;
-
-            helper.setFrom(fromEmail, fromName);
-            helper.setTo(toEmail);
-            helper.setSubject("Reset Your Password - Jaee");
-            helper.setText(buildPasswordResetHtml(resetLink), true);
-
-            mailSender.send(message);
-            log.info("Password reset email sent to {}", toEmail);
-        } catch (MessagingException | java.io.UnsupportedEncodingException e) {
-            log.error("Failed to send password reset email: {}", e.getMessage());
-        }
+        sendEmail(toEmail, "Reset Your Password - Jaee", htmlContent);
     }
 
     private String buildPasswordResetHtml(String resetLink) {
@@ -76,7 +137,6 @@ public class EmailService {
                     .header h1 { color: #FFFFFF; margin: 0; font-size: 28px; letter-spacing: 2px; }
                     .content { padding: 30px; text-align: center; }
                     .btn { display: inline-block; background-color: #D4A5A5; color: #FFFFFF; text-decoration: none; padding: 15px 40px; border-radius: 8px; font-weight: bold; margin: 20px 0; }
-                    .btn:hover { background-color: #C99999; }
                     .footer { background-color: #FAF7F2; padding: 20px; text-align: center; color: #6B6B6B; font-size: 14px; }
                     .note { color: #888; font-size: 13px; margin-top: 20px; }
                 </style>
@@ -98,7 +158,7 @@ public class EmailService {
                         </p>
                     </div>
                     <div class="footer">
-                        <p>© 2024 Jaee. All rights reserved.</p>
+                        <p>&copy; 2024 Jaee. All rights reserved.</p>
                     </div>
                 </div>
             </body>
@@ -113,20 +173,8 @@ public class EmailService {
             return;
         }
 
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-            helper.setFrom(fromEmail, fromName);
-            helper.setTo(order.getCustomerEmail());
-            helper.setSubject("Order Confirmation - Jaee #" + order.getId());
-            helper.setText(buildOrderConfirmationHtml(order), true);
-
-            mailSender.send(message);
-            log.info("Order confirmation email sent to {} for order {}", order.getCustomerEmail(), order.getId());
-        } catch (MessagingException | java.io.UnsupportedEncodingException e) {
-            log.error("Failed to send order confirmation email: {}", e.getMessage());
-        }
+        String htmlContent = buildOrderConfirmationHtml(order);
+        sendEmail(order.getCustomerEmail(), "Order Confirmation - Jaee #" + order.getId(), htmlContent);
     }
 
     private String buildOrderConfirmationHtml(Order order) {
@@ -142,10 +190,10 @@ public class EmailService {
                         ₹%s
                     </td>
                 </tr>
-                """, 
+                """,
                 item.getNameSnapshot(),
                 item.getQty(),
-                item.getSubtotal().setScale(2, BigDecimal.ROUND_HALF_UP)
+                item.getSubtotal().setScale(2, RoundingMode.HALF_UP)
             ));
         }
 
@@ -173,14 +221,14 @@ public class EmailService {
                         <h1>JAEE</h1>
                     </div>
                     <div class="content">
-                        <p style="font-size: 16px; color: #2D2D2D;">Thank you for your order! 💕</p>
-                        
+                        <p style="font-size: 16px; color: #2D2D2D;">Thank you for your order!</p>
+
                         <div class="order-number">
                             <h2>Order #%d</h2>
                         </div>
-                        
+
                         <h3 style="color: #2D2D2D; border-bottom: 2px solid #D4A5A5; padding-bottom: 10px;">Order Details</h3>
-                        
+
                         <table>
                             %s
                             <tr>
@@ -188,14 +236,14 @@ public class EmailService {
                                 <td style="padding: 15px 12px; text-align: right;" class="total">₹%s</td>
                             </tr>
                         </table>
-                        
+
                         <p style="margin-top: 30px; color: #6B6B6B;">
                             We'll send you another email when your order ships.
                         </p>
                     </div>
                     <div class="footer">
                         <p>Questions? Contact us at support@jaee.com</p>
-                        <p>© 2024 Jaee. All rights reserved.</p>
+                        <p>&copy; 2024 Jaee. All rights reserved.</p>
                     </div>
                 </div>
             </body>
@@ -203,7 +251,7 @@ public class EmailService {
             """,
             order.getId(),
             itemsHtml.toString(),
-            order.getTotalAmount().setScale(2, BigDecimal.ROUND_HALF_UP)
+            order.getTotalAmount().setScale(2, RoundingMode.HALF_UP)
         );
     }
 }
