@@ -3,6 +3,7 @@ import { ShoppingBag, Heart } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import type { Product } from '@/types'
 import Badge from '../ui/Badge'
+import LazyImage from '../ui/LazyImage'
 
 interface ProductCardProps {
   product: Product
@@ -17,11 +18,10 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
       {/* Image container */}
       <div className="relative aspect-square overflow-hidden">
         <Link to={`/product/${product.slug}`}>
-          <img
+          <LazyImage
             src={imageUrl}
             alt={product.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            loading="lazy"
           />
         </Link>
         

@@ -5,6 +5,7 @@ import { productService } from '@/services/productService'
 import { categoryService } from '@/services/categoryService'
 import ProductGrid from '@/components/product/ProductGrid'
 import Button from '@/components/ui/Button'
+import LazyImage from '@/components/ui/LazyImage'
 import { useCartStore } from '@/stores/cartStore'
 import { useAuthStore } from '@/stores/authStore'
 import { cartService } from '@/services/cartService'
@@ -88,10 +89,11 @@ export default function HomePage() {
             {/* Hero image */}
             <div className="relative hidden lg:block">
               <div className="relative aspect-square max-w-lg mx-auto">
-                <img
+                <LazyImage
                   src="https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=800"
                   alt="Beautiful candle arrangement"
                   className="w-full h-full object-cover rounded-[32px] shadow-soft-xl"
+                  priority // Above the fold - load immediately
                 />
                 {/* Floating card */}
                 <div className="absolute -bottom-6 -left-6 bg-soft-white p-4 rounded-xl shadow-soft-lg animate-slide-up">
@@ -151,7 +153,7 @@ export default function HomePage() {
                   to={`/shop/${category.slug}`}
                   className="group relative aspect-[4/5] rounded-xl overflow-hidden shadow-soft hover:shadow-soft-lg transition-all duration-300"
                 >
-                  <img
+                  <LazyImage
                     src={category.imageUrl || 'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=400'}
                     alt={category.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -220,7 +222,7 @@ export default function HomePage() {
             </div>
             <div className="order-1 lg:order-2">
               <div className="relative">
-                <img
+                <LazyImage
                   src="https://images.unsplash.com/photo-1543512214-318c7553f230?w=800"
                   alt="Candle making process"
                   className="w-full rounded-xl shadow-soft-xl"
