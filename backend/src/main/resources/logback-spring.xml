@@ -1,45 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <!-- Define log directory -->
-    <property name="LOG_DIR" value="${LOG_PATH:-logs}" />
-    <property name="LOG_FILE" value="${LOG_DIR}/jaee-app.log" />
-    <property name="MAX_FILE_SIZE" value="10MB" />
-    <property name="MAX_HISTORY" value="30" />
-    <property name="TOTAL_SIZE_CAP" value="100MB" />
-
-    <!-- Console Appender (for terminal output) -->
+    <!-- Console Appender (always available) -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} - %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <!-- Main Log File with Rolling Policy -->
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_FILE}</file>
-        <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
+    <!-- File Appender (only for local/dev) -->
+    <springProfile name="dev,default">
+        <property name="LOG_DIR" value="${LOG_PATH:-logs}" />
         
-        <!-- Rolling Policy: Rotate when file exceeds size -->
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <!-- Archived log files pattern -->
-            <fileNamePattern>${LOG_DIR}/jaee-app.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-            <!-- Max size per file before rotation -->
-            <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
-            <!-- Keep logs for 30 days -->
-            <maxHistory>${MAX_HISTORY}</maxHistory>
-            <!-- Total size cap for all archived files -->
-            <totalSizeCap>${TOTAL_SIZE_CAP}</totalSizeCap>
-        </rollingPolicy>
-    </appender>
-
-    <!-- Async wrapper for better performance -->
-    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="FILE" />
-        <queueSize>512</queueSize>
-        <discardingThreshold>0</discardingThreshold>
-    </appender>
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_DIR}/jaee-app.log</file>
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            </encoder>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_DIR}/jaee-app.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                <maxFileSize>10MB</maxFileSize>
+                <maxHistory>7</maxHistory>
+                <totalSizeCap>50MB</totalSizeCap>
+            </rollingPolicy>
+        </appender>
+    </springProfile>
 
     <!-- Application Loggers -->
     <logger name="com.jaee" level="INFO" />
@@ -49,36 +33,31 @@
     <logger name="org.hibernate" level="WARN" />
     <logger name="org.flywaydb" level="INFO" />
     <logger name="com.zaxxer.hikari" level="WARN" />
-    
-    <!-- Suppress SQL logs in production -->
     <logger name="org.hibernate.SQL" level="WARN" />
     <logger name="org.hibernate.type.descriptor.sql" level="WARN" />
 
-    <!-- Dev Profile: More verbose logging -->
+    <!-- Dev Profile: Console + File logging -->
     <springProfile name="dev">
         <logger name="com.jaee" level="DEBUG" />
-        
         <root level="INFO">
             <appender-ref ref="CONSOLE" />
-            <appender-ref ref="ASYNC_FILE" />
+            <appender-ref ref="FILE" />
         </root>
     </springProfile>
 
-    <!-- Production Profile: Less verbose but still logs to console for cloud platforms -->
+    <!-- Production Profile: Console ONLY (no file logging for containers) -->
     <springProfile name="prod,production">
         <logger name="com.jaee" level="INFO" />
-        
         <root level="INFO">
             <appender-ref ref="CONSOLE" />
-            <appender-ref ref="ASYNC_FILE" />
         </root>
     </springProfile>
 
-    <!-- Default (no profile specified) -->
+    <!-- Default Profile: Console + File -->
     <springProfile name="default">
         <root level="INFO">
             <appender-ref ref="CONSOLE" />
-            <appender-ref ref="ASYNC_FILE" />
+            <appender-ref ref="FILE" />
         </root>
     </springProfile>
 </configuration>
