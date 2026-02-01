@@ -64,9 +64,13 @@ export default function Header() {
           {/* Logo */}
           <Link 
             to="/" 
-            className="font-serif text-2xl md:text-3xl font-bold tracking-wider text-rose hover:text-rose/80 transition-colors"
+            className="flex items-center hover:opacity-90 transition-opacity"
           >
-            JAEE
+            <img 
+              src="/logo.png" 
+              alt="Jaee" 
+              className="h-10 md:h-12 w-auto"
+            />
           </Link>
 
           {/* Desktop navigation */}

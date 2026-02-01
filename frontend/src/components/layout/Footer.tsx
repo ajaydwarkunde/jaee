@@ -10,8 +10,12 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
           {/* Brand */}
           <div className="md:col-span-2">
-            <Link to="/" className="font-serif text-3xl font-semibold tracking-wider text-rose">
-              JAEE
+            <Link to="/" className="inline-block">
+              <img 
+                src="/logo.png" 
+                alt="Jaee" 
+                className="h-12 w-auto brightness-0 invert"
+              />
             </Link>
             <p className="mt-4 text-cream/70 max-w-md leading-relaxed">
               Bringing warmth and beauty into your home with handcrafted candles and carefully 

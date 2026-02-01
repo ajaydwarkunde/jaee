@@ -85,8 +85,8 @@ export default function ResetPasswordPage() {
         <div className="bg-soft-white rounded-2xl shadow-soft-xl p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <Link to="/" className="font-serif text-3xl font-semibold text-rose">
-              JAEE
+            <Link to="/" className="inline-block">
+              <img src="/logo.png" alt="Jaee" className="h-12 w-auto mx-auto" />
             </Link>
             <h1 className="heading-4 text-charcoal mt-4">Reset Password</h1>
             <p className="text-warm-gray mt-2">
