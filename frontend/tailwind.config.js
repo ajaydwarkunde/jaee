@@ -11,9 +11,9 @@ export default {
         cream: '#FAF7F2',
         blush: '#F5E6E0',
         rose: {
-          DEFAULT: '#D4A5A5',
-          light: '#E8C4C4',
-          dark: '#C89B9B',
+          DEFAULT: '#E9868B',
+          light: '#F5A5A9',
+          dark: '#D4726F',
         },
         champagne: '#E8DDD4',
         charcoal: '#2D2D2D',

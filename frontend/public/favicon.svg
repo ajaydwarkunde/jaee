@@ -1,16 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <defs>
-    <linearGradient id="tulip" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#D4A5A5"/>
-      <stop offset="100%" style="stop-color:#C89B9B"/>
-    </linearGradient>
-  </defs>
-  <!-- Tulip petals -->
-  <ellipse cx="50" cy="35" rx="15" ry="25" fill="url(#tulip)" transform="rotate(-15 50 35)"/>
-  <ellipse cx="50" cy="35" rx="15" ry="25" fill="url(#tulip)" transform="rotate(15 50 35)"/>
-  <ellipse cx="50" cy="30" rx="12" ry="20" fill="#E8B4B4"/>
-  <!-- Stem -->
-  <path d="M50 55 Q45 70 50 90" stroke="#7FB685" stroke-width="4" fill="none" stroke-linecap="round"/>
-  <!-- Leaf -->
-  <path d="M50 75 Q35 70 30 60" stroke="#7FB685" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <circle cx="50" cy="50" r="45" fill="#E9868B"/>
+  <text x="50" y="65" font-family="Georgia, serif" font-size="40" font-weight="700" fill="#FAF7F2" text-anchor="middle">J</text>
 </svg>
