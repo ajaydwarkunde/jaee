@@ -1,17 +1,93 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, Sparkles, Heart, Truck, Gift } from 'lucide-react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { ArrowRight, Sparkles, Heart, Truck, Gift, CheckCircle } from 'lucide-react'
 import { productService } from '@/services/productService'
 import { categoryService } from '@/services/categoryService'
+import { cartService } from '@/services/cartService'
+import { newsletterService } from '@/services/newsletterService'
 import ProductGrid from '@/components/product/ProductGrid'
 import Button from '@/components/ui/Button'
 import LazyImage from '@/components/ui/LazyImage'
+import CategoryCarousel from '@/components/ui/CategoryCarousel'
 import { useCartStore } from '@/stores/cartStore'
 import { useAuthStore } from '@/stores/authStore'
-import { cartService } from '@/services/cartService'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import type { Product } from '@/types'
+
+// Newsletter Section Component
+function NewsletterSection() {
+  const [email, setEmail] = useState('')
+  const [isSubscribed, setIsSubscribed] = useState(false)
+
+  const subscribeMutation = useMutation({
+    mutationFn: () => newsletterService.subscribe(email, 'homepage'),
+    onSuccess: () => {
+      setIsSubscribed(true)
+      setEmail('')
+      toast.success('Successfully subscribed!')
+    },
+    onError: () => {
+      toast.error('Failed to subscribe. Please try again.')
+    },
+  })
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email || !email.includes('@')) {
+      toast.error('Please enter a valid email')
+      return
+    }
+    subscribeMutation.mutate()
+  }
+
+  if (isSubscribed) {
+    return (
+      <section className="py-16 md:py-24 bg-charcoal">
+        <div className="container-custom text-center">
+          <div className="w-16 h-16 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="w-8 h-8 text-success" />
+          </div>
+          <h2 className="heading-2 text-soft-white mb-4">You're In!</h2>
+          <p className="text-cream/70 max-w-lg mx-auto">
+            Thank you for subscribing! You'll be the first to know about new arrivals, exclusive offers, and self-care inspiration.
+          </p>
+        </div>
+      </section>
+    )
+  }
+
+  return (
+    <section className="py-16 md:py-24 bg-charcoal">
+      <div className="container-custom text-center">
+        <Sparkles className="w-10 h-10 text-rose mx-auto mb-6" />
+        <h2 className="heading-2 text-soft-white mb-4">Join the Jaee Community</h2>
+        <p className="text-cream/70 max-w-lg mx-auto mb-8">
+          Subscribe for exclusive offers, new arrivals, and self-care inspiration delivered to your inbox.
+        </p>
+        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email"
+            className="flex-1 px-4 py-3 bg-soft-white/10 border border-cream/20 rounded-lg text-soft-white placeholder:text-cream/50 focus:outline-none focus:border-rose transition-colors"
+            required
+          />
+          <Button 
+            type="submit" 
+            loading={subscribeMutation.isPending}
+          >
+            Subscribe
+          </Button>
+        </form>
+        <p className="text-cream/50 text-xs mt-4">
+          No spam, unsubscribe anytime.
+        </p>
+      </div>
+    </section>
+  )
+}
 
 export default function HomePage() {
   const { isAuthenticated } = useAuthStore()
@@ -135,9 +211,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Categories */}
+      {/* Categories Carousel */}
       {categories && categories.length > 0 && (
-        <section className="py-16 md:py-24 bg-cream">
+        <section className="py-16 md:py-24 bg-cream overflow-hidden">
           <div className="container-custom">
             <div className="text-center mb-12">
               <h2 className="heading-2 text-charcoal">Shop by Category</h2>
@@ -146,29 +222,12 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-              {categories.slice(0, 4).map((category) => (
-                <Link
-                  key={category.id}
-                  to={`/shop/${category.slug}`}
-                  className="group relative aspect-[4/5] rounded-xl overflow-hidden shadow-soft hover:shadow-soft-lg transition-all duration-300"
-                >
-                  <LazyImage
-                    src={category.imageUrl || 'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=400'}
-                    alt={category.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-charcoal/70 via-charcoal/20 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <h3 className="font-serif text-lg md:text-xl font-medium text-soft-white">
-                      {category.name}
-                    </h3>
-                    <p className="text-sm text-soft-white/80 mt-1">
-                      {category.productCount} Products
-                    </p>
-                  </div>
-                </Link>
-              ))}
+            <div className="px-6">
+              <CategoryCarousel 
+                categories={categories} 
+                autoPlay={true}
+                interval={4000}
+              />
             </div>
           </div>
         </section>
@@ -238,23 +297,7 @@ export default function HomePage() {
       </section>
 
       {/* Newsletter */}
-      <section className="py-16 md:py-24 bg-charcoal">
-        <div className="container-custom text-center">
-          <Sparkles className="w-10 h-10 text-rose mx-auto mb-6" />
-          <h2 className="heading-2 text-soft-white mb-4">Join the Jaee Community</h2>
-          <p className="text-cream/70 max-w-lg mx-auto mb-8">
-            Subscribe for exclusive offers, new arrivals, and self-care inspiration delivered to your inbox.
-          </p>
-          <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 px-4 py-3 bg-soft-white/10 border border-cream/20 rounded-lg text-soft-white placeholder:text-cream/50 focus:outline-none focus:border-rose"
-            />
-            <Button type="submit">Subscribe</Button>
-          </form>
-        </div>
-      </section>
+      <NewsletterSection />
     </div>
   )
 }
