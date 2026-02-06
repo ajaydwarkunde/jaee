@@ -13,6 +13,7 @@ import { getErrorMessage } from '@/lib/api'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import toast from 'react-hot-toast'
+import Logo from '@/components/ui/Logo'
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -72,7 +73,7 @@ export default function RegisterPage() {
           {/* Header */}
           <div className="text-center mb-8">
             <Link to="/" className="inline-block">
-              <img src="/logo.png" alt="Jaee" className="h-12 w-auto mx-auto" />
+              <Logo size="lg" className="mx-auto" linkTo={false} />
             </Link>
             <h1 className="heading-4 text-charcoal mt-4">Create Account</h1>
             <p className="text-warm-gray mt-2">Join the Jaee community</p>

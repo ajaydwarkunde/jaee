@@ -1,11 +1,12 @@
 package com.jaee.service;
 
+import com.jaee.dto.address.AddressDto;
 import com.jaee.entity.*;
 import com.jaee.exception.BadRequestException;
+import com.jaee.repository.AddressRepository;
 import com.jaee.repository.CartRepository;
 import com.jaee.repository.OrderRepository;
 import com.jaee.repository.ProductRepository;
-import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
 import com.razorpay.Utils;
@@ -30,6 +31,7 @@ public class CheckoutService {
     private final CartRepository cartRepository;
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
+    private final AddressRepository addressRepository;
     private final CartService cartService;
     private final EmailService emailService;
 
@@ -50,7 +52,7 @@ public class CheckoutService {
     @PostConstruct
     public void init() {
         if (testMode) {
-            log.info("🧪 Razorpay TEST MODE enabled - payments will be simulated");
+            log.info("Razorpay TEST MODE enabled - payments will be simulated");
             return;
         }
         try {
@@ -65,7 +67,7 @@ public class CheckoutService {
      * Create a Razorpay order for checkout
      */
     @Transactional
-    public Map<String, Object> createOrder(User user) throws RazorpayException {
+    public Map<String, Object> createOrder(User user, Long addressId) throws RazorpayException {
         Cart cart = cartRepository.findByUserWithItems(user)
                 .orElseThrow(() -> new BadRequestException("Cart is empty"));
 
@@ -85,8 +87,23 @@ public class CheckoutService {
             }
         }
 
+        // Resolve shipping address
+        Address shippingAddress = null;
+        String shippingAddressStr = null;
+        if (addressId != null) {
+            shippingAddress = addressRepository.findByIdAndUser(addressId, user)
+                    .orElseThrow(() -> new BadRequestException("Address not found"));
+            shippingAddressStr = formatAddress(shippingAddress);
+        } else {
+            // Try to use default address
+            shippingAddress = addressRepository.findByUserAndIsDefaultTrue(user).orElse(null);
+            if (shippingAddress != null) {
+                shippingAddressStr = formatAddress(shippingAddress);
+            }
+        }
+
         // Create pending order in our database
-        com.jaee.entity.Order pendingOrder = createPendingOrder(user, cart);
+        Order pendingOrder = createPendingOrder(user, cart, shippingAddress, shippingAddressStr);
 
         // Calculate total in paise (Razorpay expects amount in smallest currency unit)
         long amountInPaise = pendingOrder.getTotalAmount()
@@ -99,7 +116,7 @@ public class CheckoutService {
             pendingOrder.setRazorpayOrderId(mockOrderId);
             orderRepository.save(pendingOrder);
 
-            log.info("🧪 TEST MODE: Created mock order for user {}: {}", user.getId(), mockOrderId);
+            log.info("TEST MODE: Created mock order for user {}: {}", user.getId(), mockOrderId);
 
             Map<String, Object> response = new HashMap<>();
             response.put("orderId", mockOrderId);
@@ -107,9 +124,8 @@ public class CheckoutService {
             response.put("currency", pendingOrder.getCurrency());
             response.put("keyId", "test_key");
             response.put("internalOrderId", pendingOrder.getId());
-            response.put("testMode", true);  // Signal frontend to use test mode
+            response.put("testMode", true);
             
-            // Use HashMap for prefill since Map.of() doesn't allow null values
             Map<String, String> prefill = new HashMap<>();
             prefill.put("name", user.getName() != null ? user.getName() : "");
             prefill.put("email", user.getEmail() != null ? user.getEmail() : "");
@@ -129,15 +145,13 @@ public class CheckoutService {
                 .put("user_id", user.getId().toString())
         );
 
-        Order razorpayOrder = razorpayClient.orders.create(orderRequest);
+        com.razorpay.Order razorpayOrder = razorpayClient.orders.create(orderRequest);
 
-        // Update our order with Razorpay order ID
         pendingOrder.setRazorpayOrderId(razorpayOrder.get("id"));
         orderRepository.save(pendingOrder);
 
         log.info("Razorpay order created for user {}: {}", user.getId(), razorpayOrder.get("id"));
 
-        // Return data needed for frontend checkout
         Map<String, Object> response = new HashMap<>();
         response.put("orderId", razorpayOrder.get("id"));
         response.put("amount", amountInPaise);
@@ -146,7 +160,6 @@ public class CheckoutService {
         response.put("internalOrderId", pendingOrder.getId());
         response.put("testMode", false);
         
-        // Use HashMap for prefill since Map.of() doesn't allow null values
         Map<String, String> prefill = new HashMap<>();
         prefill.put("name", user.getName() != null ? user.getName() : "");
         prefill.put("email", user.getEmail() != null ? user.getEmail() : "");
@@ -162,8 +175,7 @@ public class CheckoutService {
     @Transactional
     public Map<String, Object> verifyPayment(String razorpayOrderId, String razorpayPaymentId, 
                                               String razorpaySignature) {
-        // Find our order first
-        com.jaee.entity.Order order = orderRepository.findByRazorpayOrderId(razorpayOrderId)
+        Order order = orderRepository.findByRazorpayOrderId(razorpayOrderId)
                 .orElseThrow(() -> new BadRequestException("Order not found"));
 
         // TEST MODE: Skip signature verification
@@ -185,16 +197,16 @@ public class CheckoutService {
                 throw new BadRequestException("Payment verification failed");
             }
         } else {
-            log.info("🧪 TEST MODE: Skipping signature verification for order: {}", razorpayOrderId);
+            log.info("TEST MODE: Skipping signature verification for order: {}", razorpayOrderId);
         }
 
-        if (order.getStatus() != com.jaee.entity.Order.OrderStatus.PENDING) {
+        if (order.getStatus() != Order.OrderStatus.PENDING) {
             log.info("Order {} already processed", order.getId());
             return Map.of("success", true, "orderId", order.getId(), "message", "Order already processed");
         }
 
         // Mark order as paid
-        order.setStatus(com.jaee.entity.Order.OrderStatus.PAID);
+        order.setStatus(Order.OrderStatus.PAID);
         order.setPaidAt(LocalDateTime.now());
         order.setRazorpayPaymentId(razorpayPaymentId);
 
@@ -234,7 +246,6 @@ public class CheckoutService {
      */
     @Transactional
     public void handleWebhook(String payload, String signature) {
-        // Verify webhook signature
         try {
             boolean isValid = Utils.verifyWebhookSignature(payload, signature, razorpayWebhookSecret);
             if (!isValid) {
@@ -266,25 +277,22 @@ public class CheckoutService {
         String razorpayOrderId = paymentEntity.getString("order_id");
         String razorpayPaymentId = paymentEntity.getString("id");
 
-        com.jaee.entity.Order order = orderRepository.findByRazorpayOrderId(razorpayOrderId)
-                .orElse(null);
+        Order order = orderRepository.findByRazorpayOrderId(razorpayOrderId).orElse(null);
 
         if (order == null) {
             log.error("Order not found for Razorpay order: {}", razorpayOrderId);
             return;
         }
 
-        if (order.getStatus() != com.jaee.entity.Order.OrderStatus.PENDING) {
+        if (order.getStatus() != Order.OrderStatus.PENDING) {
             log.info("Order {} already processed", order.getId());
             return;
         }
 
-        // Update order status
-        order.setStatus(com.jaee.entity.Order.OrderStatus.PAID);
+        order.setStatus(Order.OrderStatus.PAID);
         order.setPaidAt(LocalDateTime.now());
         order.setRazorpayPaymentId(razorpayPaymentId);
 
-        // Reduce stock
         for (OrderItem item : order.getItems()) {
             Product product = item.getProduct();
             if (product != null) {
@@ -294,11 +302,8 @@ public class CheckoutService {
         }
 
         orderRepository.save(order);
-
-        // Clear cart
         cartService.clearCart(order.getUser());
 
-        // Send confirmation email
         try {
             emailService.sendOrderConfirmation(order);
         } catch (Exception e) {
@@ -320,29 +325,30 @@ public class CheckoutService {
 
         log.warn("Payment failed for Razorpay order {}: {}", razorpayOrderId, errorDescription);
 
-        // Optionally update order status to CANCELLED
         orderRepository.findByRazorpayOrderId(razorpayOrderId)
                 .ifPresent(order -> {
-                    if (order.getStatus() == com.jaee.entity.Order.OrderStatus.PENDING) {
-                        order.setStatus(com.jaee.entity.Order.OrderStatus.CANCELLED);
+                    if (order.getStatus() == Order.OrderStatus.PENDING) {
+                        order.setStatus(Order.OrderStatus.CANCELLED);
                         orderRepository.save(order);
                         log.info("Order {} marked as cancelled due to payment failure", order.getId());
                     }
                 });
     }
 
-    private com.jaee.entity.Order createPendingOrder(User user, Cart cart) {
+    private Order createPendingOrder(User user, Cart cart, Address shippingAddress, String shippingAddressStr) {
         BigDecimal total = cart.getItems().stream()
                 .map(CartItem::getSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        com.jaee.entity.Order order = com.jaee.entity.Order.builder()
+        Order order = Order.builder()
                 .user(user)
-                .status(com.jaee.entity.Order.OrderStatus.PENDING)
+                .status(Order.OrderStatus.PENDING)
                 .totalAmount(total)
                 .currency(cart.getItems().get(0).getProduct().getCurrency())
                 .customerEmail(user.getEmail())
                 .customerPhone(user.getMobileNumber())
+                .shippingAddress(shippingAddressStr)
+                .address(shippingAddress)
                 .build();
 
         for (CartItem cartItem : cart.getItems()) {
@@ -358,5 +364,25 @@ public class CheckoutService {
         }
 
         return orderRepository.save(order);
+    }
+
+    private String formatAddress(Address address) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(address.getLine1());
+        if (address.getLine2() != null && !address.getLine2().isBlank()) {
+            sb.append(", ").append(address.getLine2());
+        }
+        sb.append("\n").append(address.getCity());
+        if (address.getState() != null && !address.getState().isBlank()) {
+            sb.append(", ").append(address.getState());
+        }
+        if (address.getZip() != null && !address.getZip().isBlank()) {
+            sb.append(" - ").append(address.getZip());
+        }
+        sb.append("\n").append(address.getCountry());
+        if (address.getPhone() != null && !address.getPhone().isBlank()) {
+            sb.append("\nPhone: ").append(address.getPhone());
+        }
+        return sb.toString();
     }
 }

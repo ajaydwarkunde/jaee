@@ -97,6 +97,7 @@ public class ProductService {
                 .slug(slug)
                 .description(request.getDescription())
                 .price(request.getPrice())
+                .compareAtPrice(request.getCompareAtPrice())
                 .currency(request.getCurrency())
                 .category(category)
                 .images(request.getImages() != null ? request.getImages() : List.of())
@@ -136,6 +137,7 @@ public class ProductService {
         product.setName(request.getName());
         product.setDescription(request.getDescription());
         product.setPrice(request.getPrice());
+        product.setCompareAtPrice(request.getCompareAtPrice());
         product.setCurrency(request.getCurrency());
         if (request.getImages() != null) {
             product.setImages(request.getImages());

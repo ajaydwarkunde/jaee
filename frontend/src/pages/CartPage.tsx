@@ -1,18 +1,20 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Trash2, Minus, Plus, ArrowRight, ShoppingCart } from 'lucide-react'
+import { Trash2, Minus, Plus, ArrowRight, ShoppingCart, MapPin, ChevronDown, ChevronUp } from 'lucide-react'
 import { cartService } from '@/services/cartService'
 import { checkoutService } from '@/services/checkoutService'
 import { productService } from '@/services/productService'
+import { addressService } from '@/services/addressService'
 import { useAuthStore } from '@/stores/authStore'
 import { useCartStore } from '@/stores/cartStore'
 import { formatPrice } from '@/lib/utils'
 import { loadRazorpayScript, initializeRazorpay } from '@/lib/razorpay'
 import Button from '@/components/ui/Button'
+import Input from '@/components/ui/Input'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import toast from 'react-hot-toast'
-import type { Product } from '@/types'
+import type { Product, Address, AddressFormData } from '@/types'
 
 export default function CartPage() {
   const navigate = useNavigate()
@@ -21,6 +23,12 @@ export default function CartPage() {
   const queryClient = useQueryClient()
   const [guestProducts, setGuestProducts] = useState<Map<number, Product>>(new Map())
   const [loadingGuestProducts, setLoadingGuestProducts] = useState(false)
+  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null)
+  const [showAddressForm, setShowAddressForm] = useState(false)
+  const [showAddressSection, setShowAddressSection] = useState(false)
+  const [addressForm, setAddressForm] = useState<AddressFormData>({
+    line1: '', line2: '', city: '', state: '', country: 'India', zip: '', phone: '', isDefault: true,
+  })
 
   // Get cart for authenticated users
   const { data: cart, isLoading: cartLoading } = useQuery({
@@ -28,6 +36,21 @@ export default function CartPage() {
     queryFn: cartService.getCart,
     enabled: isAuthenticated,
   })
+
+  // Get user addresses
+  const { data: addresses } = useQuery({
+    queryKey: ['addresses'],
+    queryFn: addressService.getAddresses,
+    enabled: isAuthenticated,
+  })
+
+  // Select default address on load
+  useEffect(() => {
+    if (addresses && addresses.length > 0 && !selectedAddressId) {
+      const defaultAddr = addresses.find(a => a.isDefault)
+      setSelectedAddressId(defaultAddr ? defaultAddr.id : addresses[0].id)
+    }
+  }, [addresses, selectedAddressId])
 
   // Load guest cart products
   useEffect(() => {
@@ -39,7 +62,6 @@ export default function CartPage() {
       
       for (const item of guestCart) {
         try {
-          // We'll use the products API - assuming we have a way to get by ID
           const productsData = await productService.getProducts({ size: 100 })
           const product = productsData.content.find(p => p.id === item.productId)
           if (product) {
@@ -77,6 +99,20 @@ export default function CartPage() {
     },
     onError: () => {
       toast.error('Failed to remove item')
+    },
+  })
+
+  const addAddressMutation = useMutation({
+    mutationFn: (data: AddressFormData) => addressService.createAddress(data),
+    onSuccess: (newAddr) => {
+      queryClient.invalidateQueries({ queryKey: ['addresses'] })
+      setSelectedAddressId(newAddr.id)
+      setShowAddressForm(false)
+      setAddressForm({ line1: '', line2: '', city: '', state: '', country: 'India', zip: '', phone: '', isDefault: true })
+      toast.success('Address added!')
+    },
+    onError: () => {
+      toast.error('Failed to add address')
     },
   })
 
@@ -121,24 +157,34 @@ export default function CartPage() {
       return
     }
 
+    if (!selectedAddressId && (!addresses || addresses.length === 0)) {
+      setShowAddressSection(true)
+      setShowAddressForm(true)
+      toast.error('Please add a delivery address')
+      return
+    }
+
+    if (!selectedAddressId) {
+      setShowAddressSection(true)
+      toast.error('Please select a delivery address')
+      return
+    }
+
     setCheckoutLoading(true)
 
     try {
-      // Create order
-      const orderData = await checkoutService.createOrder()
+      // Create order with address
+      const orderData = await checkoutService.createOrder(selectedAddressId)
 
       // TEST MODE: Simulate payment without Razorpay
       if (orderData.testMode) {
-        toast.success('🧪 Test Mode: Simulating payment...')
+        toast.success('Test Mode: Simulating payment...')
         
-        // Simulate a short delay for realistic experience
         await new Promise(resolve => setTimeout(resolve, 1500))
         
-        // Generate mock payment details
         const mockPaymentId = 'test_pay_' + Date.now()
         const mockSignature = 'test_signature_' + Date.now()
         
-        // Verify payment (backend will skip signature verification in test mode)
         verifyPaymentMutation.mutate({
           razorpayOrderId: orderData.orderId,
           razorpayPaymentId: mockPaymentId,
@@ -155,14 +201,13 @@ export default function CartPage() {
         return
       }
 
-      // Initialize Razorpay
       const razorpay = initializeRazorpay({
         key: orderData.keyId,
         amount: orderData.amount,
         currency: orderData.currency,
         name: 'Jaee',
         description: 'Order Payment',
-        image: '/logo.svg',
+        image: '/favicon.svg',
         order_id: orderData.orderId,
         prefill: {
           name: orderData.prefill.name,
@@ -170,10 +215,9 @@ export default function CartPage() {
           contact: orderData.prefill.contact,
         },
         theme: {
-          color: '#D4A5A5', // Rose color matching the brand
+          color: '#E9868B',
         },
         handler: (response) => {
-          // Verify payment on backend
           verifyPaymentMutation.mutate({
             razorpayOrderId: response.razorpay_order_id,
             razorpayPaymentId: response.razorpay_payment_id,
@@ -216,6 +260,8 @@ export default function CartPage() {
   if (isLoading) {
     return <LoadingSpinner fullScreen />
   }
+
+  const selectedAddress = addresses?.find(a => a.id === selectedAddressId)
 
   return (
     <div className="bg-cream min-h-screen py-8 md:py-12">
@@ -322,9 +368,16 @@ export default function CartPage() {
                         >
                           {product.name}
                         </Link>
-                        <p className="text-rose font-medium mt-1">
-                          {formatPrice(product.price)}
-                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-rose font-medium">
+                            {formatPrice(product.price)}
+                          </span>
+                          {product.compareAtPrice && product.compareAtPrice > product.price && (
+                            <span className="text-sm text-warm-gray line-through">
+                              {formatPrice(product.compareAtPrice)}
+                            </span>
+                          )}
+                        </div>
 
                         <div className="flex items-center justify-between mt-3">
                           <div className="flex items-center border border-blush rounded-lg">
@@ -364,6 +417,153 @@ export default function CartPage() {
                   )
                 })
               )}
+
+              {/* Delivery Address Section - shown for authenticated users */}
+              {isAuthenticated && (
+                <div className="bg-soft-white rounded-xl p-6 shadow-soft">
+                  <button
+                    onClick={() => setShowAddressSection(!showAddressSection)}
+                    className="w-full flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3">
+                      <MapPin className="w-5 h-5 text-rose" />
+                      <h3 className="font-serif text-lg font-medium text-charcoal">Delivery Address</h3>
+                    </div>
+                    {showAddressSection ? (
+                      <ChevronUp className="w-5 h-5 text-warm-gray" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-warm-gray" />
+                    )}
+                  </button>
+
+                  {/* Selected address preview */}
+                  {!showAddressSection && selectedAddress && (
+                    <p className="text-sm text-warm-gray mt-2 ml-8">
+                      {selectedAddress.line1}, {selectedAddress.city} - {selectedAddress.zip}
+                    </p>
+                  )}
+
+                  {showAddressSection && (
+                    <div className="mt-4 space-y-3">
+                      {/* Existing addresses */}
+                      {addresses && addresses.length > 0 && (
+                        <div className="space-y-2">
+                          {addresses.map((addr) => (
+                            <label
+                              key={addr.id}
+                              className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                                selectedAddressId === addr.id
+                                  ? 'border-rose bg-rose/5'
+                                  : 'border-blush hover:border-rose/50'
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name="address"
+                                checked={selectedAddressId === addr.id}
+                                onChange={() => setSelectedAddressId(addr.id)}
+                                className="mt-1 accent-rose"
+                              />
+                              <div className="flex-1 text-sm">
+                                <p className="font-medium text-charcoal">{addr.line1}</p>
+                                {addr.line2 && <p className="text-warm-gray">{addr.line2}</p>}
+                                <p className="text-warm-gray">
+                                  {addr.city}{addr.state ? `, ${addr.state}` : ''} {addr.zip ? `- ${addr.zip}` : ''}
+                                </p>
+                                <p className="text-warm-gray">{addr.country}</p>
+                                {addr.phone && <p className="text-warm-gray">Phone: {addr.phone}</p>}
+                                {addr.isDefault && (
+                                  <span className="inline-block mt-1 text-xs bg-rose/10 text-rose px-2 py-0.5 rounded-full">
+                                    Default
+                                  </span>
+                                )}
+                              </div>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Add new address button/form */}
+                      {!showAddressForm ? (
+                        <button
+                          onClick={() => setShowAddressForm(true)}
+                          className="w-full p-3 border-2 border-dashed border-blush rounded-lg text-rose text-sm font-medium hover:bg-rose/5 transition-colors"
+                        >
+                          + Add New Address
+                        </button>
+                      ) : (
+                        <div className="p-4 border border-blush rounded-lg space-y-3">
+                          <h4 className="font-medium text-charcoal text-sm">New Address</h4>
+                          <Input
+                            label="Address Line 1"
+                            value={addressForm.line1}
+                            onChange={(e) => setAddressForm({ ...addressForm, line1: e.target.value })}
+                            placeholder="123 Main Street, Apt 4B"
+                            required
+                          />
+                          <Input
+                            label="Address Line 2 (optional)"
+                            value={addressForm.line2 || ''}
+                            onChange={(e) => setAddressForm({ ...addressForm, line2: e.target.value })}
+                            placeholder="Near landmark"
+                          />
+                          <div className="grid grid-cols-2 gap-3">
+                            <Input
+                              label="City"
+                              value={addressForm.city}
+                              onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
+                              placeholder="Mumbai"
+                              required
+                            />
+                            <Input
+                              label="State"
+                              value={addressForm.state || ''}
+                              onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })}
+                              placeholder="Maharashtra"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <Input
+                              label="PIN Code"
+                              value={addressForm.zip || ''}
+                              onChange={(e) => setAddressForm({ ...addressForm, zip: e.target.value })}
+                              placeholder="400001"
+                            />
+                            <Input
+                              label="Phone"
+                              value={addressForm.phone || ''}
+                              onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
+                              placeholder="+91 98765 43210"
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                if (!addressForm.line1 || !addressForm.city) {
+                                  toast.error('Please fill address line 1 and city')
+                                  return
+                                }
+                                addAddressMutation.mutate(addressForm)
+                              }}
+                              loading={addAddressMutation.isPending}
+                            >
+                              Save Address
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setShowAddressForm(false)}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Order Summary */}
@@ -391,6 +591,17 @@ export default function CartPage() {
                     </span>
                   </div>
                 </div>
+
+                {/* Delivery info summary */}
+                {isAuthenticated && selectedAddress && (
+                  <div className="mb-4 p-3 bg-cream rounded-lg">
+                    <p className="text-xs text-warm-gray uppercase tracking-wide mb-1">Delivering to</p>
+                    <p className="text-sm text-charcoal font-medium">{selectedAddress.line1}</p>
+                    <p className="text-xs text-warm-gray">
+                      {selectedAddress.city}{selectedAddress.zip ? ` - ${selectedAddress.zip}` : ''}
+                    </p>
+                  </div>
+                )}
 
                 <Button
                   onClick={handleCheckout}

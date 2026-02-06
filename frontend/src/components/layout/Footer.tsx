@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Instagram, Mail, Phone } from 'lucide-react'
+import Logo from '../ui/Logo'
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
@@ -10,13 +11,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
           {/* Brand */}
           <div className="md:col-span-2">
-            <Link to="/" className="inline-block">
-              <img 
-                src="/logo.png" 
-                alt="Jaee" 
-                className="h-12 w-auto brightness-0 invert"
-              />
-            </Link>
+            <Logo size="lg" variant="light" />
             <p className="mt-4 text-cream/70 max-w-md leading-relaxed">
               Bringing warmth and beauty into your home with handcrafted candles and carefully 
               curated home décor. Each piece is designed to create moments of calm and joy.

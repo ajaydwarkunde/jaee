@@ -16,6 +16,7 @@ import java.util.List;
 public class NewsletterService {
 
     private final NewsletterSubscriberRepository subscriberRepository;
+    private final EmailService emailService;
 
     /**
      * Subscribe an email to the newsletter
@@ -43,8 +44,15 @@ public class NewsletterService {
                             .email(normalizedEmail)
                             .source(source != null ? source : "website")
                             .build();
+                    NewsletterSubscriber saved = subscriberRepository.save(subscriber);
                     log.info("New newsletter subscription: {}", normalizedEmail);
-                    return subscriberRepository.save(subscriber);
+                    // Send welcome email
+                    try {
+                        emailService.sendNewsletterWelcome(normalizedEmail);
+                    } catch (Exception e) {
+                        log.error("Failed to send newsletter welcome email to {}: {}", normalizedEmail, e.getMessage());
+                    }
+                    return saved;
                 });
     }
 

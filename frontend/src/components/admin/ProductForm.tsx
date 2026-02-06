@@ -11,6 +11,7 @@ const productSchema = z.object({
   name: z.string().min(1, 'Name is required').max(200),
   description: z.string().optional(),
   price: z.coerce.number().positive('Price must be greater than 0'),
+  compareAtPrice: z.coerce.number().min(0).optional().or(z.literal('')),
   currency: z.string().default('INR'),
   categoryId: z.coerce.number().optional(),
   images: z.string().optional(),
@@ -45,6 +46,7 @@ export default function ProductForm({
       name: product?.name || '',
       description: product?.description || '',
       price: product?.price || 0,
+      compareAtPrice: product?.compareAtPrice || '',
       currency: product?.currency || 'INR',
       categoryId: product?.categoryId || undefined,
       images: product?.images.join('\n') || '',
@@ -62,6 +64,7 @@ export default function ProductForm({
       name: data.name,
       description: data.description,
       price: data.price,
+      compareAtPrice: data.compareAtPrice && data.compareAtPrice !== '' ? Number(data.compareAtPrice) : undefined,
       currency: data.currency,
       categoryId: data.categoryId,
       images,
@@ -90,13 +93,20 @@ export default function ProductForm({
         error={errors.description?.message}
       />
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <Input
-          label="Price"
+          label="Selling Price"
           type="number"
           step="0.01"
           {...register('price')}
           error={errors.price?.message}
+        />
+        <Input
+          label="Compare at Price"
+          type="number"
+          step="0.01"
+          placeholder="Original price (optional)"
+          {...register('compareAtPrice')}
         />
         <Select
           label="Currency"

@@ -12,6 +12,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const imageUrl = product.images[0] || 'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=400'
+  const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price
 
   return (
     <div className="group bg-soft-white rounded-lg overflow-hidden shadow-soft hover:shadow-soft-md transition-all duration-300">
@@ -27,6 +28,9 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2">
+          {hasDiscount && product.discountPercent && (
+            <Badge variant="success">{product.discountPercent}% OFF</Badge>
+          )}
           {!product.inStock && (
             <Badge variant="error">Out of Stock</Badge>
           )}
@@ -72,9 +76,16 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         <h3 className="font-serif text-lg font-medium text-charcoal line-clamp-1 group-hover:text-rose transition-colors">
           {product.name}
         </h3>
-        <p className="mt-2 font-medium text-rose">
-          {formatPrice(product.price, product.currency)}
-        </p>
+        <div className="mt-2 flex items-center gap-2">
+          <span className="font-medium text-rose">
+            {formatPrice(product.price, product.currency)}
+          </span>
+          {hasDiscount && (
+            <span className="text-sm text-warm-gray line-through">
+              {formatPrice(product.compareAtPrice!, product.currency)}
+            </span>
+          )}
+        </div>
       </Link>
     </div>
   )

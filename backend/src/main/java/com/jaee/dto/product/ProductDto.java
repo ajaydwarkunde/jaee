@@ -20,6 +20,8 @@ public class ProductDto {
     private String slug;
     private String description;
     private BigDecimal price;
+    private BigDecimal compareAtPrice;
+    private Integer discountPercent;
     private String currency;
     private Long categoryId;
     private String categoryName;
@@ -29,6 +31,14 @@ public class ProductDto {
     private Boolean inStock;
     private LocalDateTime createdAt;
     
+    private static Integer calculateDiscount(BigDecimal price, BigDecimal compareAtPrice) {
+        if (compareAtPrice == null || compareAtPrice.compareTo(price) <= 0) return null;
+        return compareAtPrice.subtract(price)
+                .multiply(java.math.BigDecimal.valueOf(100))
+                .divide(compareAtPrice, 0, java.math.RoundingMode.HALF_UP)
+                .intValue();
+    }
+
     public static ProductDto fromEntity(Product product) {
         return ProductDto.builder()
                 .id(product.getId())
@@ -36,6 +46,8 @@ public class ProductDto {
                 .slug(product.getSlug())
                 .description(product.getDescription())
                 .price(product.getPrice())
+                .compareAtPrice(product.getCompareAtPrice())
+                .discountPercent(calculateDiscount(product.getPrice(), product.getCompareAtPrice()))
                 .currency(product.getCurrency())
                 .categoryId(product.getCategory() != null ? product.getCategory().getId() : null)
                 .categoryName(product.getCategory() != null ? product.getCategory().getName() : null)

@@ -10,6 +10,7 @@ import { getErrorMessage } from '@/lib/api'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import toast from 'react-hot-toast'
+import Logo from '@/components/ui/Logo'
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -84,7 +85,7 @@ export default function ForgotPasswordPage() {
           {/* Header */}
           <div className="text-center mb-8">
             <Link to="/" className="inline-block">
-              <img src="/logo.png" alt="Jaee" className="h-12 w-auto mx-auto" />
+              <Logo size="lg" className="mx-auto" linkTo={false} />
             </Link>
             <h1 className="heading-4 text-charcoal mt-4">Forgot Password?</h1>
             <p className="text-warm-gray mt-2">

@@ -31,8 +31,10 @@ export const checkoutService = {
   /**
    * Create a Razorpay order for checkout
    */
-  createOrder: async (): Promise<RazorpayOrderData> => {
-    const response = await api.post<ApiResponse<RazorpayOrderData>>('/checkout/create-order')
+  createOrder: async (addressId?: number): Promise<RazorpayOrderData> => {
+    const response = await api.post<ApiResponse<RazorpayOrderData>>('/checkout/create-order', 
+      addressId ? { addressId } : {}
+    )
     return response.data.data
   },
 

@@ -33,6 +33,9 @@ public class Product {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
+    @Column(precision = 10, scale = 2)
+    private BigDecimal compareAtPrice;
+
     @Builder.Default
     private String currency = "INR";
 

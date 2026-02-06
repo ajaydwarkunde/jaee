@@ -143,10 +143,18 @@ export default function ProductPage() {
             
             <h1 className="heading-2 text-charcoal mb-4">{product.name}</h1>
 
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex items-center gap-4 mb-6 flex-wrap">
               <span className="text-3xl font-serif font-semibold text-rose">
                 {formatPrice(product.price, product.currency)}
               </span>
+              {product.compareAtPrice && product.compareAtPrice > product.price && (
+                <>
+                  <span className="text-xl text-warm-gray line-through">
+                    {formatPrice(product.compareAtPrice, product.currency)}
+                  </span>
+                  <Badge variant="success" size="md">{product.discountPercent}% OFF</Badge>
+                </>
+              )}
               {!product.inStock ? (
                 <Badge variant="error" size="md">Out of Stock</Badge>
               ) : product.stockQty <= 5 ? (

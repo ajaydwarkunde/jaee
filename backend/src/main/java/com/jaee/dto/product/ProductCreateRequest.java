@@ -19,6 +19,9 @@ public class ProductCreateRequest {
     @NotNull(message = "Price is required")
     @DecimalMin(value = "0.01", message = "Price must be greater than 0")
     private BigDecimal price;
+
+    @DecimalMin(value = "0.01", message = "Compare at price must be greater than 0")
+    private BigDecimal compareAtPrice;
     
     private String currency = "INR";
     

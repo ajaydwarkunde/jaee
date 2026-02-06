@@ -38,6 +38,8 @@ export interface Product {
   slug: string
   description: string | null
   price: number
+  compareAtPrice: number | null
+  discountPercent: number | null
   currency: string
   categoryId: number | null
   categoryName: string | null
@@ -120,6 +122,30 @@ export interface Order {
   paidAt: string | null
 }
 
+// Address types
+export interface Address {
+  id: number
+  line1: string
+  line2: string | null
+  city: string
+  state: string | null
+  country: string
+  zip: string | null
+  phone: string | null
+  isDefault: boolean
+}
+
+export interface AddressFormData {
+  line1: string
+  line2?: string
+  city: string
+  state?: string
+  country: string
+  zip?: string
+  phone?: string
+  isDefault?: boolean
+}
+
 // Form types
 export interface LoginFormData {
   email: string
@@ -145,6 +171,7 @@ export interface ProductFormData {
   name: string
   description?: string
   price: number
+  compareAtPrice?: number
   currency: string
   categoryId?: number
   images: string[]

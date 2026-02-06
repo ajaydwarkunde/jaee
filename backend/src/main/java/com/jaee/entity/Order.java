@@ -45,6 +45,10 @@ public class Order {
 
     private String shippingAddress;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "address_id")
+    private Address address;
+
     private String customerEmail;
 
     private String customerPhone;

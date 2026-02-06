@@ -29,10 +29,17 @@ public class CheckoutController {
     @PostMapping("/create-order")
     @Operation(summary = "Create Razorpay order for checkout")
     public ResponseEntity<ApiResponse<Map<String, Object>>> createOrder(
-            @AuthenticationPrincipal User user
+            @AuthenticationPrincipal User user,
+            @RequestBody(required = false) CreateOrderRequest request
     ) throws RazorpayException {
-        Map<String, Object> orderData = checkoutService.createOrder(user);
+        Long addressId = request != null ? request.getAddressId() : null;
+        Map<String, Object> orderData = checkoutService.createOrder(user, addressId);
         return ResponseEntity.ok(ApiResponse.success("Order created successfully", orderData));
+    }
+
+    @Data
+    public static class CreateOrderRequest {
+        private Long addressId;
     }
 
     @PostMapping("/verify-payment")

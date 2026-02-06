@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query'
 import { cartService } from '@/services/cartService'
 import { cn } from '@/lib/utils'
 import Button from '../ui/Button'
+import Logo from '../ui/Logo'
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -62,16 +63,7 @@ export default function Header() {
           </button>
 
           {/* Logo */}
-          <Link 
-            to="/" 
-            className="flex items-center hover:opacity-90 transition-opacity"
-          >
-            <img 
-              src="/logo.png" 
-              alt="Jaee" 
-              className="h-10 md:h-12 w-auto"
-            />
-          </Link>
+          <Logo size="lg" />
 
           {/* Desktop navigation */}
           <ul className="hidden md:flex items-center gap-8">
