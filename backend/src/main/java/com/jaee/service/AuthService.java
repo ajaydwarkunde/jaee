@@ -8,6 +8,7 @@ import com.jaee.exception.UnauthorizedException;
 import com.jaee.repository.RefreshTokenRepository;
 import com.jaee.repository.UserRepository;
 import com.jaee.security.JwtService;
+import com.jaee.util.PasswordUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -36,10 +37,13 @@ public class AuthService {
             throw new BadRequestException("Email is already registered");
         }
 
+        // Decode password if it was encoded by the frontend
+        String decodedPassword = PasswordUtil.decodeIfEncoded(request.getPassword());
+
         User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail().toLowerCase())
-                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .passwordHash(passwordEncoder.encode(decodedPassword))
                 .role(User.Role.USER)
                 .build();
 
@@ -51,10 +55,13 @@ public class AuthService {
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
+        // Decode password if it was encoded by the frontend
+        String decodedPassword = PasswordUtil.decodeIfEncoded(request.getPassword());
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail().toLowerCase(),
-                        request.getPassword()
+                        decodedPassword
                 )
         );
 

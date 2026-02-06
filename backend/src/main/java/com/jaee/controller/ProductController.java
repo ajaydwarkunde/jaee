@@ -54,4 +54,14 @@ public class ProductController {
         List<ProductDto> products = productService.getFeaturedProducts(limit);
         return ResponseEntity.ok(ApiResponse.success(products));
     }
+
+    @GetMapping("/on-sale")
+    @Operation(summary = "Get products currently on sale (with discount)")
+    public ResponseEntity<ApiResponse<PageResponse<ProductDto>>> getOnSaleProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size
+    ) {
+        PageResponse<ProductDto> products = productService.getOnSaleProducts(page, size);
+        return ResponseEntity.ok(ApiResponse.success(products));
+    }
 }

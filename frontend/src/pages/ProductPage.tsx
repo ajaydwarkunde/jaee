@@ -175,11 +175,11 @@ export default function ProductPage() {
               <div className="space-y-4 mb-8">
                 <div className="flex items-center gap-4">
                   <span className="text-sm font-medium text-charcoal">Quantity:</span>
-                  <div className="flex items-center border border-blush rounded-lg">
+                  <div className="flex items-center border border-blush rounded-full">
                     <button
                       onClick={() => handleQuantityChange(-1)}
                       disabled={quantity <= 1}
-                      className="p-2 hover:bg-blush transition-colors disabled:opacity-50"
+                      className="p-2 hover:bg-blush rounded-l-full transition-colors disabled:opacity-50"
                     >
                       <Minus className="w-4 h-4" />
                     </button>
@@ -189,7 +189,7 @@ export default function ProductPage() {
                     <button
                       onClick={() => handleQuantityChange(1)}
                       disabled={quantity >= product.stockQty}
-                      className="p-2 hover:bg-blush transition-colors disabled:opacity-50"
+                      className="p-2 hover:bg-blush rounded-r-full transition-colors disabled:opacity-50"
                     >
                       <Plus className="w-4 h-4" />
                     </button>

@@ -24,6 +24,7 @@ const OrderFailurePage = lazy(() => import('./pages/OrderFailurePage'))
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
 const AdminProducts = lazy(() => import('./pages/admin/AdminProducts'))
 const AdminCategories = lazy(() => import('./pages/admin/AdminCategories'))
+const SalePage = lazy(() => import('./pages/SalePage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
           <Route path="shop" element={<ShopPage />} />
           <Route path="shop/:categorySlug" element={<ShopPage />} />
           <Route path="product/:slug" element={<ProductPage />} />
+          <Route path="sale" element={<SalePage />} />
           <Route path="cart" element={<CartPage />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />

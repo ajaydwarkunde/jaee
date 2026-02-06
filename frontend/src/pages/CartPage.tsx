@@ -307,11 +307,11 @@ export default function CartPage() {
                       </p>
 
                       <div className="flex items-center justify-between mt-3">
-                        <div className="flex items-center border border-blush rounded-lg">
+                        <div className="flex items-center border border-blush rounded-full">
                           <button
                             onClick={() => handleUpdateQuantity(item.id, item.productId, -1, item.qty)}
                             disabled={item.qty <= 1}
-                            className="p-1.5 hover:bg-blush transition-colors disabled:opacity-50"
+                            className="p-1.5 hover:bg-blush rounded-l-full transition-colors disabled:opacity-50"
                           >
                             <Minus className="w-4 h-4" />
                           </button>
@@ -321,7 +321,7 @@ export default function CartPage() {
                           <button
                             onClick={() => handleUpdateQuantity(item.id, item.productId, 1, item.qty)}
                             disabled={item.qty >= item.availableQty}
-                            className="p-1.5 hover:bg-blush transition-colors disabled:opacity-50"
+                            className="p-1.5 hover:bg-blush rounded-r-full transition-colors disabled:opacity-50"
                           >
                             <Plus className="w-4 h-4" />
                           </button>
@@ -380,11 +380,11 @@ export default function CartPage() {
                         </div>
 
                         <div className="flex items-center justify-between mt-3">
-                          <div className="flex items-center border border-blush rounded-lg">
+                          <div className="flex items-center border border-blush rounded-full">
                             <button
                               onClick={() => handleUpdateQuantity(0, item.productId, -1, item.qty)}
                               disabled={item.qty <= 1}
-                              className="p-1.5 hover:bg-blush transition-colors disabled:opacity-50"
+                              className="p-1.5 hover:bg-blush rounded-l-full transition-colors disabled:opacity-50"
                             >
                               <Minus className="w-4 h-4" />
                             </button>
@@ -393,7 +393,7 @@ export default function CartPage() {
                             </span>
                             <button
                               onClick={() => handleUpdateQuantity(0, item.productId, 1, item.qty)}
-                              className="p-1.5 hover:bg-blush transition-colors"
+                              className="p-1.5 hover:bg-blush rounded-r-full transition-colors"
                             >
                               <Plus className="w-4 h-4" />
                             </button>

@@ -45,4 +45,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     
     @Query("SELECT p FROM Product p WHERE p.active = true ORDER BY p.createdAt DESC")
     List<Product> findFeaturedProducts(Pageable pageable);
+
+    @Query("SELECT p FROM Product p WHERE p.active = true AND p.compareAtPrice IS NOT NULL AND p.compareAtPrice > p.price")
+    Page<Product> findOnSaleProducts(Pageable pageable);
 }

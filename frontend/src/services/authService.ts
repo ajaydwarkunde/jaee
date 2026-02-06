@@ -1,4 +1,5 @@
 import { api } from '@/lib/api'
+import { encodePassword } from '@/lib/crypto'
 import type { 
   ApiResponse, 
   AuthResponse, 
@@ -21,12 +22,18 @@ export interface OtpRequestResponse {
 
 export const authService = {
   register: async (data: RegisterFormData): Promise<AuthResponse> => {
-    const response = await api.post<ApiResponse<AuthResponse>>('/auth/register', data)
+    const response = await api.post<ApiResponse<AuthResponse>>('/auth/register', {
+      ...data,
+      password: encodePassword(data.password),
+    })
     return response.data.data
   },
 
   login: async (data: LoginFormData): Promise<AuthResponse> => {
-    const response = await api.post<ApiResponse<AuthResponse>>('/auth/login', data)
+    const response = await api.post<ApiResponse<AuthResponse>>('/auth/login', {
+      ...data,
+      password: encodePassword(data.password),
+    })
     return response.data.data
   },
 
@@ -61,7 +68,10 @@ export const authService = {
   },
 
   changePassword: async (data: ChangePasswordData): Promise<void> => {
-    await api.post('/me/change-password', data)
+    await api.post('/me/change-password', {
+      currentPassword: encodePassword(data.currentPassword),
+      newPassword: encodePassword(data.newPassword),
+    })
   },
 
   // Mobile number change
@@ -95,6 +105,6 @@ export const authService = {
   },
 
   resetPassword: async (token: string, newPassword: string): Promise<void> => {
-    await api.post('/auth/reset-password', { token, newPassword })
+    await api.post('/auth/reset-password', { token, newPassword: encodePassword(newPassword) })
   },
 }

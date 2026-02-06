@@ -28,6 +28,11 @@ export const productService = {
     return response.data.data
   },
 
+  getOnSaleProducts: async (page: number = 0, size: number = 12): Promise<PageResponse<Product>> => {
+    const response = await api.get<ApiResponse<PageResponse<Product>>>(`/products/on-sale?page=${page}&size=${size}`)
+    return response.data.data
+  },
+
   // Admin endpoints
   createProduct: async (data: ProductFormData): Promise<Product> => {
     const response = await api.post<ApiResponse<Product>>('/admin/products', data)

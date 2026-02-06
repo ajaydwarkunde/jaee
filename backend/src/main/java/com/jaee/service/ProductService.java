@@ -75,6 +75,12 @@ public class ProductService {
                 .collect(Collectors.toList());
     }
 
+    public PageResponse<ProductDto> getOnSaleProducts(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Product> productPage = productRepository.findOnSaleProducts(pageable);
+        return PageResponse.from(productPage, ProductDto::fromEntity);
+    }
+
     @Transactional
     public ProductDto createProduct(ProductCreateRequest request) {
         String slug = toSlug(request.getName());

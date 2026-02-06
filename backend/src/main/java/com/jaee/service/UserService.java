@@ -7,6 +7,7 @@ import com.jaee.exception.BadRequestException;
 import com.jaee.exception.UnauthorizedException;
 import com.jaee.repository.UserRepository;
 import com.jaee.security.JwtService;
+import com.jaee.util.PasswordUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -47,17 +48,21 @@ public class UserService {
      */
     @Transactional
     public void changePassword(User user, ChangePasswordRequest request) {
+        // Decode passwords if they were encoded by the frontend
+        String currentPassword = PasswordUtil.decodeIfEncoded(request.getCurrentPassword());
+        String newPassword = PasswordUtil.decodeIfEncoded(request.getNewPassword());
+
         // Verify current password
-        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
             throw new UnauthorizedException("Current password is incorrect");
         }
 
         // Ensure new password is different
-        if (passwordEncoder.matches(request.getNewPassword(), user.getPasswordHash())) {
+        if (passwordEncoder.matches(newPassword, user.getPasswordHash())) {
             throw new BadRequestException("New password must be different from current password");
         }
 
-        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
         user.setPasswordChangedAt(LocalDateTime.now());
         userRepository.save(user);
 
@@ -223,7 +228,10 @@ public class UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BadRequestException("User not found"));
 
-        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        // Decode password if it was encoded by the frontend
+        String decodedPassword = PasswordUtil.decodeIfEncoded(newPassword);
+
+        user.setPasswordHash(passwordEncoder.encode(decodedPassword));
         user.setPasswordChangedAt(LocalDateTime.now());
         userRepository.save(user);
 
