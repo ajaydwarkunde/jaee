@@ -14,7 +14,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import toast from 'react-hot-toast'
-import type { Product, Address, AddressFormData } from '@/types'
+import type { Product, AddressFormData } from '@/types'
 
 export default function CartPage() {
   const navigate = useNavigate()

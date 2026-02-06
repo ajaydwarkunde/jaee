@@ -64,7 +64,7 @@ export default function ProductForm({
       name: data.name,
       description: data.description,
       price: data.price,
-      compareAtPrice: data.compareAtPrice && data.compareAtPrice !== '' ? Number(data.compareAtPrice) : undefined,
+      compareAtPrice: data.compareAtPrice ? Number(data.compareAtPrice) : undefined,
       currency: data.currency,
       categoryId: data.categoryId,
       images,
