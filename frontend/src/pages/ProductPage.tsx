@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ShoppingBag, Heart, Minus, Plus, ChevronLeft, Truck, RotateCcw, Shield } from 'lucide-react'
 import { productService } from '@/services/productService'
 import { cartService } from '@/services/cartService'
+import { wishlistService } from '@/services/wishlistService'
 import { useAuthStore } from '@/stores/authStore'
 import { useCartStore } from '@/stores/cartStore'
 import { formatPrice } from '@/lib/utils'
@@ -37,6 +38,42 @@ export default function ProductPage() {
       toast.error('Failed to add to cart')
     },
   })
+
+  // Wishlist
+  const { data: wishlistIds = [] } = useQuery({
+    queryKey: ['wishlistIds'],
+    queryFn: wishlistService.getWishlistProductIds,
+    enabled: isAuthenticated,
+  })
+
+  const isWishlisted = product ? wishlistIds.includes(product.id) : false
+
+  const toggleWishlistMutation = useMutation({
+    mutationFn: async () => {
+      if (!product) throw new Error('No product')
+      if (isWishlisted) {
+        await wishlistService.removeFromWishlist(product.id)
+      } else {
+        await wishlistService.addToWishlist(product.id)
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wishlistIds'] })
+      queryClient.invalidateQueries({ queryKey: ['wishlist'] })
+      toast.success(isWishlisted ? 'Removed from wishlist' : 'Added to wishlist')
+    },
+    onError: () => {
+      toast.error('Please login to use wishlist')
+    },
+  })
+
+  const handleWishlistToggle = () => {
+    if (!isAuthenticated) {
+      toast.error('Please login to add to wishlist')
+      return
+    }
+    toggleWishlistMutation.mutate()
+  }
 
   const handleAddToCart = () => {
     if (!product) return
@@ -206,8 +243,14 @@ export default function ProductPage() {
                   >
                     Add to Cart
                   </Button>
-                  <Button variant="outline" size="lg" aria-label="Add to wishlist">
-                    <Heart className="w-5 h-5" />
+                  <Button
+                    variant={isWishlisted ? 'primary' : 'outline'}
+                    size="lg"
+                    aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                    onClick={handleWishlistToggle}
+                    loading={toggleWishlistMutation.isPending}
+                  >
+                    <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
                   </Button>
                 </div>
               </div>

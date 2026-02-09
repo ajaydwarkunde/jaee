@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { ShoppingBag, User, Menu, X, Search, LogOut } from 'lucide-react'
+import { ShoppingBag, User, Menu, X, Search, LogOut, Heart } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { useCartStore } from '@/stores/cartStore'
 import { useQuery } from '@tanstack/react-query'
 import { cartService } from '@/services/cartService'
+import { wishlistService } from '@/services/wishlistService'
 import { cn } from '@/lib/utils'
 import Button from '../ui/Button'
 import Logo from '../ui/Logo'
@@ -26,6 +27,15 @@ export default function Header() {
   })
 
   const cartCount = isAuthenticated ? (cart?.itemCount ?? 0) : guestCartCount
+
+  // Get wishlist count for logged-in users
+  const { data: wishlistIds } = useQuery({
+    queryKey: ['wishlistIds'],
+    queryFn: wishlistService.getWishlistProductIds,
+    enabled: isAuthenticated,
+  })
+
+  const wishlistCount = wishlistIds?.length ?? 0
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -149,6 +159,20 @@ export default function Header() {
               </Link>
             )}
 
+            {/* Wishlist */}
+            <Link
+              to="/wishlist"
+              className="relative p-2 text-charcoal hover:text-rose transition-colors"
+              aria-label="Wishlist"
+            >
+              <Heart className="w-5 h-5" />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-rose text-soft-white text-xs font-medium rounded-full flex items-center justify-center">
+                  {wishlistCount > 9 ? '9+' : wishlistCount}
+                </span>
+              )}
+            </Link>
+
             {/* Cart */}
             <Link
               to="/cart"
@@ -222,6 +246,15 @@ export default function Header() {
                       className="block py-2 text-base font-medium text-charcoal"
                     >
                       My Account
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/wishlist"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block py-2 text-base font-medium text-charcoal"
+                    >
+                      My Wishlist {wishlistCount > 0 && `(${wishlistCount})`}
                     </Link>
                   </li>
                   <li>

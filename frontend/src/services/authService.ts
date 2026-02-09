@@ -23,7 +23,9 @@ export interface OtpRequestResponse {
 export const authService = {
   register: async (data: RegisterFormData): Promise<AuthResponse> => {
     const response = await api.post<ApiResponse<AuthResponse>>('/auth/register', {
-      ...data,
+      name: data.name,
+      email: data.email,
+      mobileNumber: data.mobileNumber,
       password: encodePassword(data.password),
     })
     return response.data.data

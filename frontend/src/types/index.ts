@@ -155,6 +155,7 @@ export interface LoginFormData {
 export interface RegisterFormData {
   name: string
   email: string
+  mobileNumber: string
   password: string
 }
 

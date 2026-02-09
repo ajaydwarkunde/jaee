@@ -1,9 +1,13 @@
 import { Link } from 'react-router-dom'
 import { ShoppingBag, Heart } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatPrice } from '@/lib/utils'
+import { wishlistService } from '@/services/wishlistService'
+import { useAuthStore } from '@/stores/authStore'
 import type { Product } from '@/types'
 import Badge from '../ui/Badge'
 import LazyImage from '../ui/LazyImage'
+import toast from 'react-hot-toast'
 
 interface ProductCardProps {
   product: Product
@@ -13,6 +17,45 @@ interface ProductCardProps {
 export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const imageUrl = product.images[0] || 'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=400'
   const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price
+  const { isAuthenticated } = useAuthStore()
+  const queryClient = useQueryClient()
+
+  // Get wishlist product IDs
+  const { data: wishlistIds = [] } = useQuery({
+    queryKey: ['wishlistIds'],
+    queryFn: wishlistService.getWishlistProductIds,
+    enabled: isAuthenticated,
+  })
+
+  const isWishlisted = wishlistIds.includes(product.id)
+
+  const toggleWishlistMutation = useMutation({
+    mutationFn: async () => {
+      if (isWishlisted) {
+        await wishlistService.removeFromWishlist(product.id)
+      } else {
+        await wishlistService.addToWishlist(product.id)
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wishlistIds'] })
+      queryClient.invalidateQueries({ queryKey: ['wishlist'] })
+      toast.success(isWishlisted ? 'Removed from wishlist' : 'Added to wishlist')
+    },
+    onError: () => {
+      toast.error('Please login to use wishlist')
+    },
+  })
+
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!isAuthenticated) {
+      toast.error('Please login to add to wishlist')
+      return
+    }
+    toggleWishlistMutation.mutate()
+  }
 
   return (
     <div className="group bg-soft-white rounded-lg overflow-hidden shadow-soft hover:shadow-soft-md transition-all duration-300">
@@ -39,13 +82,18 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           )}
         </div>
 
-        {/* Quick actions */}
-        <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        {/* Quick actions - Wishlist heart */}
+        <div className="absolute top-3 right-3 flex flex-col gap-2">
           <button
-            className="p-2 bg-soft-white/90 backdrop-blur-sm rounded-full shadow-soft hover:bg-rose hover:text-soft-white transition-colors"
-            aria-label="Add to wishlist"
+            onClick={handleWishlistToggle}
+            className={`p-2 rounded-full shadow-soft transition-colors ${
+              isWishlisted
+                ? 'bg-rose text-soft-white'
+                : 'bg-soft-white/90 backdrop-blur-sm hover:bg-rose hover:text-soft-white opacity-0 group-hover:opacity-100'
+            }`}
+            aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
           >
-            <Heart className="w-4 h-4" />
+            <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
           </button>
         </div>
 

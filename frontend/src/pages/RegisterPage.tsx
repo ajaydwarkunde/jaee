@@ -18,6 +18,9 @@ import Logo from '@/components/ui/Logo'
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
+  mobileNumber: z.string()
+    .min(10, 'Mobile number must be at least 10 digits')
+    .regex(/^\+?[1-9]\d{6,14}$/, 'Enter a valid mobile number (e.g. +919876543210)'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -42,6 +45,7 @@ export default function RegisterPage() {
     mutationFn: (data: RegisterForm) => authService.register({
       name: data.name,
       email: data.email,
+      mobileNumber: data.mobileNumber,
       password: data.password,
     }),
     onSuccess: async (data) => {
@@ -95,6 +99,13 @@ export default function RegisterPage() {
                 placeholder="you@example.com"
                 {...form.register('email')}
                 error={form.formState.errors.email?.message}
+              />
+              <Input
+                label="Mobile Number"
+                type="tel"
+                placeholder="+919876543210"
+                {...form.register('mobileNumber')}
+                error={form.formState.errors.mobileNumber?.message}
               />
               <Input
                 label="Password"

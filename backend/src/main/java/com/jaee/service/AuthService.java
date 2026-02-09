@@ -40,9 +40,17 @@ public class AuthService {
         // Decode password if it was encoded by the frontend
         String decodedPassword = PasswordUtil.decodeIfEncoded(request.getPassword());
 
+        // Check if mobile number is already in use
+        if (request.getMobileNumber() != null && !request.getMobileNumber().isBlank()) {
+            if (userRepository.findByMobileNumber(request.getMobileNumber()).isPresent()) {
+                throw new BadRequestException("Mobile number is already registered");
+            }
+        }
+
         User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail().toLowerCase())
+                .mobileNumber(request.getMobileNumber())
                 .passwordHash(passwordEncoder.encode(decodedPassword))
                 .role(User.Role.USER)
                 .build();

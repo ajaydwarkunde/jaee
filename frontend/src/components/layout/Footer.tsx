@@ -18,28 +18,34 @@ export default function Footer() {
             </p>
             <div className="flex gap-4 mt-6">
               <a 
-                href="https://instagram.com" 
+                href="https://www.instagram.com/jaee.store" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="p-2 bg-cream/10 rounded-full hover:bg-rose/20 transition-colors"
-                aria-label="Instagram"
+                aria-label="Follow us on Instagram"
               >
                 <Instagram className="w-5 h-5" />
               </a>
               <a 
-                href="mailto:hello@jaee.com"
+                href="mailto:support@jaee.store"
                 className="p-2 bg-cream/10 rounded-full hover:bg-rose/20 transition-colors"
-                aria-label="Email"
+                aria-label="Email us"
               >
                 <Mail className="w-5 h-5" />
               </a>
               <a 
                 href="tel:+919876543210"
                 className="p-2 bg-cream/10 rounded-full hover:bg-rose/20 transition-colors"
-                aria-label="Phone"
+                aria-label="Call us"
               >
                 <Phone className="w-5 h-5" />
               </a>
+            </div>
+            {/* Contact details */}
+            <div className="mt-4 space-y-1 text-sm text-cream/60">
+              <p>📧 support@jaee.store</p>
+              <p>📱 +91 98765 43210</p>
+              <p>📍 Mumbai, Maharashtra, India</p>
             </div>
           </div>
 
@@ -49,9 +55,10 @@ export default function Footer() {
             <ul className="space-y-3">
               {[
                 { to: '/shop', label: 'Shop All' },
+                { to: '/sale', label: 'Sale' },
                 { to: '/shop/candles', label: 'Candles' },
                 { to: '/shop/gift-sets', label: 'Gift Sets' },
-                { to: '/shop/home-decor', label: 'Home Decor' },
+                { to: '/wishlist', label: 'Wishlist' },
               ].map((link) => (
                 <li key={link.to}>
                   <Link 
@@ -71,9 +78,8 @@ export default function Footer() {
             <ul className="space-y-3">
               {[
                 { to: '/orders', label: 'Track Order' },
-                { to: '/contact', label: 'Contact Us' },
-                { to: '/shipping', label: 'Shipping Info' },
-                { to: '/returns', label: 'Returns' },
+                { to: '/account', label: 'My Account' },
+                { to: '/addresses', label: 'My Addresses' },
               ].map((link) => (
                 <li key={link.to}>
                   <Link 
@@ -84,6 +90,14 @@ export default function Footer() {
                   </Link>
                 </li>
               ))}
+              <li>
+                <a 
+                  href="mailto:support@jaee.store"
+                  className="text-cream/70 hover:text-rose transition-colors"
+                >
+                  Contact Us
+                </a>
+              </li>
             </ul>
           </div>
         </div>
@@ -94,13 +108,29 @@ export default function Footer() {
             <p className="text-sm text-cream/50">
               © {currentYear} Jaee. All rights reserved.
             </p>
-            <div className="flex gap-6 text-sm text-cream/50">
-              <Link to="/privacy" className="hover:text-cream transition-colors">
-                Privacy Policy
-              </Link>
-              <Link to="/terms" className="hover:text-cream transition-colors">
-                Terms of Service
-              </Link>
+            <div className="flex items-center gap-4 text-sm text-cream/50">
+              <a 
+                href="https://www.instagram.com/jaee.store"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-cream transition-colors"
+              >
+                Instagram
+              </a>
+              <span className="text-cream/30">•</span>
+              <a 
+                href="mailto:support@jaee.store"
+                className="hover:text-cream transition-colors"
+              >
+                Email
+              </a>
+              <span className="text-cream/30">•</span>
+              <a 
+                href="tel:+919876543210"
+                className="hover:text-cream transition-colors"
+              >
+                +91 98765 43210
+              </a>
             </div>
           </div>
         </div>
