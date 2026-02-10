@@ -126,7 +126,7 @@ public class WhatsAppService {
         
         sb.append("*Items:*\n");
         for (OrderItem item : order.getItems()) {
-            sb.append("• ").append(item.getProductName())
+            sb.append("• ").append(item.getNameSnapshot())
               .append(" x").append(item.getQty())
               .append(" - ₹").append(item.getSubtotal().setScale(0, RoundingMode.HALF_UP))
               .append("\n");

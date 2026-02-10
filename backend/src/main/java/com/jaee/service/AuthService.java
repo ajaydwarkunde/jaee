@@ -30,6 +30,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final FirebaseService firebaseService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -47,12 +48,27 @@ public class AuthService {
             }
         }
 
+        // Verify Firebase phone token if Firebase is enabled
+        if (firebaseService.isEnabled()) {
+            if (request.getFirebaseToken() == null || request.getFirebaseToken().isBlank()) {
+                throw new BadRequestException("Phone verification is required");
+            }
+            
+            if (!firebaseService.verifyPhoneMatches(request.getFirebaseToken(), request.getMobileNumber())) {
+                throw new BadRequestException("Phone verification failed. Please verify your phone number.");
+            }
+            log.info("Phone number verified via Firebase for: {}", request.getEmail());
+        } else {
+            log.debug("Firebase disabled - skipping phone verification for: {}", request.getEmail());
+        }
+
         User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail().toLowerCase())
                 .mobileNumber(request.getMobileNumber())
                 .passwordHash(passwordEncoder.encode(decodedPassword))
                 .role(User.Role.USER)
+                .mobileVerified(firebaseService.isEnabled()) // Mark as verified if Firebase validated
                 .build();
 
         userRepository.save(user);

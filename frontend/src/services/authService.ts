@@ -21,12 +21,13 @@ export interface OtpRequestResponse {
 }
 
 export const authService = {
-  register: async (data: RegisterFormData): Promise<AuthResponse> => {
+  register: async (data: RegisterFormData & { firebaseToken?: string }): Promise<AuthResponse> => {
     const response = await api.post<ApiResponse<AuthResponse>>('/auth/register', {
       name: data.name,
       email: data.email,
       mobileNumber: data.mobileNumber,
       password: encodePassword(data.password),
+      firebaseToken: data.firebaseToken,
     })
     return response.data.data
   },

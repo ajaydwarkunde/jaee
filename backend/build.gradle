@@ -27,6 +27,7 @@ ext {
     razorpayVersion = '1.4.6'
     sendgridVersion = '4.10.1'
     twilioVersion = '9.14.1'
+    firebaseAdminVersion = '9.2.0'
 }
 
 dependencies {
@@ -55,6 +56,9 @@ dependencies {
 
     // Twilio
     implementation "com.twilio.sdk:twilio:${twilioVersion}"
+
+    // Firebase Admin SDK
+    implementation "com.google.firebase:firebase-admin:${firebaseAdminVersion}"
 
     // Supabase Storage (using REST API via OkHttp)
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
