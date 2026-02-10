@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { settingsService, StoreSetting } from '@/services/settingsService'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
+import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { Save, Settings, Truck, RefreshCw, MessageSquare, ArrowLeft } from 'lucide-react'

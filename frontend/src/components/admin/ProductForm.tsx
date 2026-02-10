@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react'
+import { Upload, X, Loader2 } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Textarea from '@/components/ui/Textarea'
@@ -50,7 +50,6 @@ export default function ProductForm({
     handleSubmit,
     formState: { errors },
     setValue,
-    watch,
   } = useForm<ProductFormSchema>({
     resolver: zodResolver(productSchema),
     defaultValues: {
