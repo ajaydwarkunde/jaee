@@ -17,7 +17,8 @@ RUN gradle dependencies --no-daemon || true
 COPY src ./src
 
 # Build the application (skip tests for faster builds)
-RUN gradle build -x test --no-daemon --parallel --build-cache
+# Note: Using no-build-cache to ensure fresh builds on source changes
+RUN gradle build -x test --no-daemon --parallel
 
 # ============================================
 # Runtime stage - minimal image
