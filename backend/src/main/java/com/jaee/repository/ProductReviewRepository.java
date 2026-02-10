@@ -35,6 +35,6 @@ public interface ProductReviewRepository extends JpaRepository<ProductReview, Lo
 
     @Query("SELECT CASE WHEN COUNT(o) > 0 THEN true ELSE false END " +
            "FROM Order o JOIN o.items i " +
-           "WHERE o.user.id = :userId AND i.productId = :productId AND o.status = 'PAID'")
+           "WHERE o.user.id = :userId AND i.product.id = :productId AND o.status = 'PAID'")
     boolean hasUserPurchasedProduct(@Param("userId") Long userId, @Param("productId") Long productId);
 }
