@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api")
 @RequiredArgsConstructor
 @Tag(name = "Reviews", description = "Product review management")
 public class ReviewController {
