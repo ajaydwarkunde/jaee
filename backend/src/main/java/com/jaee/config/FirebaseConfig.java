@@ -56,8 +56,15 @@ public class FirebaseConfig {
                 FirebaseApp.initializeApp(options);
                 log.info("Firebase Admin SDK initialized successfully");
             }
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid Firebase credentials (bad base64 encoding): {}", e.getMessage());
+            log.warn("Firebase will be disabled. Phone verification will be skipped.");
         } catch (IOException e) {
             log.error("Failed to initialize Firebase Admin SDK: {}", e.getMessage());
+            log.warn("Firebase will be disabled. Phone verification will be skipped.");
+        } catch (Exception e) {
+            log.error("Unexpected error initializing Firebase: {}", e.getMessage());
+            log.warn("Firebase will be disabled. Phone verification will be skipped.");
         }
     }
 
