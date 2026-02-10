@@ -14,7 +14,7 @@ public record StoreSettingDto(
             setting.getId(),
             setting.getKey(),
             setting.getValue(),
-            setting.getType().name(),
+            setting.getType() != null ? setting.getType().name() : "STRING",
             setting.getDescription()
         );
     }

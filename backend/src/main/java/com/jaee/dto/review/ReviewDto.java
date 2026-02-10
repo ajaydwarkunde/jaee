@@ -20,15 +20,15 @@ public record ReviewDto(
     public static ReviewDto fromEntity(ProductReview review) {
         return new ReviewDto(
             review.getId(),
-            review.getProduct().getId(),
-            review.getProduct().getName(),
-            review.getUser().getId(),
-            review.getUser().getName() != null ? review.getUser().getName() : "Anonymous",
+            review.getProduct() != null ? review.getProduct().getId() : null,
+            review.getProduct() != null ? review.getProduct().getName() : "Unknown Product",
+            review.getUser() != null ? review.getUser().getId() : null,
+            review.getUser() != null && review.getUser().getName() != null ? review.getUser().getName() : "Anonymous",
             review.getRating(),
             review.getTitle(),
             review.getComment(),
-            review.getVerifiedPurchase(),
-            review.getHelpfulCount(),
+            review.getVerifiedPurchase() != null ? review.getVerifiedPurchase() : false,
+            review.getHelpfulCount() != null ? review.getHelpfulCount() : 0,
             review.getCreatedAt()
         );
     }

@@ -14,11 +14,14 @@ import java.util.Optional;
 @Repository
 public interface ProductReviewRepository extends JpaRepository<ProductReview, Long> {
 
-    Page<ProductReview> findByProductIdOrderByCreatedAtDesc(Long productId, Pageable pageable);
+    @Query("SELECT r FROM ProductReview r JOIN FETCH r.product JOIN FETCH r.user WHERE r.product.id = :productId ORDER BY r.createdAt DESC")
+    Page<ProductReview> findByProductIdOrderByCreatedAtDesc(@Param("productId") Long productId, Pageable pageable);
 
-    List<ProductReview> findByProductIdOrderByCreatedAtDesc(Long productId);
+    @Query("SELECT r FROM ProductReview r JOIN FETCH r.product JOIN FETCH r.user WHERE r.product.id = :productId ORDER BY r.createdAt DESC")
+    List<ProductReview> findByProductIdOrderByCreatedAtDesc(@Param("productId") Long productId);
 
-    Optional<ProductReview> findByProductIdAndUserId(Long productId, Long userId);
+    @Query("SELECT r FROM ProductReview r JOIN FETCH r.product JOIN FETCH r.user WHERE r.product.id = :productId AND r.user.id = :userId")
+    Optional<ProductReview> findByProductIdAndUserId(@Param("productId") Long productId, @Param("userId") Long userId);
 
     boolean existsByProductIdAndUserId(Long productId, Long userId);
 
@@ -31,7 +34,8 @@ public interface ProductReviewRepository extends JpaRepository<ProductReview, Lo
     @Query("SELECT r.rating, COUNT(r) FROM ProductReview r WHERE r.product.id = :productId GROUP BY r.rating ORDER BY r.rating DESC")
     List<Object[]> getRatingDistributionByProductId(@Param("productId") Long productId);
 
-    List<ProductReview> findByUserIdOrderByCreatedAtDesc(Long userId);
+    @Query("SELECT r FROM ProductReview r JOIN FETCH r.product JOIN FETCH r.user WHERE r.user.id = :userId ORDER BY r.createdAt DESC")
+    List<ProductReview> findByUserIdOrderByCreatedAtDesc(@Param("userId") Long userId);
 
     @Query("SELECT CASE WHEN COUNT(o) > 0 THEN true ELSE false END " +
            "FROM Order o JOIN o.items i " +
