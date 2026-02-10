@@ -2,13 +2,17 @@
 build/
 out/
 target/
+bin/
 
 # Gradle
 .gradle/
+!gradle-wrapper.jar
 
 # IDE
 .idea/
 *.iml
+.vscode/
+*.swp
 
 # Logs
 *.log
@@ -17,7 +21,20 @@ logs/
 # Environment files
 .env
 *.env
+.env.*
 
 # Git
 .git/
 .gitignore
+.gitattributes
+
+# Documentation
+*.md
+docs/
+README*
+
+# Misc
+*.bak
+*.tmp
+Thumbs.db
+.DS_Store

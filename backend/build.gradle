@@ -83,6 +83,13 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+// Enable layered JAR for optimal Docker caching
+tasks.named('bootJar') {
+    layered {
+        enabled = true
+    }
+}
+
 bootRun {
     systemProperty 'spring.profiles.active', 'dev'
 }
