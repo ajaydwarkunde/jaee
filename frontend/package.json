@@ -14,7 +14,10 @@
     "test:debug": "playwright test --debug",
     "test:report": "playwright show-report",
     "test:local": "TEST_URL=http://localhost:5173 playwright test",
-    "test:prod": "TEST_URL=https://jaee.vercel.app playwright test"
+    "test:prod": "TEST_URL=https://jaee.vercel.app playwright test",
+    "test:api": "playwright test tests/api.spec.ts",
+    "test:full": "playwright test tests/full-flow.spec.ts",
+    "test:quick": "playwright test tests/home.spec.ts tests/shop.spec.ts --reporter=list"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
