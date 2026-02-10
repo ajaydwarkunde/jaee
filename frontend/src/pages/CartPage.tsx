@@ -276,7 +276,7 @@ export default function CartPage() {
                     >
                       {item.productName}
                     </Link>
-                    <p className="text-rose font-medium mt-1">
+                    <p className="text-rose font-bold tabular-nums mt-1">
                       {formatPrice(item.unitPrice)}
                     </p>
 
@@ -311,7 +311,7 @@ export default function CartPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium text-charcoal">
+                    <p className="font-bold text-charcoal tabular-nums">
                       {formatPrice(item.subtotal)}
                     </p>
                   </div>

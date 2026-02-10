@@ -33,7 +33,7 @@ export default function OrderFailurePage() {
 
           <p className="text-sm text-warm-gray mt-8">
             Need help?{' '}
-            <a href="mailto:support@jaee.com" className="text-rose hover:underline">
+            <a href="mailto:jaeestudio12@gmail.com" className="text-rose hover:underline">
               Contact Support
             </a>
           </p>

@@ -125,11 +125,11 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           {product.name}
         </h3>
         <div className="mt-2 flex items-center gap-2">
-          <span className="font-medium text-rose">
+          <span className="text-lg font-bold text-rose tabular-nums">
             {formatPrice(product.price, product.currency)}
           </span>
           {hasDiscount && (
-            <span className="text-sm text-warm-gray line-through">
+            <span className="text-sm text-warm-gray line-through tabular-nums">
               {formatPrice(product.compareAtPrice!, product.currency)}
             </span>
           )}

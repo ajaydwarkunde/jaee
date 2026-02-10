@@ -122,11 +122,11 @@ export default function WishlistPage() {
                   </Link>
 
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-rose font-semibold">
+                    <span className="text-lg text-rose font-bold tabular-nums">
                       {formatPrice(item.product.price)}
                     </span>
                     {item.product.compareAtPrice && item.product.compareAtPrice > item.product.price && (
-                      <span className="text-sm text-warm-gray line-through">
+                      <span className="text-sm text-warm-gray line-through tabular-nums">
                         {formatPrice(item.product.compareAtPrice)}
                       </span>
                     )}

@@ -451,7 +451,7 @@ public class EmailService {
                         <p style="margin: 0 0 8px 0; color: #2D2D2D; font-weight: 700; font-size: 14px;">Need Help?</p>
                         <p style="margin: 0 0 20px 0; color: #6B6B6B; font-size: 13px; line-height: 1.5;">
                             Reply to this email or write to us at
-                            <a href="mailto:support@jaee.com" style="color: #E9868B; text-decoration: none; font-weight: 600;">support@jaee.com</a>
+                            <a href="mailto:jaeestudio12@gmail.com" style="color: #E9868B; text-decoration: none; font-weight: 600;">jaeestudio12@gmail.com</a>
                         </p>
                         <p style="margin: 0; color: #BBBBBB; font-size: 11px;">
                             &copy; 2026 Jaee &middot; Made with &#10084; in India &middot; Premium Candles & Home Decor

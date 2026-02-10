@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Package, Tag, ShoppingBag, TrendingUp } from 'lucide-react'
+import { Package, Tag, ShoppingBag, TrendingUp, Settings } from 'lucide-react'
 import { productService } from '@/services/productService'
 import { categoryService } from '@/services/categoryService'
 import Card, { CardContent, CardTitle } from '@/components/ui/Card'
@@ -75,7 +75,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-3 gap-6">
           <Card>
             <CardTitle>Products</CardTitle>
             <CardContent>
@@ -92,6 +92,19 @@ export default function AdminDashboard() {
               <p className="mb-4">Organize products into categories</p>
               <Link to="/admin/categories" className="text-rose hover:underline font-medium">
                 Manage Categories →
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="w-5 h-5" />
+              Store Settings
+            </CardTitle>
+            <CardContent>
+              <p className="mb-4">Shipping, returns, and more</p>
+              <Link to="/admin/settings" className="text-rose hover:underline font-medium">
+                Configure Settings →
               </Link>
             </CardContent>
           </Card>

@@ -18,7 +18,7 @@ export default function Footer() {
             </p>
             <div className="flex gap-4 mt-6">
               <a 
-                href="https://www.instagram.com/jaee.store" 
+                href="https://www.instagram.com/jaee.studio" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="p-2 bg-cream/10 rounded-full hover:bg-rose/20 transition-colors"
@@ -27,24 +27,17 @@ export default function Footer() {
                 <Instagram className="w-5 h-5" />
               </a>
               <a 
-                href="mailto:support@jaee.store"
+                href="mailto:jaeestudio12@gmail.com"
                 className="p-2 bg-cream/10 rounded-full hover:bg-rose/20 transition-colors"
                 aria-label="Email us"
               >
                 <Mail className="w-5 h-5" />
               </a>
-              <a 
-                href="tel:+919876543210"
-                className="p-2 bg-cream/10 rounded-full hover:bg-rose/20 transition-colors"
-                aria-label="Call us"
-              >
-                <Phone className="w-5 h-5" />
-              </a>
             </div>
             {/* Contact details */}
             <div className="mt-4 space-y-1 text-sm text-cream/60">
-              <p>📧 support@jaee.store</p>
-              <p>📱 +91 98765 43210</p>
+              <p>📧 jaeestudio12@gmail.com</p>
+              <p>📷 @jaee.studio</p>
               <p>📍 Mumbai, Maharashtra, India</p>
             </div>
           </div>
@@ -92,7 +85,7 @@ export default function Footer() {
               ))}
               <li>
                 <a 
-                  href="mailto:support@jaee.store"
+                  href="mailto:jaeestudio12@gmail.com"
                   className="text-cream/70 hover:text-rose transition-colors"
                 >
                   Contact Us
@@ -110,26 +103,19 @@ export default function Footer() {
             </p>
             <div className="flex items-center gap-4 text-sm text-cream/50">
               <a 
-                href="https://www.instagram.com/jaee.store"
+                href="https://www.instagram.com/jaee.studio"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-cream transition-colors"
               >
-                Instagram
+                @jaee.studio
               </a>
               <span className="text-cream/30">•</span>
               <a 
-                href="mailto:support@jaee.store"
+                href="mailto:jaeestudio12@gmail.com"
                 className="hover:text-cream transition-colors"
               >
-                Email
-              </a>
-              <span className="text-cream/30">•</span>
-              <a 
-                href="tel:+919876543210"
-                className="hover:text-cream transition-colors"
-              >
-                +91 98765 43210
+                jaeestudio12@gmail.com
               </a>
             </div>
           </div>

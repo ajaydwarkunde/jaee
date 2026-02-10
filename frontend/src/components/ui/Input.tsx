@@ -1,4 +1,5 @@
 import { forwardRef, type InputHTMLAttributes, type ReactNode } from 'react'
+import { AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -6,15 +7,17 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string
   icon?: ReactNode
   rightIcon?: ReactNode
+  required?: boolean
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, icon, rightIcon, type = 'text', ...props }, ref) => {
+  ({ className, label, error, icon, rightIcon, type = 'text', required, ...props }, ref) => {
     return (
       <div className="w-full">
         {label && (
           <label className="block text-sm font-medium text-charcoal mb-1.5">
             {label}
+            {required && <span className="text-error ml-0.5">*</span>}
           </label>
         )}
         <div className="relative">
@@ -32,7 +35,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               'disabled:bg-cream disabled:cursor-not-allowed',
               icon && 'pl-10',
               rightIcon && 'pr-10',
-              error && 'border-error focus:border-error focus:ring-error/20',
+              error && 'border-error focus:border-error focus:ring-error/20 bg-error/5',
               className
             )}
             {...props}
@@ -44,7 +47,10 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
         {error && (
-          <p className="mt-1 text-sm text-error">{error}</p>
+          <p className="mt-1.5 text-sm text-error flex items-center gap-1">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            {error}
+          </p>
         )}
       </div>
     )

@@ -152,7 +152,7 @@ export default function AdminProducts() {
                       </div>
                     </td>
                     <td className="p-4 text-warm-gray">{product.categoryName || '—'}</td>
-                    <td className="p-4 font-medium">{formatPrice(product.price)}</td>
+                    <td className="p-4 font-bold tabular-nums">{formatPrice(product.price)}</td>
                     <td className="p-4">{product.stockQty}</td>
                     <td className="p-4">
                       {product.active ? (

@@ -7,6 +7,7 @@ import { cartService } from '@/services/cartService'
 import { wishlistService } from '@/services/wishlistService'
 import { useAuthStore } from '@/stores/authStore'
 import { useCartStore } from '@/stores/cartStore'
+import { useStoreSettings } from '@/hooks/useStoreSettings'
 import { formatPrice } from '@/lib/utils'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
@@ -21,6 +22,7 @@ export default function ProductPage() {
   const { isAuthenticated } = useAuthStore()
   const addToGuestCart = useCartStore((state) => state.addToGuestCart)
   const queryClient = useQueryClient()
+  const { freeShippingThreshold, returnDays } = useStoreSettings()
 
   const { data: product, isLoading, error } = useQuery({
     queryKey: ['product', slug],
@@ -181,12 +183,12 @@ export default function ProductPage() {
             <h1 className="heading-2 text-charcoal mb-4">{product.name}</h1>
 
             <div className="flex items-center gap-4 mb-6 flex-wrap">
-              <span className="text-3xl font-serif font-semibold text-rose">
+              <span className="text-3xl font-bold text-rose tabular-nums">
                 {formatPrice(product.price, product.currency)}
               </span>
               {product.compareAtPrice && product.compareAtPrice > product.price && (
                 <>
-                  <span className="text-xl text-warm-gray line-through">
+                  <span className="text-xl text-warm-gray line-through tabular-nums">
                     {formatPrice(product.compareAtPrice, product.currency)}
                   </span>
                   <Badge variant="success" size="md">{product.discountPercent}% OFF</Badge>
@@ -259,8 +261,8 @@ export default function ProductPage() {
             {/* Features */}
             <div className="border-t border-blush pt-8 space-y-4">
               {[
-                { icon: Truck, title: 'Free Shipping', desc: 'On orders over ₹999' },
-                { icon: RotateCcw, title: 'Easy Returns', desc: '7-day return policy' },
+                { icon: Truck, title: 'Free Shipping', desc: `On orders over ₹${freeShippingThreshold}` },
+                { icon: RotateCcw, title: 'Easy Returns', desc: `${returnDays}-day return policy` },
                 { icon: Shield, title: 'Secure Payment', desc: '100% secure checkout' },
               ].map(({ icon: Icon, title, desc }) => (
                 <div key={title} className="flex items-center gap-3">

@@ -61,7 +61,7 @@ export default function OrderSuccessPage() {
               </div>
               <div className="flex items-center justify-between pt-4 border-t border-blush">
                 <span className="font-medium text-charcoal">Total</span>
-                <span className="font-serif text-xl font-semibold text-rose">
+                <span className="text-xl font-bold text-rose tabular-nums">
                   {formatPrice(order.totalAmount, order.currency)}
                 </span>
               </div>

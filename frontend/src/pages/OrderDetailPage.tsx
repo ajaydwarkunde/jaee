@@ -78,7 +78,7 @@ export default function OrderDetailPage() {
             </div>
             <div className="text-right">
               {statusInfo.badge}
-              <p className="font-serif text-2xl font-semibold text-rose mt-2">
+              <p className="text-2xl font-bold text-rose tabular-nums mt-2">
                 {formatPrice(order.totalAmount, order.currency)}
               </p>
             </div>

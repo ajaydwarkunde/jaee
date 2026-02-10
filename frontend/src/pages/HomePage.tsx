@@ -12,6 +12,7 @@ import LazyImage from '@/components/ui/LazyImage'
 import CategoryCarousel from '@/components/ui/CategoryCarousel'
 import { useCartStore } from '@/stores/cartStore'
 import { useAuthStore } from '@/stores/authStore'
+import { useStoreSettings } from '@/hooks/useStoreSettings'
 import toast from 'react-hot-toast'
 import type { Product } from '@/types'
 
@@ -93,6 +94,7 @@ export default function HomePage() {
   const { isAuthenticated } = useAuthStore()
   const addToGuestCart = useCartStore((state) => state.addToGuestCart)
   const queryClient = useQueryClient()
+  const { freeShippingThreshold } = useStoreSettings()
 
   const { data: featuredProducts, isLoading: productsLoading } = useQuery({
     queryKey: ['products', 'featured'],
@@ -195,7 +197,7 @@ export default function HomePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
               { icon: Sparkles, title: 'Premium Quality', desc: 'Hand-poured with care' },
-              { icon: Truck, title: 'Free Shipping', desc: 'On orders over ₹999' },
+              { icon: Truck, title: 'Free Shipping', desc: `On orders over ₹${freeShippingThreshold}` },
               { icon: Gift, title: 'Gift Wrapping', desc: 'Beautiful packaging' },
               { icon: Heart, title: 'Made with Love', desc: 'Crafted in India' },
             ].map(({ icon: Icon, title, desc }) => (
