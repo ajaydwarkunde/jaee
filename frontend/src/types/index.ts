@@ -48,6 +48,8 @@ export interface Product {
   active: boolean
   inStock: boolean
   createdAt: string
+  avgRating: number | null
+  reviewCount: number | null
 }
 
 export interface ProductFilters {

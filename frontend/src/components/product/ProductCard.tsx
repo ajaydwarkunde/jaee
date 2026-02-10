@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ShoppingBag, Heart } from 'lucide-react'
+import { ShoppingBag, Heart, Star } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatPrice } from '@/lib/utils'
 import { wishlistService } from '@/services/wishlistService'
@@ -124,6 +124,14 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         <h3 className="font-serif text-lg font-medium text-charcoal line-clamp-1 group-hover:text-rose transition-colors">
           {product.name}
         </h3>
+        {/* Rating */}
+        {(product.reviewCount ?? 0) > 0 && (
+          <div className="flex items-center gap-1 mt-1">
+            <Star className="w-3.5 h-3.5 fill-warning text-warning" />
+            <span className="text-sm font-medium text-charcoal tabular-nums">{product.avgRating?.toFixed(1)}</span>
+            <span className="text-xs text-warm-gray">({product.reviewCount})</span>
+          </div>
+        )}
         <div className="mt-2 flex items-center gap-2">
           <span className="text-lg font-bold text-rose tabular-nums">
             {formatPrice(product.price, product.currency)}

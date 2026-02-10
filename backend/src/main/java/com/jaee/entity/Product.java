@@ -58,6 +58,14 @@ public class Product {
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    // Review statistics (cached for performance)
+    @Column(precision = 2, scale = 1)
+    @Builder.Default
+    private BigDecimal avgRating = BigDecimal.ZERO;
+
+    @Builder.Default
+    private Integer reviewCount = 0;
+
     public boolean isInStock() {
         return stockQty != null && stockQty > 0;
     }

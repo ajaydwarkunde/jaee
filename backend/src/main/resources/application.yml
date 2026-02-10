@@ -68,6 +68,10 @@ app:
       phone-number: ${TWILIO_PHONE_NUMBER:}
     enabled: ${SMS_ENABLED:true}
 
+  whatsapp:
+    enabled: ${WHATSAPP_ENABLED:false}
+    from-number: ${WHATSAPP_FROM_NUMBER:}  # Twilio WhatsApp-enabled number
+
   otp:
     length: 6
     expiration-minutes: 5

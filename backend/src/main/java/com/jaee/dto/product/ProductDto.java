@@ -30,6 +30,8 @@ public class ProductDto {
     private Boolean active;
     private Boolean inStock;
     private LocalDateTime createdAt;
+    private BigDecimal avgRating;
+    private Integer reviewCount;
     
     private static Integer calculateDiscount(BigDecimal price, BigDecimal compareAtPrice) {
         if (compareAtPrice == null || compareAtPrice.compareTo(price) <= 0) return null;
@@ -56,6 +58,8 @@ public class ProductDto {
                 .active(product.getActive())
                 .inStock(product.isInStock())
                 .createdAt(product.getCreatedAt())
+                .avgRating(product.getAvgRating())
+                .reviewCount(product.getReviewCount())
                 .build();
     }
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ShoppingBag, Heart, Minus, Plus, ChevronLeft, Truck, RotateCcw, Shield } from 'lucide-react'
+import { ShoppingBag, Heart, Minus, Plus, ChevronLeft, Truck, RotateCcw, Shield, Star, MessageSquare } from 'lucide-react'
 import { productService } from '@/services/productService'
 import { cartService } from '@/services/cartService'
 import { wishlistService } from '@/services/wishlistService'
@@ -12,12 +12,17 @@ import { formatPrice } from '@/lib/utils'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import { ProductDetailSkeleton } from '@/components/ui/Skeleton'
+import StarRating from '@/components/review/StarRating'
+import ReviewSummary from '@/components/review/ReviewSummary'
+import ReviewList from '@/components/review/ReviewList'
+import ReviewForm from '@/components/review/ReviewForm'
 import toast from 'react-hot-toast'
 
 export default function ProductPage() {
   const { slug } = useParams<{ slug: string }>()
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
+  const [showReviewForm, setShowReviewForm] = useState(false)
 
   const { isAuthenticated } = useAuthStore()
   const addToGuestCart = useCartStore((state) => state.addToGuestCart)
@@ -182,6 +187,16 @@ export default function ProductPage() {
             
             <h1 className="heading-2 text-charcoal mb-4">{product.name}</h1>
 
+            {/* Rating summary */}
+            {(product.reviewCount ?? 0) > 0 && (
+              <div className="flex items-center gap-2 mb-4">
+                <StarRating rating={product.avgRating ?? 0} size="sm" />
+                <span className="text-sm text-warm-gray">
+                  {product.avgRating?.toFixed(1)} ({product.reviewCount} {product.reviewCount === 1 ? 'review' : 'reviews'})
+                </span>
+              </div>
+            )}
+
             <div className="flex items-center gap-4 mb-6 flex-wrap">
               <span className="text-3xl font-bold text-rose tabular-nums">
                 {formatPrice(product.price, product.currency)}
@@ -277,6 +292,54 @@ export default function ProductPage() {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* Reviews Section */}
+        <div className="mt-16 border-t border-blush pt-12">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="heading-3 text-charcoal flex items-center gap-2">
+              <MessageSquare className="w-6 h-6 text-rose" />
+              Customer Reviews
+            </h2>
+            {isAuthenticated && !showReviewForm && (
+              <Button
+                variant="outline"
+                onClick={() => setShowReviewForm(true)}
+                icon={<Star className="w-4 h-4" />}
+              >
+                Write a Review
+              </Button>
+            )}
+          </div>
+
+          {/* Review Form */}
+          {showReviewForm && isAuthenticated && (
+            <div className="bg-soft-white rounded-xl p-6 mb-8 shadow-soft">
+              <h3 className="font-serif text-lg font-medium text-charcoal mb-4">Write Your Review</h3>
+              <ReviewForm
+                productId={product.id}
+                onSuccess={() => setShowReviewForm(false)}
+                onCancel={() => setShowReviewForm(false)}
+              />
+            </div>
+          )}
+
+          {!isAuthenticated && (
+            <div className="bg-blush/30 rounded-lg p-4 mb-8 text-center">
+              <p className="text-warm-gray">
+                <Link to="/login" className="text-rose font-medium hover:underline">Sign in</Link>
+                {' '}to write a review
+              </p>
+            </div>
+          )}
+
+          {/* Review Summary */}
+          <div className="bg-soft-white rounded-xl p-6 mb-8 shadow-soft">
+            <ReviewSummary productId={product.id} />
+          </div>
+
+          {/* Reviews List */}
+          <ReviewList productId={product.id} />
         </div>
       </div>
     </div>

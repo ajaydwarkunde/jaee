@@ -34,6 +34,7 @@ public class CheckoutService {
     private final AddressRepository addressRepository;
     private final CartService cartService;
     private final EmailService emailService;
+    private final WhatsAppService whatsAppService;
 
     @Value("${app.razorpay.key-id}")
     private String razorpayKeyId;
@@ -231,6 +232,13 @@ public class CheckoutService {
             log.error("Failed to send order confirmation email for order {}: {}", order.getId(), e.getMessage());
         }
 
+        // Send WhatsApp notification
+        try {
+            whatsAppService.sendOrderConfirmation(order);
+        } catch (Exception e) {
+            log.error("Failed to send WhatsApp notification for order {}: {}", order.getId(), e.getMessage());
+        }
+
         log.info("Order {} completed successfully via {} payment {}", 
                 order.getId(), testMode ? "TEST" : "Razorpay", razorpayPaymentId);
 
@@ -308,6 +316,13 @@ public class CheckoutService {
             emailService.sendOrderConfirmation(order);
         } catch (Exception e) {
             log.error("Failed to send order confirmation email for order {}: {}", order.getId(), e.getMessage());
+        }
+
+        // Send WhatsApp notification
+        try {
+            whatsAppService.sendOrderConfirmation(order);
+        } catch (Exception e) {
+            log.error("Failed to send WhatsApp notification for order {}: {}", order.getId(), e.getMessage());
         }
 
         log.info("Order {} marked as paid via webhook", order.getId());
