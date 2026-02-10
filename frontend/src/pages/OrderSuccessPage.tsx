@@ -1,12 +1,40 @@
 import { useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { CheckCircle, Package, ArrowRight } from 'lucide-react'
+import { CheckCircle, Package, ArrowRight, MessageCircle } from 'lucide-react'
 import { orderService } from '@/services/orderService'
 import { formatPrice, formatDate } from '@/lib/utils'
 import Button from '@/components/ui/Button'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import confetti from '@/lib/confetti'
+import type { Order } from '@/types'
+
+// Generate WhatsApp share link with order details
+function generateWhatsAppLink(order: Order): string {
+  const items = order.items
+    .map((item) => `• ${item.name} x${item.qty} - ₹${item.subtotal}`)
+    .join('\n')
+
+  const message = `🎉 *Order Confirmed - Jaee*
+
+📦 *Order #${order.id}*
+📅 ${formatDate(order.createdAt)}
+
+*Items:*
+${items}
+
+💰 *Total: ₹${order.totalAmount}*
+
+${order.shippingAddress ? `📍 *Delivery Address:*\n${order.shippingAddress}` : ''}
+
+🚚 Expected delivery: 5-7 business days
+
+Thank you for shopping with Jaee! 🕯️✨`
+
+  // Encode the message for URL
+  const encodedMessage = encodeURIComponent(message)
+  return `https://wa.me/?text=${encodedMessage}`
+}
 
 export default function OrderSuccessPage() {
   const [searchParams] = useSearchParams()
@@ -99,6 +127,22 @@ export default function OrderSuccessPage() {
             We've sent a confirmation email with all the details. Your order will be 
             shipped soon!
           </p>
+
+          {/* Share on WhatsApp */}
+          {order && (
+            <div className="mb-8">
+              <a
+                href={generateWhatsAppLink(order)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#25D366] hover:bg-[#1da851] text-white font-medium rounded-full transition-colors"
+              >
+                <MessageCircle className="w-5 h-5" />
+                Share Order on WhatsApp
+              </a>
+              <p className="text-xs text-warm-gray mt-2">Share order details with family or save for yourself</p>
+            </div>
+          )}
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/orders">

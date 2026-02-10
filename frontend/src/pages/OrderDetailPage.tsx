@@ -1,11 +1,32 @@
 import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, Package, Truck, CheckCircle, Clock, XCircle, MapPin, Phone, Mail } from 'lucide-react'
+import { ArrowLeft, Package, Truck, CheckCircle, Clock, XCircle, MapPin, Phone, Mail, MessageCircle } from 'lucide-react'
 import { orderService } from '@/services/orderService'
 import { formatPrice, formatDate } from '@/lib/utils'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import type { Order } from '@/types'
+
+// Generate WhatsApp share link with order details
+function generateWhatsAppLink(order: Order): string {
+  const items = order.items
+    .map((item) => `• ${item.name} x${item.qty} - ₹${item.subtotal}`)
+    .join('\n')
+
+  const message = `📦 *Order #${order.id} - Jaee*
+📅 ${formatDate(order.createdAt)}
+📊 Status: ${order.status}
+
+*Items:*
+${items}
+
+💰 *Total: ₹${order.totalAmount}*
+
+${order.shippingAddress ? `📍 *Delivery Address:*\n${order.shippingAddress}` : ''}`
+
+  return `https://wa.me/?text=${encodeURIComponent(message)}`
+}
 
 export default function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>()
@@ -199,12 +220,23 @@ export default function OrderDetailPage() {
                 Need Help?
               </h2>
               <div className="space-y-3">
+                <a
+                  href={generateWhatsAppLink(order)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-[#25D366] hover:bg-[#1da851] text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  Share on WhatsApp
+                </a>
                 <Button variant="outline" className="w-full" size="sm">
                   Track Order
                 </Button>
-                <Button variant="outline" className="w-full" size="sm">
-                  Contact Support
-                </Button>
+                <a href="mailto:jaeestudio12@gmail.com">
+                  <Button variant="outline" className="w-full" size="sm">
+                    Contact Support
+                  </Button>
+                </a>
                 {order.status === 'PAID' && (
                   <Button variant="outline" className="w-full text-error border-error hover:bg-error/10" size="sm">
                     Request Cancellation
