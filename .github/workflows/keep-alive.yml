@@ -1,0 +1,23 @@
+name: Keep Render Alive
+
+on:
+  schedule:
+    # Runs every 14 minutes (just under Render's 15-min idle timeout)
+    - cron: '*/14 * * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Backend
+        run: |
+          curl -fsS --retry 3 --retry-delay 5 \
+            "${{ secrets.BACKEND_URL }}/actuator/health" \
+            -o /dev/null -w "Backend: %{http_code}\n" || true
+          
+      - name: Ping Frontend
+        run: |
+          curl -fsS --retry 3 --retry-delay 5 \
+            "${{ secrets.FRONTEND_URL }}" \
+            -o /dev/null -w "Frontend: %{http_code}\n" || true
