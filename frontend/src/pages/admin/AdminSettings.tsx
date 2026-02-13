@@ -152,7 +152,7 @@ export default function AdminSettings() {
 
                   return (
                     <div key={key} className="space-y-2">
-                      <label className="flex items-center justify-between">
+                      <label className="flex items-center justify-between gap-3">
                         <span className={`text-sm font-medium ${isEdited ? 'text-rose' : 'text-charcoal'}`}>
                           {SETTING_LABELS[key] || key}
                           {isEdited && <span className="text-rose ml-1">*</span>}
@@ -161,13 +161,13 @@ export default function AdminSettings() {
                           <button
                             type="button"
                             onClick={() => handleToggle(key, value)}
-                            className={`relative w-12 h-6 rounded-full transition-colors ${
+                            className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors duration-200 ${
                               value === 'true' ? 'bg-rose' : 'bg-warm-gray/30'
                             }`}
                           >
                             <span
-                              className={`absolute top-1 w-4 h-4 bg-soft-white rounded-full shadow transition-transform ${
-                                value === 'true' ? 'translate-x-7' : 'translate-x-1'
+                              className={`absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200 ${
+                                value === 'true' ? 'translate-x-5' : 'translate-x-0'
                               }`}
                             />
                           </button>
