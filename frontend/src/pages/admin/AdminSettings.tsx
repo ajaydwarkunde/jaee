@@ -100,108 +100,112 @@ export default function AdminSettings() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-rose border-t-transparent" />
+      <div className="bg-cream min-h-screen py-8">
+        <div className="container-custom flex items-center justify-center min-h-[50vh]">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-rose border-t-transparent" />
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link to="/admin" className="p-2 hover:bg-blush rounded-lg transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div>
-            <h1 className="heading-3 text-charcoal">Store Settings</h1>
-            <p className="text-warm-gray text-sm mt-1">Configure your store's shipping, returns, and more</p>
+    <div className="bg-cream min-h-screen py-8">
+      <div className="container-custom">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+          <div className="flex items-center gap-4">
+            <Link to="/admin" className="p-2 hover:bg-blush rounded-lg transition-colors">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <div>
+              <h1 className="heading-2 text-charcoal">Store Settings</h1>
+              <p className="text-warm-gray mt-1">Configure your store's shipping, returns, and more</p>
+            </div>
           </div>
-        </div>
-        <Button
-          onClick={handleSave}
-          disabled={!hasChanges || updateMutation.isPending}
-          icon={<Save className="w-4 h-4" />}
-        >
-          {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
-        </Button>
-      </div>
-
-      {/* Settings Groups */}
-      <div className="grid md:grid-cols-2 gap-6">
-        {SETTING_GROUPS.map((group) => (
-          <Card key={group.title}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                {group.icon}
-                {group.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {group.keys.map((key) => {
-                const setting = settingsMap.get(key)
-                if (!setting) return null
-
-                const value = getValue(setting)
-                const isBoolean = setting.type === 'BOOLEAN'
-                const isEdited = editedValues[key] !== undefined
-
-                return (
-                  <div key={key} className="space-y-1">
-                    <label className="flex items-center justify-between">
-                      <span className={`text-sm font-medium ${isEdited ? 'text-rose' : 'text-charcoal'}`}>
-                        {SETTING_LABELS[key] || key}
-                        {isEdited && <span className="text-rose ml-1">*</span>}
-                      </span>
-                      {isBoolean && (
-                        <button
-                          type="button"
-                          onClick={() => handleToggle(key, value)}
-                          className={`relative w-12 h-6 rounded-full transition-colors ${
-                            value === 'true' ? 'bg-rose' : 'bg-warm-gray/30'
-                          }`}
-                        >
-                          <span
-                            className={`absolute top-1 w-4 h-4 bg-soft-white rounded-full shadow transition-transform ${
-                              value === 'true' ? 'translate-x-7' : 'translate-x-1'
-                            }`}
-                          />
-                        </button>
-                      )}
-                    </label>
-                    {!isBoolean && (
-                      <Input
-                        type={setting.type === 'NUMBER' ? 'number' : 'text'}
-                        value={value}
-                        onChange={(e) => handleChange(key, e.target.value)}
-                        className="text-sm"
-                      />
-                    )}
-                    {setting.description && (
-                      <p className="text-xs text-warm-gray">{setting.description}</p>
-                    )}
-                  </div>
-                )
-              })}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Unsaved changes indicator */}
-      {hasChanges && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-charcoal text-cream px-6 py-3 rounded-full shadow-lg flex items-center gap-4 animate-slide-up">
-          <span className="text-sm">You have unsaved changes</span>
           <Button
-            size="sm"
             onClick={handleSave}
-            disabled={updateMutation.isPending}
+            disabled={!hasChanges || updateMutation.isPending}
+            icon={<Save className="w-4 h-4" />}
           >
-            Save
+            {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
-      )}
+
+        {/* Settings Groups */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {SETTING_GROUPS.map((group) => (
+            <Card key={group.title} className="h-full flex flex-col">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <span className="p-2 bg-blush rounded-lg">{group.icon}</span>
+                  {group.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-5 flex-1">
+                {group.keys.map((key) => {
+                  const setting = settingsMap.get(key)
+                  if (!setting) return null
+
+                  const value = getValue(setting)
+                  const isBoolean = setting.type === 'BOOLEAN'
+                  const isEdited = editedValues[key] !== undefined
+
+                  return (
+                    <div key={key} className="space-y-2">
+                      <label className="flex items-center justify-between">
+                        <span className={`text-sm font-medium ${isEdited ? 'text-rose' : 'text-charcoal'}`}>
+                          {SETTING_LABELS[key] || key}
+                          {isEdited && <span className="text-rose ml-1">*</span>}
+                        </span>
+                        {isBoolean && (
+                          <button
+                            type="button"
+                            onClick={() => handleToggle(key, value)}
+                            className={`relative w-12 h-6 rounded-full transition-colors ${
+                              value === 'true' ? 'bg-rose' : 'bg-warm-gray/30'
+                            }`}
+                          >
+                            <span
+                              className={`absolute top-1 w-4 h-4 bg-soft-white rounded-full shadow transition-transform ${
+                                value === 'true' ? 'translate-x-7' : 'translate-x-1'
+                              }`}
+                            />
+                          </button>
+                        )}
+                      </label>
+                      {!isBoolean && (
+                        <Input
+                          type={setting.type === 'NUMBER' ? 'number' : 'text'}
+                          value={value}
+                          onChange={(e) => handleChange(key, e.target.value)}
+                          className="text-sm"
+                        />
+                      )}
+                      {setting.description && (
+                        <p className="text-xs text-warm-gray">{setting.description}</p>
+                      )}
+                    </div>
+                  )
+                })}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Unsaved changes indicator */}
+        {hasChanges && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-charcoal text-cream px-6 py-3 rounded-full shadow-lg flex items-center gap-4 z-50">
+            <span className="text-sm">You have unsaved changes</span>
+            <Button
+              size="sm"
+              onClick={handleSave}
+              disabled={updateMutation.isPending}
+            >
+              Save
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
