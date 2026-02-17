@@ -80,6 +80,27 @@ public class ProductService {
         Page<Product> productPage = productRepository.findOnSaleProducts(pageable);
         return PageResponse.from(productPage, ProductDto::fromEntity);
     }
+    
+    @Transactional(readOnly = true)
+    public List<ProductDto> getRelatedProducts(Long productId, int limit) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new NotFoundException("Product not found"));
+        
+        if (product.getCategory() == null) {
+            return List.of();
+        }
+        
+        Pageable pageable = PageRequest.of(0, limit);
+        List<Product> related = productRepository.findRelatedProducts(
+                product.getCategory().getId(), 
+                productId, 
+                pageable
+        );
+        
+        return related.stream()
+                .map(ProductDto::fromEntity)
+                .collect(Collectors.toList());
+    }
 
     @Transactional
     public ProductDto createProduct(ProductCreateRequest request) {

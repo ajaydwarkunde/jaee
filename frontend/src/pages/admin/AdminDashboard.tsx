@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Package, Tag, ShoppingBag, TrendingUp, Settings } from 'lucide-react'
+import { Package, Tag, ShoppingBag, ShoppingCart, Settings } from 'lucide-react'
 import { productService } from '@/services/productService'
 import { categoryService } from '@/services/categoryService'
+import { orderService } from '@/services/orderService'
 import Card, { CardContent, CardTitle } from '@/components/ui/Card'
 
 export default function AdminDashboard() {
@@ -14,6 +15,11 @@ export default function AdminDashboard() {
   const { data: categories } = useQuery({
     queryKey: ['categories'],
     queryFn: categoryService.getCategories,
+  })
+
+  const { data: orderStats } = useQuery({
+    queryKey: ['admin-order-stats'],
+    queryFn: orderService.getOrderStats,
   })
 
   const stats = [
@@ -32,17 +38,17 @@ export default function AdminDashboard() {
       color: 'bg-success/10 text-success',
     },
     {
-      title: 'Active Products',
-      value: products?.totalElements || 0,
-      icon: ShoppingBag,
-      link: '/admin/products',
+      title: 'Total Orders',
+      value: orderStats?.total || 0,
+      icon: ShoppingCart,
+      link: '/admin/orders',
       color: 'bg-warning/10 text-warning',
     },
     {
-      title: 'Revenue',
-      value: '₹0',
-      icon: TrendingUp,
-      link: '#',
+      title: 'Pending Orders',
+      value: orderStats?.pending || 0,
+      icon: ShoppingBag,
+      link: '/admin/orders?status=PENDING',
       color: 'bg-charcoal/10 text-charcoal',
     },
   ]
@@ -75,7 +81,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardTitle>Products</CardTitle>
             <CardContent>
@@ -92,6 +98,19 @@ export default function AdminDashboard() {
               <p className="mb-4">Organize products into categories</p>
               <Link to="/admin/categories" className="text-rose hover:underline font-medium">
                 Manage Categories →
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardTitle className="flex items-center gap-2">
+              <ShoppingCart className="w-5 h-5" />
+              Orders
+            </CardTitle>
+            <CardContent>
+              <p className="mb-4">View and manage customer orders</p>
+              <Link to="/admin/orders" className="text-rose hover:underline font-medium">
+                Manage Orders →
               </Link>
             </CardContent>
           </Card>

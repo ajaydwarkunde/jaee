@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ShoppingBag, Heart, Minus, Plus, ChevronLeft, Truck, RotateCcw, Shield, Star, MessageSquare } from 'lucide-react'
@@ -8,6 +8,7 @@ import { wishlistService } from '@/services/wishlistService'
 import { useAuthStore } from '@/stores/authStore'
 import { useCartStore } from '@/stores/cartStore'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
+import { useRecentlyViewed } from '@/hooks/useRecentlyViewed'
 import { formatPrice } from '@/lib/utils'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
@@ -16,6 +17,7 @@ import StarRating from '@/components/review/StarRating'
 import ReviewSummary from '@/components/review/ReviewSummary'
 import ReviewList from '@/components/review/ReviewList'
 import ReviewForm from '@/components/review/ReviewForm'
+import RecentlyViewed from '@/components/product/RecentlyViewed'
 import toast from 'react-hot-toast'
 
 export default function ProductPage() {
@@ -28,12 +30,26 @@ export default function ProductPage() {
   const addToGuestCart = useCartStore((state) => state.addToGuestCart)
   const queryClient = useQueryClient()
   const { freeShippingThreshold, returnDays } = useStoreSettings()
+  const { addProduct: addToRecentlyViewed } = useRecentlyViewed()
 
   const { data: product, isLoading, error } = useQuery({
     queryKey: ['product', slug],
     queryFn: () => productService.getProductBySlug(slug!),
     enabled: !!slug,
   })
+
+  const { data: relatedProducts = [] } = useQuery({
+    queryKey: ['relatedProducts', product?.id],
+    queryFn: () => productService.getRelatedProducts(product!.id, 4),
+    enabled: !!product?.id,
+  })
+
+  // Track recently viewed
+  useEffect(() => {
+    if (product) {
+      addToRecentlyViewed(product)
+    }
+  }, [product, addToRecentlyViewed])
 
   const addToCartMutation = useMutation({
     mutationFn: () => cartService.addToCart(product!.id, quantity),
@@ -341,6 +357,40 @@ export default function ProductPage() {
           {/* Reviews List */}
           <ReviewList productId={product.id} />
         </div>
+
+        {/* Related Products */}
+        {relatedProducts.length > 0 && (
+          <div className="mt-16 border-t border-blush pt-12">
+            <h2 className="heading-3 text-charcoal mb-8">You May Also Like</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {relatedProducts.map((relatedProduct) => (
+                <Link
+                  key={relatedProduct.id}
+                  to={`/product/${relatedProduct.slug}`}
+                  className="group"
+                >
+                  <div className="aspect-square rounded-xl overflow-hidden bg-blush mb-3">
+                    <img
+                      src={relatedProduct.images?.[0] || 'https://images.unsplash.com/photo-1602028915047-37269d1a73f7?w=400'}
+                      alt={relatedProduct.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  <h3 className="font-medium text-charcoal group-hover:text-rose transition-colors line-clamp-1">
+                    {relatedProduct.name}
+                  </h3>
+                  <p className="text-rose font-bold mt-1">{formatPrice(relatedProduct.price)}</p>
+                  {relatedProduct.stockQty <= 5 && relatedProduct.stockQty > 0 && (
+                    <p className="text-xs text-warning mt-1">Only {relatedProduct.stockQty} left!</p>
+                  )}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Recently Viewed */}
+        <RecentlyViewed excludeProductId={product.id} maxItems={4} />
       </div>
     </div>
   )

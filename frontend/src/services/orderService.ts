@@ -1,6 +1,15 @@
 import { api } from '@/lib/api'
 import type { ApiResponse, PageResponse, Order } from '@/types'
 
+export interface OrderStats {
+  total: number
+  pending: number
+  paid: number
+  shipped: number
+  fulfilled: number
+  cancelled: number
+}
+
 export const orderService = {
   getOrders: async (page: number = 0, size: number = 10): Promise<PageResponse<Order>> => {
     const response = await api.get<ApiResponse<PageResponse<Order>>>(`/orders?page=${page}&size=${size}`)
@@ -14,6 +23,33 @@ export const orderService = {
 
   getOrderByRazorpayOrderId: async (razorpayOrderId: string): Promise<Order> => {
     const response = await api.get<ApiResponse<Order>>(`/orders/razorpay/${razorpayOrderId}`)
+    return response.data.data
+  },
+  
+  // Admin methods
+  getAllOrders: async (params: { status?: string; page?: number; size?: number } = {}): Promise<PageResponse<Order>> => {
+    const { status, page = 0, size = 20 } = params
+    const queryParams = new URLSearchParams()
+    queryParams.append('page', page.toString())
+    queryParams.append('size', size.toString())
+    if (status && status !== 'ALL') queryParams.append('status', status)
+    
+    const response = await api.get<ApiResponse<PageResponse<Order>>>(`/admin/orders?${queryParams}`)
+    return response.data.data
+  },
+  
+  getOrderStats: async (): Promise<OrderStats> => {
+    const response = await api.get<ApiResponse<OrderStats>>('/admin/orders/stats')
+    return response.data.data
+  },
+  
+  getOrderByIdAdmin: async (orderId: number): Promise<Order> => {
+    const response = await api.get<ApiResponse<Order>>(`/admin/orders/${orderId}`)
+    return response.data.data
+  },
+  
+  updateOrderStatus: async (orderId: number, status: string): Promise<Order> => {
+    const response = await api.patch<ApiResponse<Order>>(`/admin/orders/${orderId}/status`, { status })
     return response.data.data
   },
 }

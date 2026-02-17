@@ -122,6 +122,10 @@ export interface Order {
   customerPhone: string | null
   createdAt: string
   paidAt: string | null
+  // Admin fields
+  userId?: number | null
+  userName?: string | null
+  itemCount?: number
 }
 
 // Address types

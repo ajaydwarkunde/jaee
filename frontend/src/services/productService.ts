@@ -33,6 +33,11 @@ export const productService = {
     return response.data.data
   },
 
+  getRelatedProducts: async (productId: number, limit: number = 4): Promise<Product[]> => {
+    const response = await api.get<ApiResponse<Product[]>>(`/products/${productId}/related?limit=${limit}`)
+    return response.data.data
+  },
+
   // Admin endpoints
   createProduct: async (data: ProductFormData): Promise<Product> => {
     const response = await api.post<ApiResponse<Product>>('/admin/products', data)

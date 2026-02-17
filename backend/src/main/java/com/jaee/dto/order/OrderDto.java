@@ -28,6 +28,11 @@ public class OrderDto {
     private LocalDateTime createdAt;
     private LocalDateTime paidAt;
     
+    // Admin fields
+    private Long userId;
+    private String userName;
+    private Integer itemCount;
+    
     public static OrderDto fromEntity(Order order) {
         return OrderDto.builder()
                 .id(order.getId())
@@ -42,6 +47,9 @@ public class OrderDto {
                 .customerPhone(order.getCustomerPhone())
                 .createdAt(order.getCreatedAt())
                 .paidAt(order.getPaidAt())
+                .userId(order.getUser() != null ? order.getUser().getId() : null)
+                .userName(order.getUser() != null ? order.getUser().getName() : null)
+                .itemCount(order.getItems() != null ? order.getItems().size() : 0)
                 .build();
     }
     

@@ -64,4 +64,14 @@ public class ProductController {
         PageResponse<ProductDto> products = productService.getOnSaleProducts(page, size);
         return ResponseEntity.ok(ApiResponse.success(products));
     }
+    
+    @GetMapping("/{productId}/related")
+    @Operation(summary = "Get related products (same category)")
+    public ResponseEntity<ApiResponse<List<ProductDto>>> getRelatedProducts(
+            @PathVariable Long productId,
+            @RequestParam(defaultValue = "4") int limit
+    ) {
+        List<ProductDto> products = productService.getRelatedProducts(productId, limit);
+        return ResponseEntity.ok(ApiResponse.success(products));
+    }
 }
