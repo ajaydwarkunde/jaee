@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 
 @Service
@@ -158,6 +159,18 @@ public class CartService {
             cart.clearItems();
             cartRepository.save(cart);
         }
+    }
+    
+    @Transactional(readOnly = true)
+    public BigDecimal getCartTotal(User user) {
+        Cart cart = cartRepository.findByUserWithItems(user).orElse(null);
+        if (cart == null || cart.getItems().isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+        
+        return cart.getItems().stream()
+                .map(item -> item.getProduct().getPrice().multiply(BigDecimal.valueOf(item.getQty())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private Cart getOrCreateCart(User user) {

@@ -69,8 +69,13 @@ public class FirebaseConfig {
     }
 
     @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+        name = "app.firebase.enabled",
+        havingValue = "true"
+    )
     public FirebaseAuth firebaseAuth() {
-        if (!firebaseEnabled || FirebaseApp.getApps().isEmpty()) {
+        if (FirebaseApp.getApps().isEmpty()) {
+            log.warn("FirebaseApp not initialized, cannot create FirebaseAuth bean");
             return null;
         }
         return FirebaseAuth.getInstance();

@@ -3,17 +3,17 @@ package com.jaee.service;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class FirebaseService {
 
-    private final FirebaseAuth firebaseAuth;
+    @Autowired(required = false)
+    private FirebaseAuth firebaseAuth;
 
     @Value("${app.firebase.enabled:false}")
     private boolean firebaseEnabled;

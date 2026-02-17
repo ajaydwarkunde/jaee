@@ -1,10 +1,12 @@
 package com.jaee.service;
 
 import com.jaee.dto.address.AddressDto;
+import com.jaee.dto.coupon.CouponValidationResponse;
 import com.jaee.entity.*;
 import com.jaee.exception.BadRequestException;
 import com.jaee.repository.AddressRepository;
 import com.jaee.repository.CartRepository;
+import com.jaee.repository.CouponRepository;
 import com.jaee.repository.OrderRepository;
 import com.jaee.repository.ProductRepository;
 import com.razorpay.RazorpayClient;
@@ -32,7 +34,9 @@ public class CheckoutService {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final AddressRepository addressRepository;
+    private final CouponRepository couponRepository;
     private final CartService cartService;
+    private final CouponService couponService;
     private final EmailService emailService;
     private final WhatsAppService whatsAppService;
 
@@ -68,7 +72,7 @@ public class CheckoutService {
      * Create a Razorpay order for checkout
      */
     @Transactional
-    public Map<String, Object> createOrder(User user, Long addressId) throws RazorpayException {
+    public Map<String, Object> createOrder(User user, Long addressId, String couponCode) throws RazorpayException {
         Cart cart = cartRepository.findByUserWithItems(user)
                 .orElseThrow(() -> new BadRequestException("Cart is empty"));
 
@@ -103,8 +107,24 @@ public class CheckoutService {
             }
         }
 
+        // Validate and apply coupon if provided
+        Coupon coupon = null;
+        BigDecimal discountAmount = BigDecimal.ZERO;
+        if (couponCode != null && !couponCode.isBlank()) {
+            BigDecimal cartTotal = cart.getItems().stream()
+                    .map(CartItem::getSubtotal)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            
+            CouponValidationResponse validation = couponService.validateCoupon(couponCode, cartTotal, user);
+            if (!validation.isValid()) {
+                throw new BadRequestException(validation.getMessage());
+            }
+            coupon = couponRepository.findByCodeIgnoreCase(couponCode.toUpperCase()).orElse(null);
+            discountAmount = validation.getDiscountAmount();
+        }
+
         // Create pending order in our database
-        Order pendingOrder = createPendingOrder(user, cart, shippingAddress, shippingAddressStr);
+        Order pendingOrder = createPendingOrder(user, cart, shippingAddress, shippingAddressStr, coupon, discountAmount);
 
         // Calculate total in paise (Razorpay expects amount in smallest currency unit)
         long amountInPaise = pendingOrder.getTotalAmount()
@@ -222,6 +242,11 @@ public class CheckoutService {
 
         orderRepository.save(order);
 
+        // Record coupon usage if coupon was used
+        if (order.getCoupon() != null) {
+            couponService.recordCouponUsage(order.getCoupon(), order.getUser(), order);
+        }
+
         // Clear cart
         cartService.clearCart(order.getUser());
 
@@ -310,6 +335,12 @@ public class CheckoutService {
         }
 
         orderRepository.save(order);
+
+        // Record coupon usage if coupon was used
+        if (order.getCoupon() != null) {
+            couponService.recordCouponUsage(order.getCoupon(), order.getUser(), order);
+        }
+
         cartService.clearCart(order.getUser());
 
         try {
@@ -350,10 +381,16 @@ public class CheckoutService {
                 });
     }
 
-    private Order createPendingOrder(User user, Cart cart, Address shippingAddress, String shippingAddressStr) {
-        BigDecimal total = cart.getItems().stream()
+    private Order createPendingOrder(User user, Cart cart, Address shippingAddress, String shippingAddressStr,
+                                       Coupon coupon, BigDecimal discountAmount) {
+        BigDecimal subtotal = cart.getItems().stream()
                 .map(CartItem::getSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        BigDecimal total = subtotal.subtract(discountAmount != null ? discountAmount : BigDecimal.ZERO);
+        if (total.compareTo(BigDecimal.ZERO) < 0) {
+            total = BigDecimal.ZERO;
+        }
 
         Order order = Order.builder()
                 .user(user)
@@ -364,6 +401,9 @@ public class CheckoutService {
                 .customerPhone(user.getMobileNumber())
                 .shippingAddress(shippingAddressStr)
                 .address(shippingAddress)
+                .coupon(coupon)
+                .couponCode(coupon != null ? coupon.getCode() : null)
+                .discountAmount(discountAmount != null ? discountAmount : BigDecimal.ZERO)
                 .build();
 
         for (CartItem cartItem : cart.getItems()) {

@@ -110,4 +110,17 @@ export const authService = {
   resetPassword: async (token: string, newPassword: string): Promise<void> => {
     await api.post('/auth/reset-password', { token, newPassword: encodePassword(newPassword) })
   },
+
+  // Email Verification
+  sendVerificationEmail: async (): Promise<void> => {
+    await api.post('/auth/verify-email/send')
+  },
+
+  verifyEmail: async (token: string): Promise<void> => {
+    await api.get(`/auth/verify-email?token=${token}`)
+  },
+
+  resendVerificationEmail: async (email: string): Promise<void> => {
+    await api.post('/auth/verify-email/resend', { email })
+  },
 }

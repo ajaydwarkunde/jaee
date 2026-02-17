@@ -4,10 +4,13 @@ import com.jaee.dto.category.CategoryCreateRequest;
 import com.jaee.dto.category.CategoryDto;
 import com.jaee.dto.common.ApiResponse;
 import com.jaee.dto.common.PageResponse;
+import com.jaee.dto.coupon.CouponCreateRequest;
+import com.jaee.dto.coupon.CouponDto;
 import com.jaee.dto.order.OrderDto;
 import com.jaee.dto.product.ProductCreateRequest;
 import com.jaee.dto.product.ProductDto;
 import com.jaee.service.CategoryService;
+import com.jaee.service.CouponService;
 import com.jaee.service.OrderService;
 import com.jaee.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,6 +35,7 @@ public class AdminController {
     private final CategoryService categoryService;
     private final ProductService productService;
     private final OrderService orderService;
+    private final CouponService couponService;
 
     // Category endpoints
     @PostMapping("/categories")
@@ -121,5 +125,50 @@ public class AdminController {
         String newStatus = request.get("status");
         OrderDto order = orderService.updateOrderStatus(orderId, newStatus);
         return ResponseEntity.ok(ApiResponse.success("Order status updated", order));
+    }
+    
+    // ============================================
+    // Coupon Management
+    // ============================================
+    
+    @GetMapping("/coupons")
+    @Operation(summary = "Get all coupons")
+    public ResponseEntity<ApiResponse<PageResponse<CouponDto>>> getAllCoupons(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        PageResponse<CouponDto> coupons = couponService.getAllCoupons(page, size);
+        return ResponseEntity.ok(ApiResponse.success(coupons));
+    }
+    
+    @GetMapping("/coupons/{id}")
+    @Operation(summary = "Get coupon by ID")
+    public ResponseEntity<ApiResponse<CouponDto>> getCouponById(@PathVariable Long id) {
+        CouponDto coupon = couponService.getCouponById(id);
+        return ResponseEntity.ok(ApiResponse.success(coupon));
+    }
+    
+    @PostMapping("/coupons")
+    @Operation(summary = "Create a new coupon")
+    public ResponseEntity<ApiResponse<CouponDto>> createCoupon(@Valid @RequestBody CouponCreateRequest request) {
+        CouponDto coupon = couponService.createCoupon(request);
+        return ResponseEntity.ok(ApiResponse.success("Coupon created", coupon));
+    }
+    
+    @PutMapping("/coupons/{id}")
+    @Operation(summary = "Update a coupon")
+    public ResponseEntity<ApiResponse<CouponDto>> updateCoupon(
+            @PathVariable Long id,
+            @Valid @RequestBody CouponCreateRequest request
+    ) {
+        CouponDto coupon = couponService.updateCoupon(id, request);
+        return ResponseEntity.ok(ApiResponse.success("Coupon updated", coupon));
+    }
+    
+    @DeleteMapping("/coupons/{id}")
+    @Operation(summary = "Delete a coupon")
+    public ResponseEntity<ApiResponse<Void>> deleteCoupon(@PathVariable Long id) {
+        couponService.deleteCoupon(id);
+        return ResponseEntity.ok(ApiResponse.success("Coupon deleted", null));
     }
 }

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Trash2, Minus, Plus, ArrowRight, ShoppingCart, MapPin, ChevronDown, ChevronUp, LogIn, UserPlus } from 'lucide-react'
+import { Trash2, Minus, Plus, ArrowRight, ShoppingCart, MapPin, ChevronDown, ChevronUp, LogIn, UserPlus, Tag, X, Check } from 'lucide-react'
 import { cartService } from '@/services/cartService'
 import { checkoutService } from '@/services/checkoutService'
 import { addressService } from '@/services/addressService'
+import { couponService, CouponValidationResponse } from '@/services/couponService'
 import { useAuthStore } from '@/stores/authStore'
 import { formatPrice } from '@/lib/utils'
 import { loadRazorpayScript, initializeRazorpay } from '@/lib/razorpay'
@@ -24,6 +25,12 @@ export default function CartPage() {
   const [addressForm, setAddressForm] = useState<AddressFormData>({
     line1: '', line2: '', city: '', state: '', country: 'India', zip: '', phone: '', isDefault: true,
   })
+  
+  // Coupon state
+  const [couponCode, setCouponCode] = useState('')
+  const [appliedCoupon, setAppliedCoupon] = useState<CouponValidationResponse | null>(null)
+  const [couponLoading, setCouponLoading] = useState(false)
+  const [couponError, setCouponError] = useState('')
 
   // Get cart for authenticated users
   const { data: cart, isLoading: cartLoading } = useQuery({
@@ -108,6 +115,38 @@ export default function CartPage() {
     removeItemMutation.mutate(itemId)
   }
 
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError('Please enter a coupon code')
+      return
+    }
+
+    setCouponLoading(true)
+    setCouponError('')
+
+    try {
+      const response = await couponService.validateCoupon(couponCode.trim(), cart?.subtotal)
+      if (response.valid) {
+        setAppliedCoupon(response)
+        toast.success(response.message)
+      } else {
+        setCouponError(response.message)
+        setAppliedCoupon(null)
+      }
+    } catch (error: any) {
+      setCouponError(error?.response?.data?.message || 'Failed to validate coupon')
+      setAppliedCoupon(null)
+    } finally {
+      setCouponLoading(false)
+    }
+  }
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null)
+    setCouponCode('')
+    setCouponError('')
+  }
+
   const handleCheckout = async () => {
     if (!selectedAddressId && (!addresses || addresses.length === 0)) {
       setShowAddressSection(true)
@@ -125,8 +164,11 @@ export default function CartPage() {
     setCheckoutLoading(true)
 
     try {
-      // Create order with address
-      const orderData = await checkoutService.createOrder(selectedAddressId)
+      // Create order with address and coupon
+      const orderData = await checkoutService.createOrder({
+        addressId: selectedAddressId || undefined,
+        couponCode: appliedCoupon?.code || undefined,
+      })
 
       // TEST MODE: Simulate payment without Razorpay
       if (orderData.testMode) {
@@ -471,18 +513,81 @@ export default function CartPage() {
                   Order Summary
                 </h2>
 
+                {/* Coupon Code Section */}
+                <div className="mb-6">
+                  {!appliedCoupon ? (
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <div className="flex-1 relative">
+                          <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-warm-gray" />
+                          <input
+                            type="text"
+                            value={couponCode}
+                            onChange={(e) => {
+                              setCouponCode(e.target.value.toUpperCase())
+                              setCouponError('')
+                            }}
+                            placeholder="Enter coupon code"
+                            className="w-full pl-10 pr-4 py-2.5 text-sm rounded-lg border border-warm-gray/30 focus:border-rose focus:ring-1 focus:ring-rose outline-none uppercase"
+                          />
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleApplyCoupon}
+                          disabled={couponLoading || !couponCode.trim()}
+                        >
+                          {couponLoading ? 'Applying...' : 'Apply'}
+                        </Button>
+                      </div>
+                      {couponError && (
+                        <p className="text-xs text-error">{couponError}</p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between p-3 bg-success/10 rounded-lg border border-success/30">
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-success" />
+                        <div>
+                          <p className="text-sm font-medium text-charcoal">{appliedCoupon.code}</p>
+                          <p className="text-xs text-success">You save {formatPrice(appliedCoupon.discountAmount || 0)}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleRemoveCoupon}
+                        className="p-1 hover:bg-charcoal/10 rounded transition-colors"
+                        title="Remove coupon"
+                      >
+                        <X className="w-4 h-4 text-charcoal/60" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between text-warm-gray">
                     <span>Subtotal</span>
                     <span>{formatPrice(cart.subtotal)}</span>
                   </div>
+                  {appliedCoupon && appliedCoupon.discountAmount && (
+                    <div className="flex justify-between text-success">
+                      <span>Discount</span>
+                      <span>-{formatPrice(appliedCoupon.discountAmount)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-warm-gray">
                     <span>Shipping</span>
                     <span className="text-success">Free</span>
                   </div>
                   <div className="border-t border-blush pt-3 flex justify-between font-medium text-charcoal">
                     <span>Total</span>
-                    <span className="text-lg">{formatPrice(cart.subtotal)}</span>
+                    <span className="text-lg">
+                      {formatPrice(
+                        appliedCoupon?.discountAmount 
+                          ? cart.subtotal - appliedCoupon.discountAmount
+                          : cart.subtotal
+                      )}
+                    </span>
                   </div>
                 </div>
 

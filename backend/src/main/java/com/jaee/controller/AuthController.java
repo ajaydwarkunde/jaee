@@ -4,6 +4,7 @@ import com.jaee.dto.auth.*;
 import com.jaee.dto.common.ApiResponse;
 import com.jaee.entity.User;
 import com.jaee.service.AuthService;
+import com.jaee.service.EmailVerificationService;
 import com.jaee.service.OtpService;
 import com.jaee.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,6 +24,7 @@ public class AuthController {
     private final AuthService authService;
     private final OtpService otpService;
     private final UserService userService;
+    private final EmailVerificationService emailVerificationService;
 
     @PostMapping("/register")
     @Operation(summary = "Register a new user with email and password")
@@ -85,5 +87,26 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         userService.resetPassword(request.getToken(), request.getNewPassword());
         return ResponseEntity.ok(ApiResponse.success("Password has been reset successfully. You can now login with your new password.", null));
+    }
+
+    @PostMapping("/verify-email/send")
+    @Operation(summary = "Send email verification link")
+    public ResponseEntity<ApiResponse<Void>> sendVerificationEmail(@AuthenticationPrincipal User user) {
+        emailVerificationService.sendVerificationEmail(user);
+        return ResponseEntity.ok(ApiResponse.success("Verification email sent successfully", null));
+    }
+
+    @GetMapping("/verify-email")
+    @Operation(summary = "Verify email with token")
+    public ResponseEntity<ApiResponse<Void>> verifyEmail(@RequestParam String token) {
+        emailVerificationService.verifyEmail(token);
+        return ResponseEntity.ok(ApiResponse.success("Email verified successfully", null));
+    }
+
+    @PostMapping("/verify-email/resend")
+    @Operation(summary = "Resend verification email")
+    public ResponseEntity<ApiResponse<Void>> resendVerificationEmail(@RequestBody ResendVerificationRequest request) {
+        emailVerificationService.resendVerificationEmail(request.getEmail());
+        return ResponseEntity.ok(ApiResponse.success("Verification email sent successfully", null));
     }
 }

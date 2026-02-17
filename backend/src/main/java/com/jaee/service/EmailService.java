@@ -46,7 +46,7 @@ public class EmailService {
     /**
      * Send email using Resend HTTP API
      */
-    private boolean sendEmail(String toEmail, String subject, String htmlContent) {
+    public boolean sendEmail(String toEmail, String subject, String htmlContent) {
         if (!emailEnabled || apiKey == null || apiKey.isBlank()) {
             log.info("Email disabled or API key not configured. Would send to: {} subject: {}", toEmail, subject);
             return false;

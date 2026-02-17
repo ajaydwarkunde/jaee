@@ -53,6 +53,17 @@ public class Order {
 
     private String customerPhone;
 
+    // Coupon fields
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "coupon_id")
+    private Coupon coupon;
+
+    private String couponCode;
+
+    @Column(precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal discountAmount = BigDecimal.ZERO;
+
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 

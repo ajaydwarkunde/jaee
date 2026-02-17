@@ -26,7 +26,9 @@ const AdminProducts = lazy(() => import('./pages/admin/AdminProducts'))
 const AdminCategories = lazy(() => import('./pages/admin/AdminCategories'))
 const AdminOrders = lazy(() => import('./pages/admin/AdminOrders'))
 const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'))
+const AdminCoupons = lazy(() => import('./pages/admin/AdminCoupons'))
 const SalePage = lazy(() => import('./pages/SalePage'))
+const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage'))
 const WishlistPage = lazy(() => import('./pages/WishlistPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
@@ -47,6 +49,7 @@ function App() {
           <Route path="register" element={<RegisterPage />} />
           <Route path="forgot-password" element={<ForgotPasswordPage />} />
           <Route path="reset-password" element={<ResetPasswordPage />} />
+          <Route path="verify-email" element={<VerifyEmailPage />} />
           <Route path="order-success" element={<OrderSuccessPage />} />
           <Route path="order-failure" element={<OrderFailurePage />} />
 
@@ -65,6 +68,7 @@ function App() {
             <Route path="products" element={<AdminProducts />} />
             <Route path="categories" element={<AdminCategories />} />
             <Route path="orders" element={<AdminOrders />} />
+            <Route path="coupons" element={<AdminCoupons />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>
 

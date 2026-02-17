@@ -28,6 +28,10 @@ public class OrderDto {
     private LocalDateTime createdAt;
     private LocalDateTime paidAt;
     
+    // Coupon fields
+    private String couponCode;
+    private BigDecimal discountAmount;
+    
     // Admin fields
     private Long userId;
     private String userName;
@@ -47,6 +51,8 @@ public class OrderDto {
                 .customerPhone(order.getCustomerPhone())
                 .createdAt(order.getCreatedAt())
                 .paidAt(order.getPaidAt())
+                .couponCode(order.getCouponCode())
+                .discountAmount(order.getDiscountAmount())
                 .userId(order.getUser() != null ? order.getUser().getId() : null)
                 .userName(order.getUser() != null ? order.getUser().getName() : null)
                 .itemCount(order.getItems() != null ? order.getItems().size() : 0)

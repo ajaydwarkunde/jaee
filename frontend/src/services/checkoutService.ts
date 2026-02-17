@@ -27,13 +27,18 @@ export interface PaymentVerificationResult {
   message: string
 }
 
+export interface CreateOrderOptions {
+  addressId?: number;
+  couponCode?: string;
+}
+
 export const checkoutService = {
   /**
    * Create a Razorpay order for checkout
    */
-  createOrder: async (addressId?: number): Promise<RazorpayOrderData> => {
+  createOrder: async (options?: CreateOrderOptions): Promise<RazorpayOrderData> => {
     const response = await api.post<ApiResponse<RazorpayOrderData>>('/checkout/create-order', 
-      addressId ? { addressId } : {}
+      options || {}
     )
     return response.data.data
   },

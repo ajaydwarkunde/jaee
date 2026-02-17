@@ -33,13 +33,15 @@ public class CheckoutController {
             @RequestBody(required = false) CreateOrderRequest request
     ) throws RazorpayException {
         Long addressId = request != null ? request.getAddressId() : null;
-        Map<String, Object> orderData = checkoutService.createOrder(user, addressId);
+        String couponCode = request != null ? request.getCouponCode() : null;
+        Map<String, Object> orderData = checkoutService.createOrder(user, addressId, couponCode);
         return ResponseEntity.ok(ApiResponse.success("Order created successfully", orderData));
     }
 
     @Data
     public static class CreateOrderRequest {
         private Long addressId;
+        private String couponCode;
     }
 
     @PostMapping("/verify-payment")

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Package, Tag, ShoppingBag, ShoppingCart, Settings } from 'lucide-react'
+import { Package, Tag, ShoppingBag, ShoppingCart, Settings, Percent } from 'lucide-react'
 import { productService } from '@/services/productService'
 import { categoryService } from '@/services/categoryService'
 import { orderService } from '@/services/orderService'
@@ -111,6 +111,19 @@ export default function AdminDashboard() {
               <p className="mb-4">View and manage customer orders</p>
               <Link to="/admin/orders" className="text-rose hover:underline font-medium">
                 Manage Orders →
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardTitle className="flex items-center gap-2">
+              <Percent className="w-5 h-5" />
+              Promo Codes
+            </CardTitle>
+            <CardContent>
+              <p className="mb-4">Manage discount coupons</p>
+              <Link to="/admin/coupons" className="text-rose hover:underline font-medium">
+                Manage Coupons →
               </Link>
             </CardContent>
           </Card>
