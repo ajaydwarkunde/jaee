@@ -13,6 +13,8 @@ services:
     region: singapore  # Change to your preferred region
     plan: free  # or starter, standard, pro
     healthCheckPath: /actuator/health
+    # Disable auto-deploy - let GitHub Actions control deploys
+    autoDeploy: false
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
@@ -39,6 +41,8 @@ services:
     buildCommand: cd frontend && npm ci && npm run build
     staticPublishPath: ./frontend/dist
     pullRequestPreviewsEnabled: true
+    # Disable auto-deploy - let GitHub Actions control deploys
+    autoDeploy: false
     headers:
       - path: /*
         name: Cache-Control
