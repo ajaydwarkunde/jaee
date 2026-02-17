@@ -103,10 +103,13 @@ management:
 # Logging
 logging:
   level:
-    com.jaee: DEBUG
-    org.springframework.security: INFO
+    root: INFO
+    com.jaee: INFO
+    com.jaee.config.RequestLoggingFilter: INFO
+    org.springframework.security: WARN
+    org.springframework.web: WARN
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
 # OpenAPI
 springdoc:
@@ -142,5 +145,10 @@ spring:
 
 logging:
   level:
+    root: INFO
     com.jaee: INFO
+    com.jaee.config.RequestLoggingFilter: INFO
     org.springframework: WARN
+    org.hibernate: WARN
+  pattern:
+    console: "%d{HH:mm:ss} %-5level - %msg%n"
