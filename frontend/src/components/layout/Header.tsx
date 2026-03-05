@@ -77,19 +77,32 @@ export default function Header() {
           <Logo size="lg" />
 
           {/* Desktop navigation */}
-          <ul className="hidden md:flex items-center gap-8">
+          <ul className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
               <li key={link.to}>
                 <NavLink
                   to={link.to}
+                  end={link.to === '/'}
                   className={({ isActive }) =>
                     cn(
-                      'text-sm font-medium tracking-wide transition-colors hover:text-rose',
-                      isActive ? 'text-rose' : 'text-charcoal'
+                      'relative px-4 py-2 text-sm font-medium tracking-wide rounded-full transition-all duration-300',
+                      isActive
+                        ? 'text-rose bg-rose/10'
+                        : 'text-charcoal hover:text-rose hover:bg-blush/50'
                     )
                   }
                 >
-                  {link.label}
+                  {({ isActive }) => (
+                    <>
+                      {link.label}
+                      <span
+                        className={cn(
+                          'absolute bottom-0.5 left-1/2 -translate-x-1/2 h-0.5 rounded-full bg-rose transition-all duration-300',
+                          isActive ? 'w-4' : 'w-0'
+                        )}
+                      />
+                    </>
+                  )}
                 </NavLink>
               </li>
             ))}
@@ -209,16 +222,19 @@ export default function Header() {
         {/* Mobile menu */}
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-blush animate-slide-up">
-            <ul className="space-y-2">
+            <ul className="space-y-1">
               {navLinks.map((link) => (
                 <li key={link.to}>
                   <NavLink
                     to={link.to}
+                    end={link.to === '/'}
                     onClick={() => setMobileMenuOpen(false)}
                     className={({ isActive }) =>
                       cn(
-                        'block py-2 text-base font-medium transition-colors',
-                        isActive ? 'text-rose' : 'text-charcoal'
+                        'block py-2.5 px-3 text-base font-medium rounded-lg transition-all duration-200',
+                        isActive
+                          ? 'text-rose bg-rose/10 border-l-2 border-rose pl-4'
+                          : 'text-charcoal hover:bg-blush/40 hover:pl-4'
                       )
                     }
                   >
