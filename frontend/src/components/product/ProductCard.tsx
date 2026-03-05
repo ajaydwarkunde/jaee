@@ -60,12 +60,13 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
   return (
     <div className="group bg-soft-white rounded-lg overflow-hidden shadow-soft hover:shadow-soft-md transition-all duration-300">
       {/* Image container */}
-      <div className="relative aspect-square overflow-hidden">
-        <Link to={`/product/${product.slug}`}>
+      <div className="relative aspect-square overflow-hidden bg-cream">
+        <Link to={`/product/${product.slug}`} className="block w-full h-full">
           <LazyImage
             src={imageUrl}
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            wrapperClassName="w-full h-full"
+            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
           />
         </Link>
         
