@@ -9,6 +9,8 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -75,6 +77,20 @@ public class GlobalExceptionHandler {
                 .build();
         
         return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMaxUploadSize(MaxUploadSizeExceededException ex) {
+        log.warn("File upload too large: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("File is too large. Maximum size is 10MB per file."));
+    }
+
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMultipart(MultipartException ex) {
+        log.warn("Multipart error: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Invalid file upload. Please try again."));
     }
 
     @ExceptionHandler(Exception.class)
