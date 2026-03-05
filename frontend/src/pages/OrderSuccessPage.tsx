@@ -6,6 +6,7 @@ import { orderService } from '@/services/orderService'
 import { formatPrice, formatDate } from '@/lib/utils'
 import Button from '@/components/ui/Button'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import OrderStepper from '@/components/ui/OrderStepper'
 import confetti from '@/lib/confetti'
 import type { Order } from '@/types'
 
@@ -69,9 +70,16 @@ export default function OrderSuccessPage() {
           </div>
 
           <h1 className="heading-2 text-charcoal mb-2">Thank You!</h1>
-          <p className="text-warm-gray text-lg mb-8">
+          <p className="text-warm-gray text-lg mb-4">
             Your order has been placed successfully.
           </p>
+
+          {/* Order Progress */}
+          {order && (
+            <div className="mb-8 bg-cream rounded-xl p-4">
+              <OrderStepper status={order.status} />
+            </div>
+          )}
 
           {order && (
             <div className="bg-blush/30 rounded-xl p-6 mb-8 text-left">

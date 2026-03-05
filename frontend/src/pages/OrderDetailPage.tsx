@@ -6,6 +6,7 @@ import { formatPrice, formatDate } from '@/lib/utils'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import OrderStepper from '@/components/ui/OrderStepper'
 import type { Order } from '@/types'
 
 // Generate WhatsApp share link with order details
@@ -74,7 +75,6 @@ export default function OrderDetailPage() {
   }
 
   const statusInfo = getStatusInfo(order.status)
-  const StatusIcon = statusInfo.icon
 
   return (
     <div className="bg-cream min-h-screen py-8 md:py-12">
@@ -105,27 +105,9 @@ export default function OrderDetailPage() {
             </div>
           </div>
 
-          {/* Order Timeline */}
+          {/* Order Progress Stepper */}
           <div className="mt-8 pt-6 border-t border-blush">
-            <div className="flex items-center gap-4">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                order.status !== 'CANCELLED' ? 'bg-green-100' : 'bg-red-100'
-              }`}>
-                <StatusIcon className={`w-5 h-5 ${statusInfo.color}`} />
-              </div>
-              <div>
-                <p className="font-medium text-charcoal">
-                  {order.status === 'PAID' && 'Payment Confirmed'}
-                  {order.status === 'PENDING' && 'Awaiting Payment'}
-                  {order.status === 'SHIPPED' && 'Order Shipped'}
-                  {order.status === 'FULFILLED' && 'Order Delivered'}
-                  {order.status === 'CANCELLED' && 'Order Cancelled'}
-                </p>
-                <p className="text-sm text-warm-gray">
-                  {order.paidAt ? formatDate(order.paidAt) : formatDate(order.createdAt)}
-                </p>
-              </div>
-            </div>
+            <OrderStepper status={order.status} />
           </div>
         </div>
 
