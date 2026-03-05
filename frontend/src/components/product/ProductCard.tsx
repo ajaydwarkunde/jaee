@@ -89,7 +89,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
             className={`p-2 rounded-full shadow-soft transition-colors ${
               isWishlisted
                 ? 'bg-rose text-soft-white'
-                : 'bg-soft-white/90 backdrop-blur-sm hover:bg-rose hover:text-soft-white opacity-0 group-hover:opacity-100'
+                : 'bg-soft-white/90 backdrop-blur-sm hover:bg-rose hover:text-soft-white md:opacity-0 md:group-hover:opacity-100'
             }`}
             aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
           >
@@ -97,9 +97,9 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           </button>
         </div>
 
-        {/* Add to cart overlay */}
+        {/* Add to cart overlay (desktop only - hidden on touch devices) */}
         {product.inStock && onAddToCart && (
-          <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+          <div className="hidden md:block absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
             <button
               onClick={(e) => {
                 e.preventDefault()
