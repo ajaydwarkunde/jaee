@@ -25,7 +25,8 @@ public class ImageService {
             "image/jpeg",
             "image/png",
             "image/gif",
-            "image/webp"
+            "image/webp",
+            "image/svg+xml"
     );
 
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -159,7 +160,7 @@ public class ImageService {
 
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
-            throw new BadRequestException("Invalid file type. Allowed types: JPEG, PNG, GIF, WebP");
+            throw new BadRequestException("Invalid file type. Allowed types: JPEG, PNG, GIF, WebP, SVG");
         }
     }
 
