@@ -51,7 +51,7 @@ export default function Footer() {
                 { to: '/sale', label: 'Sale' },
                 { to: '/shop/candles', label: 'Candles' },
                 { to: '/shop/gift-sets', label: 'Gift Sets' },
-                { to: '/wishlist', label: 'Wishlist' },
+                { to: '/about', label: 'About Us' },
               ].map((link) => (
                 <li key={link.to}>
                   <Link 

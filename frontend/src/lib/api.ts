@@ -62,7 +62,6 @@ api.interceptors.response.use(
   }
 )
 
-// Map of status codes / backend messages to user-friendly messages
 const FRIENDLY_MESSAGES: Record<string, string> = {
   'Invalid email or password': 'The email or password you entered is incorrect. Please try again.',
   'Invalid credentials': 'The email or password you entered is incorrect. Please try again.',
@@ -72,26 +71,56 @@ const FRIENDLY_MESSAGES: Record<string, string> = {
   'Network Error': 'Unable to connect to the server. Please check your internet connection.',
   'Request failed with status code 500': 'Something went wrong on our end. Please try again later.',
   'Request failed with status code 429': 'Too many attempts. Please wait a moment and try again.',
+  'Product not found': 'This product is no longer available.',
+  'Cart is empty': 'Your cart is empty. Add some items before checking out.',
+  'An unexpected error occurred. Please try again.': 'Something went wrong. Please try again.',
 }
 
-// Helper to extract error message
+const FRIENDLY_PATTERNS: [RegExp, (match: RegExpMatchArray) => string][] = [
+  [
+    /Insufficient stock\.\s*Available:\s*(\d+)/i,
+    (m) => {
+      const qty = parseInt(m[1], 10)
+      return qty === 0
+        ? 'Sorry, this item is currently out of stock.'
+        : `Sorry, only ${qty} left in stock. Please reduce the quantity.`
+    },
+  ],
+  [
+    /quantity exceeds available stock/i,
+    () => 'The requested quantity exceeds available stock.',
+  ],
+  [
+    /coupon.*expired/i,
+    () => 'This coupon has expired.',
+  ],
+  [
+    /coupon.*invalid/i,
+    () => 'This coupon code is not valid.',
+  ],
+]
+
 export const getErrorMessage = (error: unknown): string => {
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError<{ message?: string }>
     const backendMessage = axiosError.response?.data?.message
-    
-    // Check for user-friendly mapping
-    if (backendMessage && FRIENDLY_MESSAGES[backendMessage]) {
-      return FRIENDLY_MESSAGES[backendMessage]
+
+    if (backendMessage) {
+      if (FRIENDLY_MESSAGES[backendMessage]) {
+        return FRIENDLY_MESSAGES[backendMessage]
+      }
+
+      for (const [pattern, formatter] of FRIENDLY_PATTERNS) {
+        const match = backendMessage.match(pattern)
+        if (match) return formatter(match)
+      }
     }
-    
-    // Check axios message mapping
+
     const axiosMessage = axiosError.message
     if (axiosMessage && FRIENDLY_MESSAGES[axiosMessage]) {
       return FRIENDLY_MESSAGES[axiosMessage]
     }
 
-    // Status-specific fallbacks
     if (axiosError.response?.status === 401) {
       return 'Invalid credentials. Please check your email and password.'
     }
@@ -107,7 +136,7 @@ export const getErrorMessage = (error: unknown): string => {
     if (axiosError.response?.status && axiosError.response.status >= 500) {
       return 'Something went wrong on our end. Please try again later.'
     }
-    
+
     return backendMessage || 'An error occurred. Please try again.'
   }
   if (error instanceof Error) {

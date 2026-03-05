@@ -30,6 +30,7 @@ const AdminCoupons = lazy(() => import('./pages/admin/AdminCoupons'))
 const SalePage = lazy(() => import('./pages/SalePage'))
 const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage'))
 const WishlistPage = lazy(() => import('./pages/WishlistPage'))
+const AboutPage = lazy(() => import('./pages/AboutPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 function App() {
@@ -52,6 +53,7 @@ function App() {
           <Route path="verify-email" element={<VerifyEmailPage />} />
           <Route path="order-success" element={<OrderSuccessPage />} />
           <Route path="order-failure" element={<OrderFailurePage />} />
+          <Route path="about" element={<AboutPage />} />
 
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>

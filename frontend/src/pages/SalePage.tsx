@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { useCartStore } from '@/stores/cartStore'
 import ProductGrid from '@/components/product/ProductGrid'
 import Button from '@/components/ui/Button'
+import { getErrorMessage } from '@/lib/api'
 import toast from 'react-hot-toast'
 import type { Product } from '@/types'
 
@@ -27,8 +28,8 @@ export default function SalePage() {
       queryClient.invalidateQueries({ queryKey: ['cart'] })
       toast.success('Added to cart!')
     },
-    onError: () => {
-      toast.error('Failed to add to cart')
+    onError: (error) => {
+      toast.error(getErrorMessage(error))
     },
   })
 

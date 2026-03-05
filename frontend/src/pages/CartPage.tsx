@@ -12,6 +12,7 @@ import { loadRazorpayScript, initializeRazorpay } from '@/lib/razorpay'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import { getErrorMessage } from '@/lib/api'
 import toast from 'react-hot-toast'
 import type { AddressFormData } from '@/types'
 
@@ -61,8 +62,8 @@ export default function CartPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] })
     },
-    onError: () => {
-      toast.error('Failed to update cart')
+    onError: (error) => {
+      toast.error(getErrorMessage(error))
     },
   })
 
@@ -72,8 +73,8 @@ export default function CartPage() {
       queryClient.invalidateQueries({ queryKey: ['cart'] })
       toast.success('Item removed')
     },
-    onError: () => {
-      toast.error('Failed to remove item')
+    onError: (error) => {
+      toast.error(getErrorMessage(error))
     },
   })
 
@@ -86,8 +87,8 @@ export default function CartPage() {
       setAddressForm({ line1: '', line2: '', city: '', state: '', country: 'India', zip: '', phone: '', isDefault: true })
       toast.success('Address added!')
     },
-    onError: () => {
-      toast.error('Failed to add address')
+    onError: (error) => {
+      toast.error(getErrorMessage(error))
     },
   })
 
@@ -100,8 +101,8 @@ export default function CartPage() {
       toast.success('Payment successful!')
       navigate(`/order-success?orderId=${data.orderId}`)
     },
-    onError: () => {
-      toast.error('Payment verification failed')
+    onError: (error) => {
+      toast.error(getErrorMessage(error))
     },
   })
 

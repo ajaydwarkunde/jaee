@@ -11,6 +11,7 @@ import ProductGrid from '@/components/product/ProductGrid'
 import Button from '@/components/ui/Button'
 import Select from '@/components/ui/Select'
 import Input from '@/components/ui/Input'
+import { getErrorMessage } from '@/lib/api'
 import toast from 'react-hot-toast'
 import type { Product, ProductFilters } from '@/types'
 
@@ -78,8 +79,8 @@ export default function ShopPage() {
       queryClient.invalidateQueries({ queryKey: ['cart'] })
       toast.success('Added to cart!')
     },
-    onError: () => {
-      toast.error('Failed to add to cart')
+    onError: (error) => {
+      toast.error(getErrorMessage(error))
     },
   })
 

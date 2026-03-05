@@ -18,6 +18,7 @@ import ReviewSummary from '@/components/review/ReviewSummary'
 import ReviewList from '@/components/review/ReviewList'
 import ReviewForm from '@/components/review/ReviewForm'
 import RecentlyViewed from '@/components/product/RecentlyViewed'
+import { getErrorMessage } from '@/lib/api'
 import toast from 'react-hot-toast'
 
 export default function ProductPage() {
@@ -57,8 +58,8 @@ export default function ProductPage() {
       queryClient.invalidateQueries({ queryKey: ['cart'] })
       toast.success(`Added ${quantity} item(s) to cart!`)
     },
-    onError: () => {
-      toast.error('Failed to add to cart')
+    onError: (error) => {
+      toast.error(getErrorMessage(error))
     },
   })
 

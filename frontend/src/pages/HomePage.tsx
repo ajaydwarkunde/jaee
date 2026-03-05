@@ -13,6 +13,7 @@ import CategoryCarousel from '@/components/ui/CategoryCarousel'
 import { useCartStore } from '@/stores/cartStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
+import { getErrorMessage } from '@/lib/api'
 import toast from 'react-hot-toast'
 import type { Product } from '@/types'
 
@@ -112,8 +113,8 @@ export default function HomePage() {
       queryClient.invalidateQueries({ queryKey: ['cart'] })
       toast.success('Added to cart!')
     },
-    onError: () => {
-      toast.error('Failed to add to cart')
+    onError: (error) => {
+      toast.error(getErrorMessage(error))
     },
   })
 
