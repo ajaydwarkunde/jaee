@@ -8,29 +8,28 @@ interface LogoProps {
   className?: string
 }
 
-export default function Logo({ size = 'md', variant = 'dark', linkTo = '/', className }: LogoProps) {
-  const sizeClasses = {
-    sm: 'text-2xl',
-    md: 'text-3xl',
-    lg: 'text-4xl',
-  }
+const sizeMap = {
+  sm: { height: 32, width: 48 },
+  md: { height: 40, width: 60 },
+  lg: { height: 48, width: 72 },
+}
 
-  const colorClasses = {
-    dark: 'text-rose',
-    light: 'text-cream',
-  }
+export default function Logo({ size = 'md', variant = 'dark', linkTo = '/', className }: LogoProps) {
+  const { height, width } = sizeMap[size]
 
   const logo = (
-    <span
+    <img
+      src="/brandclr_1.svg"
+      alt="Jaee"
+      width={width}
+      height={height}
       className={cn(
-        'font-serif font-bold tracking-[0.15em] uppercase select-none',
-        sizeClasses[size],
-        colorClasses[variant],
+        'select-none object-contain',
+        variant === 'light' && 'filter brightness-0 invert',
         className
       )}
-    >
-      JAEE
-    </span>
+      style={{ height, width: 'auto' }}
+    />
   )
 
   if (linkTo === false) {

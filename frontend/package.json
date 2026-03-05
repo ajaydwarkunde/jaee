@@ -17,7 +17,7 @@
     "test:prod": "TEST_URL=https://jaee.vercel.app playwright test",
     "test:api": "playwright test tests/api.spec.ts",
     "test:full": "playwright test tests/full-flow.spec.ts",
-    "test:quick": "playwright test tests/home.spec.ts tests/shop.spec.ts --reporter=list"
+    "test:quick": "playwright test tests/home.spec.ts tests/shop.spec.ts --reporter=list","test:render":"TEST_URL=https://jaee-frontend.onrender.com playwright test tests/render-e2e.spec.ts","test:comprehensive":"TEST_URL=https://jaee.vercel.app playwright test tests/comprehensive-e2e.spec.ts","test:remaining":"TEST_URL=https://jaee.vercel.app playwright test tests/remaining-features-e2e.spec.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
