@@ -62,14 +62,14 @@ export default function Modal({
       {/* Modal */}
       <div
         className={cn(
-          'relative w-full bg-soft-white rounded-xl shadow-soft-xl animate-scale-in',
+          'relative w-full max-h-[90vh] flex flex-col bg-soft-white rounded-xl shadow-soft-xl animate-scale-in mx-4',
           sizes[size],
           className
         )}
       >
         {/* Header */}
         {(title || showClose) && (
-          <div className="flex items-center justify-between p-4 border-b border-blush">
+          <div className="flex items-center justify-between p-4 border-b border-blush shrink-0">
             {title && (
               <h2 className="font-serif text-xl font-medium text-charcoal">{title}</h2>
             )}
@@ -86,7 +86,7 @@ export default function Modal({
         )}
         
         {/* Content */}
-        <div className="p-4 md:p-6">{children}</div>
+        <div className="p-4 md:p-6 overflow-y-auto">{children}</div>
       </div>
     </div>,
     document.body

@@ -159,7 +159,7 @@ export default function ProductForm({
         placeholder="Describe your product..."
       />
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Input
           label="Selling Price"
           type="number"
@@ -227,14 +227,14 @@ export default function ProductForm({
               <p className="text-sm text-charcoal font-medium">
                 Drop images here or click to upload
               </p>
-              <p className="text-xs text-warm-gray">PNG, JPG, GIF, WebP (max 5MB)</p>
+              <p className="text-xs text-warm-gray">PNG, JPG, GIF, WebP, SVG (max 5MB)</p>
             </div>
           )}
         </div>
 
         {/* Uploaded Images Preview */}
         {uploadedImages.length > 0 && (
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
             {uploadedImages.map((url, index) => (
               <div key={index} className="relative group aspect-square">
                 <img
@@ -277,7 +277,7 @@ export default function ProductForm({
         </details>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Input
           label="Stock Quantity"
           type="number"
