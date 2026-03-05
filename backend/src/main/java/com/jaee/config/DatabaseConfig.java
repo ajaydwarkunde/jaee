@@ -34,9 +34,11 @@ public class DatabaseConfig {
     public DataSource dataSource(DataSourceProperties properties) {
         HikariDataSource dataSource = new HikariDataSource();
 
-        if (databaseUrl != null && !databaseUrl.isEmpty() && databaseUrl.startsWith("postgres")) {
+        String url = sanitizeUrl(databaseUrl);
+
+        if (url != null && !url.isEmpty() && url.startsWith("postgres")) {
             try {
-                URI dbUri = new URI(databaseUrl.replace("postgres://", "https://").replace("postgresql://", "https://"));
+                URI dbUri = new URI(url.replace("postgres://", "https://").replace("postgresql://", "https://"));
                 String jdbcUrl = "jdbc:postgresql://" + dbUri.getHost()
                         + (dbUri.getPort() > 0 ? ":" + dbUri.getPort() : "")
                         + dbUri.getPath();
@@ -47,7 +49,7 @@ public class DatabaseConfig {
                     jdbcUrl += "?sslmode=require";
                 }
 
-                String[] userInfo = dbUri.getUserInfo() != null ? dbUri.getUserInfo().split(":") : null;
+                String[] userInfo = dbUri.getUserInfo() != null ? dbUri.getUserInfo().split(":", 2) : null;
                 String username = userInfo != null && userInfo.length > 0 ? userInfo[0] : "";
                 String password = userInfo != null && userInfo.length > 1 ? userInfo[1] : "";
 
@@ -59,11 +61,14 @@ public class DatabaseConfig {
                 log.error("Failed to parse DATABASE_URL, falling back to properties", e);
                 configureFromProperties(dataSource, properties);
             }
-        } else if (databaseUrl != null && databaseUrl.startsWith("jdbc:")) {
-            dataSource.setJdbcUrl(databaseUrl);
-            dataSource.setUsername(databaseUsername.isEmpty() ? properties.getUsername() : databaseUsername);
-            dataSource.setPassword(databasePassword.isEmpty() ? properties.getPassword() : databasePassword);
-            log.info("Database configured from JDBC URL");
+        } else if (url != null && url.startsWith("jdbc:")) {
+            String cleanJdbcUrl = stripEmbeddedCredentials(url);
+            dataSource.setJdbcUrl(cleanJdbcUrl);
+            String resolvedUsername = !databaseUsername.isEmpty() ? databaseUsername : properties.getUsername();
+            String resolvedPassword = !databasePassword.isEmpty() ? databasePassword : properties.getPassword();
+            dataSource.setUsername(resolvedUsername);
+            dataSource.setPassword(resolvedPassword);
+            log.info("Database configured from JDBC URL: user={}", resolvedUsername);
         } else {
             configureFromProperties(dataSource, properties);
             log.info("Database configured from application properties");
@@ -83,5 +88,39 @@ public class DatabaseConfig {
         dataSource.setJdbcUrl(properties.getUrl());
         dataSource.setUsername(properties.getUsername());
         dataSource.setPassword(properties.getPassword());
+    }
+
+    /**
+     * Strip surrounding quotes and whitespace that PaaS dashboards sometimes include.
+     */
+    private String sanitizeUrl(String raw) {
+        if (raw == null) return null;
+        String trimmed = raw.trim();
+        if ((trimmed.startsWith("\"") && trimmed.endsWith("\""))
+                || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+            trimmed = trimmed.substring(1, trimmed.length() - 1).trim();
+        }
+        return trimmed;
+    }
+
+    /**
+     * Remove user= and password= query params from JDBC URL so credentials
+     * come exclusively from DATABASE_USERNAME / DATABASE_PASSWORD env vars.
+     * This avoids issues with special characters like @ in passwords.
+     */
+    private String stripEmbeddedCredentials(String jdbcUrl) {
+        int qIdx = jdbcUrl.indexOf('?');
+        if (qIdx < 0) return jdbcUrl;
+
+        String base = jdbcUrl.substring(0, qIdx);
+        String query = jdbcUrl.substring(qIdx + 1);
+        StringBuilder cleaned = new StringBuilder();
+        for (String param : query.split("&")) {
+            String lower = param.toLowerCase();
+            if (lower.startsWith("user=") || lower.startsWith("password=")) continue;
+            if (cleaned.length() > 0) cleaned.append("&");
+            cleaned.append(param);
+        }
+        return cleaned.length() > 0 ? base + "?" + cleaned : base;
     }
 }
