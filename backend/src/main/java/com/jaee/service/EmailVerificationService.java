@@ -59,7 +59,7 @@ public class EmailVerificationService {
         
         emailService.sendEmail(
                 user.getEmail(),
-                "Verify your email - Jaee",
+                "Verify your email - Jaai",
                 htmlContent
         );
 
@@ -115,7 +115,7 @@ public class EmailVerificationService {
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>Welcome to Jaee</h1>
+                        <h1>Welcome to Jaai</h1>
                     </div>
                     <div class="content">
                         <p>Hi %s,</p>
@@ -125,10 +125,10 @@ public class EmailVerificationService {
                         </p>
                         <p>This link will expire in %d hours.</p>
                         <p>If you didn't create an account with us, please ignore this email.</p>
-                        <p>Best regards,<br>The Jaee Team</p>
+                        <p>Best regards,<br>The Jaai Team</p>
                     </div>
                     <div class="footer">
-                        <p>Jaee - Handcrafted with love</p>
+                        <p>Jaai - Handcrafted with love</p>
                     </div>
                 </div>
             </body>

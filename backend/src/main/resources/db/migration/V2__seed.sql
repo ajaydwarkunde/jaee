@@ -34,7 +34,7 @@ INSERT INTO products (name, slug, description, price, currency, category_id, sto
 
 -- Insert wellness products
 INSERT INTO products (name, slug, description, price, currency, category_id, stock_qty, active) VALUES
-('Aromatherapy Diffuser', 'aromatherapy-diffuser', 'Ultrasonic essential oil diffuser with ambient lighting. Whisper-quiet operation with auto shut-off. Compatible with all Jaee essential oils.', 1799.00, 'INR', 4, 40, TRUE),
+('Aromatherapy Diffuser', 'aromatherapy-diffuser', 'Ultrasonic essential oil diffuser with ambient lighting. Whisper-quiet operation with auto shut-off. Compatible with all Jaai essential oils.', 1799.00, 'INR', 4, 40, TRUE),
 ('Essential Oil Set', 'essential-oil-set', 'Set of 6 pure essential oils: Lavender, Eucalyptus, Peppermint, Tea Tree, Lemon, and Orange. 100% natural, therapeutic grade.', 1299.00, 'INR', 4, 55, TRUE);
 
 -- Insert product images

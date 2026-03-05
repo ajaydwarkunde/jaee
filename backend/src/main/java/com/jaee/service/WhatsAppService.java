@@ -141,7 +141,7 @@ public class WhatsAppService {
         
         sb.append("🚚 Expected delivery: 5-7 business days\n\n");
         sb.append("Questions? Reply to this message or email jaeestudio12@gmail.com\n\n");
-        sb.append("Thank you for shopping with *Jaee*! 🕯️✨");
+        sb.append("Thank you for shopping with *Jaai*! 🕯️✨");
         
         return sb.toString();
     }
@@ -160,7 +160,7 @@ public class WhatsAppService {
         }
         
         sb.append("\n📍 Delivering to:\n").append(order.getShippingAddress()).append("\n\n");
-        sb.append("Thank you for shopping with *Jaee*! 🕯️");
+        sb.append("Thank you for shopping with *Jaai*! 🕯️");
         
         return sb.toString();
     }

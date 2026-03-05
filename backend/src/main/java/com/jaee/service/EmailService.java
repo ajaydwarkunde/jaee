@@ -123,7 +123,7 @@ public class EmailService {
         String resetLink = baseUrl + "/reset-password?token=" + resetToken;
         String htmlContent = buildPasswordResetHtml(resetLink);
 
-        sendEmail(toEmail, "Reset Your Password - Jaee", htmlContent);
+        sendEmail(toEmail, "Reset Your Password - Jaai", htmlContent);
     }
 
     private String buildPasswordResetHtml(String resetLink) {
@@ -137,7 +137,7 @@ public class EmailService {
             <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #FAF7F2; margin: 0; padding: 20px;">
                 <div style="max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                     <div style="background: linear-gradient(135deg, #E9868B 0%%, #D4726F 100%%); padding: 40px 30px; text-align: center;">
-                        <h1 style="color: #FFFFFF; margin: 0; font-size: 32px; letter-spacing: 3px; font-weight: 700;">JAEE</h1>
+                        <h1 style="color: #FFFFFF; margin: 0; font-size: 32px; letter-spacing: 3px; font-weight: 700;">JAAI</h1>
                     </div>
                     <div style="padding: 40px 30px; text-align: center;">
                         <div style="width: 60px; height: 60px; background-color: #FFF5F5; border-radius: 50%%; margin: 0 auto 20px auto; display: flex; align-items: center; justify-content: center;">
@@ -156,7 +156,7 @@ public class EmailService {
                         </p>
                     </div>
                     <div style="background-color: #FAF7F2; padding: 20px; text-align: center; color: #6B6B6B; font-size: 13px;">
-                        <p style="margin: 0;">&copy; 2026 Jaee. All rights reserved.</p>
+                        <p style="margin: 0;">&copy; 2026 Jaai. All rights reserved.</p>
                     </div>
                 </div>
             </body>
@@ -172,7 +172,7 @@ public class EmailService {
         }
 
         String htmlContent = buildOrderConfirmationHtml(order);
-        sendEmail(order.getCustomerEmail(), "Order Confirmed! - Jaee #" + order.getId(), htmlContent);
+        sendEmail(order.getCustomerEmail(), "Order Confirmed! - Jaai #" + order.getId(), htmlContent);
     }
 
     /**
@@ -187,7 +187,7 @@ public class EmailService {
 
         String baseUrl = frontendUrl.split(",")[0].trim();
         String htmlContent = buildNewsletterWelcomeHtml(baseUrl);
-        sendEmail(toEmail, "Welcome to the Jaee Community! ✨", htmlContent);
+        sendEmail(toEmail, "Welcome to the Jaai Community! ✨", htmlContent);
     }
 
     private String buildNewsletterWelcomeHtml(String baseUrl) {
@@ -198,7 +198,7 @@ public class EmailService {
             <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #FAF7F2; margin: 0; padding: 20px;">
                 <div style="max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
                     <div style="background: linear-gradient(135deg, #E9868B 0%%, #D4726F 100%%); padding: 50px 30px; text-align: center;">
-                        <h1 style="color: #FFFFFF; margin: 0 0 8px 0; font-size: 36px; letter-spacing: 4px; font-weight: 700;">JAEE</h1>
+                        <h1 style="color: #FFFFFF; margin: 0 0 8px 0; font-size: 36px; letter-spacing: 4px; font-weight: 700;">JAAI</h1>
                         <p style="color: rgba(255,255,255,0.85); margin: 0; font-size: 14px; letter-spacing: 1px;">Premium Candles & Home Decor</p>
                     </div>
                     <div style="padding: 40px 30px; text-align: center;">
@@ -213,7 +213,7 @@ public class EmailService {
                         </a>
                     </div>
                     <div style="background-color: #FAF7F2; padding: 20px; text-align: center; color: #999; font-size: 12px;">
-                        <p style="margin: 0;">&copy; 2026 Jaee. Made with love in India</p>
+                        <p style="margin: 0;">&copy; 2026 Jaai. Made with love in India</p>
                     </div>
                 </div>
             </body>
@@ -328,7 +328,7 @@ public class EmailService {
                     
                     <!-- Header -->
                     <div style="background: linear-gradient(135deg, #E9868B 0%%, #D4726F 100%%); padding: 40px 30px; text-align: center;">
-                        <h1 style="color: #FFFFFF; margin: 0 0 6px 0; font-size: 34px; letter-spacing: 4px; font-weight: 700;">JAEE</h1>
+                        <h1 style="color: #FFFFFF; margin: 0 0 6px 0; font-size: 34px; letter-spacing: 4px; font-weight: 700;">JAAI</h1>
                         <p style="color: rgba(255,255,255,0.85); margin: 0; font-size: 13px; letter-spacing: 1px;">Premium Candles & Home Decor</p>
                     </div>
                     
@@ -454,7 +454,7 @@ public class EmailService {
                             <a href="mailto:jaeestudio12@gmail.com" style="color: #E9868B; text-decoration: none; font-weight: 600;">jaeestudio12@gmail.com</a>
                         </p>
                         <p style="margin: 0; color: #BBBBBB; font-size: 11px;">
-                            &copy; 2026 Jaee &middot; Made with &#10084; in India &middot; Premium Candles & Home Decor
+                            &copy; 2026 Jaai &middot; Made with &#10084; in India &middot; Premium Candles & Home Decor
                         </p>
                     </div>
                 </div>

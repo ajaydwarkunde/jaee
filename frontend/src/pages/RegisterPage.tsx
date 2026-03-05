@@ -120,7 +120,7 @@ export default function RegisterPage() {
             </h1>
             <p className="text-warm-gray mt-2">
               {step === 'details' 
-                ? 'Join the Jaee community' 
+                ? 'Join the Jaai community' 
                 : 'One last step to secure your account'}
             </p>
           </div>

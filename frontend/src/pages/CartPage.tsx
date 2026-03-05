@@ -200,7 +200,7 @@ export default function CartPage() {
         key: orderData.keyId,
         amount: orderData.amount,
         currency: orderData.currency,
-        name: 'Jaee',
+        name: 'Jaai',
         description: 'Order Payment',
         image: '/favicon.svg',
         order_id: orderData.orderId,

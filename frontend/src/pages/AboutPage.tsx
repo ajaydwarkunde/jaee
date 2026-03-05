@@ -47,7 +47,7 @@ export default function AboutPage() {
             Bringing Warmth &amp; Beauty Into Every Home
           </h1>
           <p className="body-large text-warm-gray max-w-2xl mx-auto">
-            Jaee was born from a simple belief: that small moments of beauty can
+            Jaai was born from a simple belief: that small moments of beauty can
             transform our everyday lives. What started as a passion project has
             grown into a brand dedicated to crafting premium home products.
           </p>
@@ -77,7 +77,7 @@ export default function AboutPage() {
                 <p>
                   What began as gifts for friends and family quickly grew as
                   word spread about our unique fragrances and long-lasting
-                  quality. Today, Jaee has become a trusted name for handcrafted
+                  quality. Today, Jaai has become a trusted name for handcrafted
                   candles and home décor across India.
                 </p>
                 <p>
@@ -179,7 +179,7 @@ export default function AboutPage() {
       <section className="py-16 md:py-24 bg-gradient-to-br from-blush to-champagne">
         <div className="container-custom text-center">
           <h2 className="heading-2 text-charcoal mb-4">
-            Experience Jaee for Yourself
+            Experience Jaai for Yourself
           </h2>
           <p className="text-warm-gray max-w-xl mx-auto mb-8">
             Browse our collection and find the perfect piece to bring warmth

@@ -11,11 +11,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @OpenAPIDefinition(
     info = @Info(
-        title = "Jaee E-Commerce API",
+        title = "Jaai E-Commerce API",
         version = "1.0",
-        description = "REST API for Jaee e-commerce platform",
+        description = "REST API for Jaai e-commerce platform",
         contact = @Contact(
-            name = "Jaee Support",
+            name = "Jaai Support",
             email = "jaeestudio12@gmail.com"
         )
     ),

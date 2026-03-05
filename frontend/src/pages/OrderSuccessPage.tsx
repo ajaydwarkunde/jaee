@@ -16,7 +16,7 @@ function generateWhatsAppLink(order: Order): string {
     .map((item) => `• ${item.name} x${item.qty} - ₹${item.subtotal}`)
     .join('\n')
 
-  const message = `🎉 *Order Confirmed - Jaee*
+  const message = `🎉 *Order Confirmed - Jaai*
 
 📦 *Order #${order.id}*
 📅 ${formatDate(order.createdAt)}
@@ -30,7 +30,7 @@ ${order.shippingAddress ? `📍 *Delivery Address:*\n${order.shippingAddress}` :
 
 🚚 Expected delivery: 5-7 business days
 
-Thank you for shopping with Jaee! 🕯️✨`
+Thank you for shopping with Jaai! 🕯️✨`
 
   // Encode the message for URL
   const encodedMessage = encodeURIComponent(message)

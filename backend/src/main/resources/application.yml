@@ -51,7 +51,7 @@ app:
 
   email:
     from: ${EMAIL_FROM:onboarding@resend.dev}
-    from-name: ${EMAIL_FROM_NAME:Jaee}
+    from-name: ${EMAIL_FROM_NAME:Jaai}
     enabled: ${EMAIL_ENABLED:true}
     api-key: ${RESEND_API_KEY:}
 

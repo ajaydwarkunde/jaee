@@ -63,7 +63,7 @@ function NewsletterSection() {
     <section className="py-16 md:py-24 bg-charcoal">
       <div className="container-custom text-center">
         <Sparkles className="w-10 h-10 text-rose mx-auto mb-6" />
-        <h2 className="heading-2 text-soft-white mb-4">Join the Jaee Community</h2>
+        <h2 className="heading-2 text-soft-white mb-4">Join the Jaai Community</h2>
         <p className="text-cream/70 max-w-lg mx-auto mb-8">
           Subscribe for exclusive offers, new arrivals, and self-care inspiration delivered to your inbox.
         </p>
@@ -145,7 +145,7 @@ export default function HomePage() {
               </span>
               <h1 className="heading-1 text-charcoal mb-6">
                 Illuminate Your Space with{' '}
-                <span className="text-gradient">Jaee</span>
+                <span className="text-gradient">Jaai</span>
               </h1>
               <p className="body-large text-warm-gray mb-8 max-w-lg mx-auto lg:mx-0">
                 Discover our collection of premium, hand-poured candles and home décor. 
@@ -269,7 +269,7 @@ export default function HomePage() {
                 Crafted with Intention, Designed for Serenity
               </h2>
               <p className="text-warm-gray leading-relaxed mb-6">
-                Jaee was born from a simple belief: that small moments of beauty can transform our everyday lives. 
+                Jaai was born from a simple belief: that small moments of beauty can transform our everyday lives. 
                 What started as a passion project has grown into a brand dedicated to creating premium, 
                 sustainable products that bring warmth and joy to homes across India.
               </p>

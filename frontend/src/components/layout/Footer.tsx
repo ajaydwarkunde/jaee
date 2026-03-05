@@ -99,7 +99,7 @@ export default function Footer() {
         <div className="mt-12 pt-8 border-t border-cream/20">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-cream/50">
-              © {currentYear} Jaee. All rights reserved.
+              © {currentYear} Jaai. All rights reserved.
             </p>
             <div className="flex items-center gap-4 text-sm text-cream/50">
               <a 

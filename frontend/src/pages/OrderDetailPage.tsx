@@ -15,7 +15,7 @@ function generateWhatsAppLink(order: Order): string {
     .map((item) => `• ${item.name} x${item.qty} - ₹${item.subtotal}`)
     .join('\n')
 
-  const message = `📦 *Order #${order.id} - Jaee*
+  const message = `📦 *Order #${order.id} - Jaai*
 📅 ${formatDate(order.createdAt)}
 📊 Status: ${order.status}
 

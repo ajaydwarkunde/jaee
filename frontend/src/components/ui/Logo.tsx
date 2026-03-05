@@ -20,7 +20,7 @@ export default function Logo({ size = 'md', variant = 'dark', linkTo = '/', clas
   const logo = (
     <img
       src="/brandclr_1.svg"
-      alt="Jaee"
+      alt="Jaai"
       width={width}
       height={height}
       className={cn(

@@ -18,7 +18,7 @@ public class TotpService {
     private static final int CODE_DIGITS = 6;
     private static final int TIME_STEP_SECONDS = 30;
     private static final String ALGORITHM = "HmacSHA1";
-    private static final String ISSUER = "Jaee";
+    private static final String ISSUER = "Jaai";
 
     private final SecureRandom secureRandom = new SecureRandom();
 

@@ -46,7 +46,7 @@ public class SmsService {
      * @return true if SMS was actually sent, false otherwise
      */
     public boolean sendOtp(String to, String otp) {
-        String messageBody = "Your Jaee verification code is: " + otp + ". Valid for 5 minutes.";
+        String messageBody = "Your Jaai verification code is: " + otp + ". Valid for 5 minutes.";
 
         if (twilioInitialized && smsEnabled) {
             try {
