@@ -7,22 +7,22 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Brand colors - Soft Luxury Palette
-        cream: '#FAF7F2',
-        blush: '#F5E6E0',
+        // Brand colors - Berry Luxury Palette (based on logo #923C5B)
+        cream: '#FBF6F3',
+        blush: '#F2E3E8',
         rose: {
-          DEFAULT: '#E9868B',
-          light: '#F5A5A9',
-          dark: '#D4726F',
+          DEFAULT: '#923C5B',
+          light: '#B4617B',
+          dark: '#6E2D44',
         },
-        champagne: '#E8DDD4',
+        champagne: '#E4D5CF',
         charcoal: '#2D2D2D',
         'warm-gray': '#6B6B6B',
         'soft-white': '#FFFFFF',
         // Semantic colors
-        success: '#7FB685',
-        error: '#D4726A',
-        warning: '#E5C07B',
+        success: '#6B9E76',
+        error: '#C44D4D',
+        warning: '#D4A843',
       },
       fontFamily: {
         serif: ['Cormorant Garamond', 'Georgia', 'serif'],

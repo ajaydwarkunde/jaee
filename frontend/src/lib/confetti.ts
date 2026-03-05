@@ -1,6 +1,6 @@
 // Simple confetti effect
 export default function confetti() {
-  const colors = ['#D4A5A5', '#F5E6E0', '#E8DDD4', '#7FB685', '#E5C07B']
+  const colors = ['#B4617B', '#F2E3E8', '#E4D5CF', '#6B9E76', '#D4A843']
   const confettiCount = 100
 
   for (let i = 0; i < confettiCount; i++) {

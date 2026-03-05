@@ -27,21 +27,21 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             duration: 3000,
             style: {
               background: '#2D2D2D',
-              color: '#FAF7F2',
+              color: '#FBF6F3',
               borderRadius: '12px',
               padding: '12px 20px',
               fontSize: '14px',
             },
             success: {
               iconTheme: {
-                primary: '#7FB685',
-                secondary: '#FAF7F2',
+                primary: '#6B9E76',
+                secondary: '#FBF6F3',
               },
             },
             error: {
               iconTheme: {
-                primary: '#D4726A',
-                secondary: '#FAF7F2',
+                primary: '#C44D4D',
+                secondary: '#FBF6F3',
               },
             },
           }}

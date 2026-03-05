@@ -209,7 +209,7 @@ export default function CartPage() {
           contact: orderData.prefill.contact,
         },
         theme: {
-          color: '#E9868B',
+          color: '#923C5B',
         },
         handler: (response) => {
           verifyPaymentMutation.mutate({
