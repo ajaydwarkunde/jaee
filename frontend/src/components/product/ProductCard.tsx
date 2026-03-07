@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ShoppingBag, Heart, Star } from 'lucide-react'
+import { ShoppingBag, Heart, Star, Plus } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatPrice } from '@/lib/utils'
 import { wishlistService } from '@/services/wishlistService'
@@ -133,14 +133,29 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
             <span className="text-xs text-warm-gray">({product.reviewCount})</span>
           </div>
         )}
-        <div className="mt-2 flex items-center gap-2">
-          <span className="text-lg font-bold text-rose tabular-nums">
-            {formatPrice(product.price, product.currency)}
-          </span>
-          {hasDiscount && (
-            <span className="text-sm text-warm-gray line-through tabular-nums">
-              {formatPrice(product.compareAtPrice!, product.currency)}
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold text-rose tabular-nums">
+              {formatPrice(product.price, product.currency)}
             </span>
+            {hasDiscount && (
+              <span className="text-sm text-warm-gray line-through tabular-nums">
+                {formatPrice(product.compareAtPrice!, product.currency)}
+              </span>
+            )}
+          </div>
+          {product.inStock && onAddToCart && (
+            <button
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                onAddToCart()
+              }}
+              className="md:hidden p-2 bg-rose text-soft-white rounded-full hover:bg-rose-dark transition-colors shrink-0"
+              aria-label="Add to cart"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
           )}
         </div>
       </Link>
