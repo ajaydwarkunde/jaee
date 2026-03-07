@@ -542,7 +542,7 @@ export default function ProfilePage() {
               <p className="text-sm text-warm-gray mb-4">
                 Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)
               </p>
-              <div className="bg-white p-4 rounded-lg inline-block mb-4">
+              <div className="bg-soft-white p-4 rounded-lg inline-block mb-4">
                 <img 
                   src={twoFactorSetup.qrCodeUrl} 
                   alt="2FA QR Code" 

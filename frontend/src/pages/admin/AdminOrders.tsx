@@ -118,7 +118,7 @@ export default function AdminOrders() {
               }}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                 statusFilter === status
-                  ? 'bg-charcoal text-cream'
+                  ? 'bg-rose text-soft-white'
                   : 'bg-soft-white text-charcoal hover:bg-blush'
               }`}
             >

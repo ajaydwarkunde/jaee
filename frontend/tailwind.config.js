@@ -4,22 +4,21 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        // Brand colors - Berry Luxury Palette (based on logo #923C5B)
-        cream: '#FBF6F3',
-        blush: '#F2E3E8',
+        cream: 'rgb(var(--color-cream) / <alpha-value>)',
+        blush: 'rgb(var(--color-blush) / <alpha-value>)',
         rose: {
           DEFAULT: '#923C5B',
           light: '#B4617B',
           dark: '#6E2D44',
         },
-        champagne: '#E4D5CF',
-        charcoal: '#2D2D2D',
-        'warm-gray': '#6B6B6B',
-        'soft-white': '#FFFFFF',
-        // Semantic colors
+        champagne: 'rgb(var(--color-champagne) / <alpha-value>)',
+        charcoal: 'rgb(var(--color-charcoal) / <alpha-value>)',
+        'warm-gray': 'rgb(var(--color-warm-gray) / <alpha-value>)',
+        'soft-white': 'rgb(var(--color-soft-white) / <alpha-value>)',
         success: '#6B9E76',
         error: '#C44D4D',
         warning: '#D4A843',
@@ -53,10 +52,10 @@ export default {
         'pill': '9999px',
       },
       boxShadow: {
-        'soft': '0 2px 8px rgba(45, 45, 45, 0.08)',
-        'soft-md': '0 4px 12px rgba(45, 45, 45, 0.1)',
-        'soft-lg': '0 8px 24px rgba(45, 45, 45, 0.12)',
-        'soft-xl': '0 12px 40px rgba(45, 45, 45, 0.15)',
+        'soft': 'var(--shadow-soft)',
+        'soft-md': 'var(--shadow-soft-md)',
+        'soft-lg': 'var(--shadow-soft-lg)',
+        'soft-xl': 'var(--shadow-soft-xl)',
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-out',

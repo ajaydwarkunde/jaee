@@ -9,6 +9,7 @@ import { wishlistService } from '@/services/wishlistService'
 import { cn } from '@/lib/utils'
 import Button from '../ui/Button'
 import Logo from '../ui/Logo'
+import ThemeToggle from '../ui/ThemeToggle'
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -109,7 +110,10 @@ export default function Header() {
           </ul>
 
           {/* Actions */}
-          <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-1 md:gap-3">
+            {/* Theme toggle */}
+            <ThemeToggle />
+
             {/* Search button */}
             <button
               onClick={() => setSearchOpen(!searchOpen)}

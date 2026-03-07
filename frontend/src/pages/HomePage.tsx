@@ -45,7 +45,7 @@ function NewsletterSection() {
 
   if (isSubscribed) {
     return (
-      <section className="py-16 md:py-24 bg-charcoal">
+      <section className="theme-invert py-16 md:py-24 bg-charcoal">
         <div className="container-custom text-center">
           <div className="w-16 h-16 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle className="w-8 h-8 text-success" />
@@ -60,7 +60,7 @@ function NewsletterSection() {
   }
 
   return (
-    <section className="py-16 md:py-24 bg-charcoal">
+    <section className="theme-invert py-16 md:py-24 bg-charcoal">
       <div className="container-custom text-center">
         <Sparkles className="w-10 h-10 text-rose mx-auto mb-6" />
         <h2 className="heading-2 text-soft-white mb-4">Join the Jaai Community</h2>

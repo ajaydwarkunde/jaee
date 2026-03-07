@@ -58,7 +58,7 @@ export default function VerifyEmailPage() {
   return (
     <div className="min-h-screen bg-cream flex items-center justify-center px-4">
       <div className="max-w-md w-full">
-        <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
+        <div className="bg-soft-white rounded-2xl shadow-soft p-8 text-center">
           {status === 'loading' && (
             <>
               <LoadingSpinner size="lg" />

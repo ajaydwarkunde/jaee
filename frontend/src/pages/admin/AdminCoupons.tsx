@@ -186,7 +186,7 @@ export default function AdminCoupons() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-xl p-4 shadow-sm">
+          <div className="bg-soft-white rounded-xl p-4 shadow-soft">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-rose/10 flex items-center justify-center">
                 <Tag className="w-5 h-5 text-rose" />
@@ -197,7 +197,7 @@ export default function AdminCoupons() {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm">
+          <div className="bg-soft-white rounded-xl p-4 shadow-soft">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center">
                 <CheckCircle className="w-5 h-5 text-success" />
@@ -210,7 +210,7 @@ export default function AdminCoupons() {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm">
+          <div className="bg-soft-white rounded-xl p-4 shadow-soft">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center">
                 <Percent className="w-5 h-5 text-warning" />
@@ -223,7 +223,7 @@ export default function AdminCoupons() {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm">
+          <div className="bg-soft-white rounded-xl p-4 shadow-soft">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
                 <DollarSign className="w-5 h-5 text-blue-600" />
@@ -239,7 +239,7 @@ export default function AdminCoupons() {
         </div>
 
         {/* Coupons Table */}
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-soft-white rounded-xl shadow-soft overflow-hidden">
           {coupons.length === 0 ? (
             <div className="p-12 text-center">
               <Tag className="w-12 h-12 mx-auto mb-4 text-charcoal/30" />
@@ -489,7 +489,7 @@ export default function AdminCoupons() {
                   }`}
                 >
                   <span
-                    className={`absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200 ${
+                    className={`absolute left-0.5 top-0.5 w-5 h-5 bg-soft-white rounded-full shadow-md transition-transform duration-200 ${
                       formData.active ? 'translate-x-5' : 'translate-x-0'
                     }`}
                   />

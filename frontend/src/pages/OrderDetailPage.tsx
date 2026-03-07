@@ -51,7 +51,7 @@ export default function OrderDetailPage() {
       case 'CANCELLED':
         return { badge: <Badge variant="error">Cancelled</Badge>, icon: XCircle, color: 'text-red-600' }
       default:
-        return { badge: <Badge>{status}</Badge>, icon: Package, color: 'text-gray-600' }
+        return { badge: <Badge>{status}</Badge>, icon: Package, color: 'text-warm-gray' }
     }
   }
 

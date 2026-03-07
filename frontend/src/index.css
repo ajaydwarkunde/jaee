@@ -3,6 +3,53 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-cream: 251 246 243;
+    --color-soft-white: 255 255 255;
+    --color-charcoal: 45 45 45;
+    --color-warm-gray: 107 107 107;
+    --color-blush: 242 227 232;
+    --color-champagne: 228 213 207;
+
+    --shadow-soft: 0 2px 8px rgba(45, 45, 45, 0.08);
+    --shadow-soft-md: 0 4px 12px rgba(45, 45, 45, 0.1);
+    --shadow-soft-lg: 0 8px 24px rgba(45, 45, 45, 0.12);
+    --shadow-soft-xl: 0 12px 40px rgba(45, 45, 45, 0.15);
+  }
+
+  .dark {
+    --color-cream: 26 18 22;
+    --color-soft-white: 36 28 32;
+    --color-charcoal: 242 235 230;
+    --color-warm-gray: 160 149 144;
+    --color-blush: 58 40 48;
+    --color-champagne: 52 40 48;
+
+    --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.25);
+    --shadow-soft-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+    --shadow-soft-lg: 0 8px 24px rgba(0, 0, 0, 0.35);
+    --shadow-soft-xl: 0 12px 40px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Footer and "always-dark" sections: keep cream=light, charcoal=dark */
+  .theme-invert {
+    --color-cream: 251 246 243;
+    --color-soft-white: 55 50 52;
+    --color-charcoal: 45 45 45;
+    --color-warm-gray: 160 149 144;
+    --color-blush: 58 40 48;
+    --color-champagne: 62 48 55;
+  }
+
+  .dark .theme-invert {
+    --color-cream: 242 235 230;
+    --color-charcoal: 15 10 14;
+    --color-soft-white: 22 16 19;
+    --color-warm-gray: 170 160 156;
+    --color-blush: 35 25 30;
+    --color-champagne: 40 30 36;
+  }
+
   html {
     scroll-behavior: smooth;
   }
@@ -11,9 +58,9 @@
     @apply bg-cream text-charcoal;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
-  /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -31,24 +78,20 @@
     @apply bg-rose/50;
   }
 
-  /* Focus styles for accessibility */
   *:focus-visible {
     @apply outline-none ring-2 ring-rose ring-offset-2 ring-offset-cream;
   }
 
-  /* Remove default button styles */
   button {
     @apply cursor-pointer;
   }
 
-  /* Image defaults */
   img {
     @apply max-w-full h-auto;
   }
 }
 
 @layer components {
-  /* Typography helpers */
   .heading-1 {
     @apply font-serif text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight;
   }
@@ -73,39 +116,32 @@
     @apply text-sm leading-relaxed;
   }
 
-  /* Container */
   .container-custom {
     @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 
-  /* Card styles */
   .card {
     @apply bg-soft-white rounded-lg shadow-soft p-6 transition-shadow duration-250 hover:shadow-soft-md;
   }
 
-  /* Skeleton loader */
   .skeleton {
     @apply bg-gradient-to-r from-blush via-champagne to-blush bg-[length:200%_100%] animate-pulse;
   }
 
-  /* Product grid */
   .product-grid {
     @apply grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6;
   }
 }
 
 @layer utilities {
-  /* Glass effect */
   .glass {
     @apply bg-soft-white/80 backdrop-blur-md;
   }
 
-  /* Gradient text */
   .text-gradient {
     @apply bg-gradient-to-r from-rose to-rose-dark bg-clip-text text-transparent;
   }
 
-  /* Hide scrollbar */
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
@@ -115,7 +151,6 @@
     scrollbar-width: none;
   }
 
-  /* Line clamp utilities */
   .line-clamp-1 {
     display: -webkit-box;
     -webkit-line-clamp: 1;

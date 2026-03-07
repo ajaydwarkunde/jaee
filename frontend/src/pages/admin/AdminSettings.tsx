@@ -166,7 +166,7 @@ export default function AdminSettings() {
                             }`}
                           >
                             <span
-                              className={`absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200 ${
+                              className={`absolute left-0.5 top-0.5 w-5 h-5 bg-soft-white rounded-full shadow-md transition-transform duration-200 ${
                                 value === 'true' ? 'translate-x-5' : 'translate-x-0'
                               }`}
                             />
@@ -194,7 +194,7 @@ export default function AdminSettings() {
 
         {/* Unsaved changes indicator */}
         {hasChanges && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-charcoal text-cream px-6 py-3 rounded-full shadow-lg flex items-center gap-4 z-50">
+          <div className="theme-invert fixed bottom-6 left-1/2 -translate-x-1/2 bg-charcoal text-cream px-6 py-3 rounded-full shadow-lg flex items-center gap-4 z-50">
             <span className="text-sm">You have unsaved changes</span>
             <Button
               size="sm"
