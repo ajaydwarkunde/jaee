@@ -25,7 +25,8 @@ export default function Logo({ size = 'md', variant = 'dark', linkTo = '/', clas
       height={height}
       className={cn(
         'select-none object-contain',
-        variant === 'light' && 'filter brightness-0 invert',
+        variant === 'light' && 'brightness-0 invert',
+        variant === 'dark' && 'dark:brightness-0 dark:invert',
         className
       )}
       style={{ height, width: 'auto' }}
