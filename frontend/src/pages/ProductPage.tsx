@@ -18,6 +18,7 @@ import ReviewSummary from '@/components/review/ReviewSummary'
 import ReviewList from '@/components/review/ReviewList'
 import ReviewForm from '@/components/review/ReviewForm'
 import RecentlyViewed from '@/components/product/RecentlyViewed'
+import { stockNotificationService } from '@/services/stockNotificationService'
 import { getErrorMessage } from '@/lib/api'
 import type { Product } from '@/types'
 import toast from 'react-hot-toast'
@@ -58,9 +59,24 @@ function ShareButtons({ productName }: { productName: string }) {
   )
 }
 
-function NotifyMeForm({ productName }: { productName: string }) {
+function NotifyMeForm({ productId, productName }: { productId: number; productName: string }) {
   const [email, setEmail] = useState('')
-  const [submitted, setSubmitted] = useState(false)
+
+  const { data: waitlistCount } = useQuery({
+    queryKey: ['waitlistCount', productId],
+    queryFn: () => stockNotificationService.getWaitlistCount(productId),
+  })
+
+  const subscribeMutation = useMutation({
+    mutationFn: () => stockNotificationService.subscribe(productId, email),
+    onSuccess: () => {
+      toast.success(`We'll notify you when ${productName} is back in stock!`)
+      setEmail('')
+    },
+    onError: () => {
+      toast.error('Failed to subscribe. Please try again.')
+    },
+  })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -68,11 +84,10 @@ function NotifyMeForm({ productName }: { productName: string }) {
       toast.error('Please enter a valid email')
       return
     }
-    setSubmitted(true)
-    toast.success(`We'll notify you when ${productName} is back in stock!`)
+    subscribeMutation.mutate()
   }
 
-  if (submitted) {
+  if (subscribeMutation.isSuccess) {
     return (
       <div className="bg-success/10 border border-success/30 rounded-lg p-4 mb-8">
         <p className="text-sm text-success font-medium flex items-center gap-2">
@@ -88,6 +103,9 @@ function NotifyMeForm({ productName }: { productName: string }) {
       <p className="text-sm font-medium text-charcoal mb-2 flex items-center gap-2">
         <Bell className="w-4 h-4 text-rose" />
         Get notified when it's back
+        {(waitlistCount ?? 0) > 0 && (
+          <span className="text-xs text-warm-gray font-normal">· {waitlistCount} people waiting</span>
+        )}
       </p>
       <form onSubmit={handleSubmit} className="flex gap-2">
         <input
@@ -98,7 +116,7 @@ function NotifyMeForm({ productName }: { productName: string }) {
           className="flex-1 px-3 py-2 bg-soft-white border border-blush rounded-lg text-sm focus:outline-none focus:border-rose"
           required
         />
-        <Button type="submit" size="sm">Notify Me</Button>
+        <Button type="submit" size="sm" loading={subscribeMutation.isPending}>Notify Me</Button>
       </form>
     </div>
   )
@@ -445,7 +463,7 @@ export default function ProductPage() {
 
             {/* Notify Me (Out of Stock) */}
             {!product.inStock && (
-              <NotifyMeForm productName={product.name} />
+              <NotifyMeForm productId={product.id} productName={product.name} />
             )}
 
             {/* Share */}

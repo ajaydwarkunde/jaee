@@ -2,6 +2,7 @@ package com.jaee.service;
 
 import com.jaee.entity.Order;
 import com.jaee.entity.OrderItem;
+import com.jaee.entity.Product;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.springframework.beans.factory.annotation.Value;
@@ -219,6 +220,52 @@ public class EmailService {
             </body>
             </html>
             """, baseUrl);
+    }
+
+    @Async
+    public void sendBackInStockEmail(String toEmail, Product product) {
+        if (!emailEnabled) {
+            log.info("Email disabled - Back in stock notification for {} about {}", toEmail, product.getName());
+            return;
+        }
+
+        String baseUrl = frontendUrl.split(",")[0].trim();
+        String imageUrl = product.getImages() != null && !product.getImages().isEmpty()
+                ? product.getImages().get(0)
+                : "https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=400";
+
+        String htmlContent = String.format("""
+            <!DOCTYPE html>
+            <html>
+            <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+            <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #FAF7F2; margin: 0; padding: 20px;">
+                <div style="max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+                    <div style="background: linear-gradient(135deg, #E9868B 0%%%%, #D4726F 100%%%%); padding: 40px 30px; text-align: center;">
+                        <h1 style="color: #FFFFFF; margin: 0 0 8px 0; font-size: 36px; letter-spacing: 4px; font-weight: 700;">JAAI</h1>
+                        <p style="color: rgba(255,255,255,0.85); margin: 0; font-size: 14px; letter-spacing: 1px;">Premium Candles & Home Decor</p>
+                    </div>
+                    <div style="padding: 40px 30px; text-align: center;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">&#127881;</div>
+                        <h2 style="color: #2D2D2D; margin: 0 0 12px 0; font-size: 24px;">It's Back in Stock!</h2>
+                        <p style="color: #6B6B6B; font-size: 15px; line-height: 1.7; margin: 0 0 20px 0;">
+                            Great news! <strong>%s</strong> is back in stock and ready to ship.
+                        </p>
+                        <img src="%s" alt="%s" style="width: 200px; height: 200px; object-fit: cover; border-radius: 12px; margin-bottom: 20px;" />
+                        <br/>
+                        <a href="%s/product/%s" style="display: inline-block; background: linear-gradient(135deg, #E9868B 0%%%%, #D4726F 100%%%%); color: #FFFFFF; text-decoration: none; padding: 14px 36px; border-radius: 30px; font-weight: 600; font-size: 14px; box-shadow: 0 4px 15px rgba(233, 134, 139, 0.3);">
+                            Shop Now
+                        </a>
+                        <p style="color: #999; font-size: 12px; margin-top: 20px;">Hurry, limited stock available!</p>
+                    </div>
+                    <div style="background-color: #FAF7F2; padding: 20px; text-align: center; color: #999; font-size: 12px;">
+                        <p style="margin: 0;">&copy; 2026 Jaai. Made with love in India</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """, product.getName(), imageUrl, product.getName(), baseUrl, product.getSlug());
+
+        sendEmail(toEmail, "🎉 " + product.getName() + " is back in stock!", htmlContent);
     }
 
     private String buildOrderConfirmationHtml(Order order) {

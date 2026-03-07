@@ -9,6 +9,7 @@ import com.jaee.exception.BadRequestException;
 import com.jaee.exception.NotFoundException;
 import com.jaee.repository.CategoryRepository;
 import com.jaee.repository.ProductRepository;
+import com.jaee.repository.StockNotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -32,6 +33,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final StockNotificationService stockNotificationService;
     
     private static final Pattern NONLATIN = Pattern.compile("[^\\w-]");
     private static final Pattern WHITESPACE = Pattern.compile("[\\s]");
@@ -169,11 +171,16 @@ public class ProductService {
         if (request.getImages() != null) {
             product.setImages(request.getImages());
         }
+        boolean wasOutOfStock = product.getStockQty() <= 0;
         product.setStockQty(request.getStockQty());
         product.setActive(request.getActive());
 
         productRepository.save(product);
         log.info("Product updated: {}", product.getName());
+
+        if (wasOutOfStock && request.getStockQty() > 0) {
+            stockNotificationService.notifySubscribers(product.getId());
+        }
         
         return ProductDto.fromEntity(product);
     }
