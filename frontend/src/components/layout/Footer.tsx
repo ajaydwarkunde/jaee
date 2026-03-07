@@ -18,7 +18,7 @@ export default function Footer() {
             </p>
             <div className="flex gap-4 mt-6">
               <a 
-                href="https://www.instagram.com/jaee.studio" 
+                href="https://www.instagram.com/jaai.studio" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="p-2 bg-cream/10 rounded-full hover:bg-rose/20 transition-colors"
@@ -37,7 +37,7 @@ export default function Footer() {
             {/* Contact details */}
             <div className="mt-4 space-y-1 text-sm text-cream/60">
               <p>📧 jaeestudio12@gmail.com</p>
-              <p>📷 @jaee.studio</p>
+              <p>📷 @jaai.studio</p>
               <p>📍 Mumbai, Maharashtra, India</p>
             </div>
           </div>
@@ -103,12 +103,12 @@ export default function Footer() {
             </p>
             <div className="flex items-center gap-4 text-sm text-cream/50">
               <a 
-                href="https://www.instagram.com/jaee.studio"
+                href="https://www.instagram.com/jaai.studio"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-cream transition-colors"
               >
-                @jaee.studio
+                @jaai.studio
               </a>
               <span className="text-cream/30">•</span>
               <a 

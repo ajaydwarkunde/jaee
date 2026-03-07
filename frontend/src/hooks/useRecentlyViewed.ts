@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { Product } from '@/types'
 
-const STORAGE_KEY = 'jaee_recently_viewed'
+const STORAGE_KEY = 'jaai_recently_viewed'
 const MAX_ITEMS = 8
 
 interface RecentlyViewedItem {

@@ -192,7 +192,7 @@ export default function AboutPage() {
               </Button>
             </Link>
             <a
-              href="https://www.instagram.com/jaee.studio"
+              href="https://www.instagram.com/jaai.studio"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -216,13 +216,13 @@ export default function AboutPage() {
                 jaeestudio12@gmail.com
               </a>
               <a
-                href="https://www.instagram.com/jaee.studio"
+                href="https://www.instagram.com/jaai.studio"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 hover:text-rose transition-colors"
               >
                 <Instagram className="w-4 h-4" />
-                @jaee.studio
+                @jaai.studio
               </a>
             </div>
             <p className="text-sm text-warm-gray/70 mt-3">Mumbai, Maharashtra, India</p>

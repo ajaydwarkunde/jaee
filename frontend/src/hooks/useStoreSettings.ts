@@ -10,9 +10,9 @@ const DEFAULT_SETTINGS: StoreSettings = {
   cod_charges: '50',
   shipping_charges: '99',
   estimated_delivery_days: '5-7',
-  support_email: 'jaeestudio12@gmail.com',
+  support_email: 'jaaistudio12@gmail.com',
   support_phone: '',
-  instagram_handle: '@jaee.studio',
+  instagram_handle: '@jaai.studio',
   announcement_text: '',
   announcement_enabled: 'false',
 }

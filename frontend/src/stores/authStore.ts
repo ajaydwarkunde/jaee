@@ -59,7 +59,7 @@ export const useAuthStore = create<AuthState>()(
         }),
     }),
     {
-      name: 'jaee-auth',
+      name: 'jaai-auth',
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,
