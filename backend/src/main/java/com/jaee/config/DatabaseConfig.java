@@ -36,11 +36,14 @@ public class DatabaseConfig {
 
         dataSource.setMaximumPoolSize(5);
         dataSource.setMinimumIdle(1);
-        dataSource.setConnectionTimeout(60000);
-        dataSource.setIdleTimeout(300000);
-        dataSource.setMaxLifetime(600000);
+        dataSource.setConnectionTimeout(30000);
+        dataSource.setIdleTimeout(120000);
+        dataSource.setMaxLifetime(180000);
         dataSource.setInitializationFailTimeout(-1);
-        dataSource.setKeepaliveTime(60000);
+        dataSource.setKeepaliveTime(30000);
+        dataSource.setValidationTimeout(5000);
+        dataSource.setConnectionTestQuery("SELECT 1");
+        dataSource.addDataSourceProperty("tcpKeepAlive", "true");
 
         return dataSource;
     }
