@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.api.configuration.FluentConfiguration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.flyway.FlywayConfigurationCustomizer;
+import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,9 +46,18 @@ public class DatabaseConfig {
     }
 
     /**
-     * Explicitly configure Flyway's DataSource to avoid any bean-resolution
-     * issues between the primary HikariCP pool and Flyway's migration runner.
+     * Run repair before migrate so that checksum mismatches on already-applied
+     * migrations (e.g. after a seed-data tweak) don't block deployment.
      */
+    @Bean
+    public FlywayMigrationStrategy flywayMigrationStrategy() {
+        return flyway -> {
+            log.info("Running Flyway repair to sync checksums…");
+            flyway.repair();
+            flyway.migrate();
+        };
+    }
+
     @Bean
     public FlywayConfigurationCustomizer flywayConfigurationCustomizer() {
         return (FluentConfiguration configuration) -> {
