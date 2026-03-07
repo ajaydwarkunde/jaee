@@ -6,6 +6,7 @@ interface ProductGridProps {
   products: Product[]
   loading?: boolean
   onAddToCart?: (product: Product) => void
+  onQuickView?: (product: Product) => void
   emptyMessage?: string
 }
 
@@ -13,6 +14,7 @@ export default function ProductGrid({
   products, 
   loading, 
   onAddToCart,
+  onQuickView,
   emptyMessage = 'No products found' 
 }: ProductGridProps) {
   if (loading) {
@@ -34,6 +36,7 @@ export default function ProductGrid({
           key={product.id}
           product={product}
           onAddToCart={onAddToCart ? () => onAddToCart(product) : undefined}
+          onQuickView={onQuickView ? () => onQuickView(product) : undefined}
         />
       ))}
     </div>

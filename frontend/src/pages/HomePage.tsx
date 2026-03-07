@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ArrowRight, Sparkles, Heart, Truck, Gift, CheckCircle } from 'lucide-react'
+import { ArrowRight, Sparkles, Heart, Truck, Gift, CheckCircle, Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react'
 import { productService } from '@/services/productService'
 import { categoryService } from '@/services/categoryService'
 import { cartService } from '@/services/cartService'
 import { newsletterService } from '@/services/newsletterService'
 import ProductGrid from '@/components/product/ProductGrid'
+import QuickViewModal from '@/components/product/QuickViewModal'
 import Button from '@/components/ui/Button'
 import LazyImage from '@/components/ui/LazyImage'
 import CategoryCarousel from '@/components/ui/CategoryCarousel'
@@ -16,6 +17,72 @@ import { useStoreSettings } from '@/hooks/useStoreSettings'
 import { getErrorMessage } from '@/lib/api'
 import toast from 'react-hot-toast'
 import type { Product } from '@/types'
+
+const testimonials = [
+  { name: 'Priya M.', location: 'Mumbai', rating: 5, text: 'The candles from Jaai are absolutely divine! The fragrance fills the entire room and lasts for hours. My go-to gift for every occasion now.', product: 'Lavender Bliss Candle' },
+  { name: 'Ananya S.', location: 'Bangalore', rating: 5, text: 'I ordered the gift set for my mom\'s birthday and she loved it! The packaging was beautiful and the candles smell amazing. Will definitely order again.', product: 'Gift Set Collection' },
+  { name: 'Rahul K.', location: 'Delhi', rating: 5, text: 'Best quality candles I\'ve found in India. The soy wax burns so cleanly and the scents are subtle yet luxurious. Highly recommend!', product: 'Vanilla Bean Candle' },
+  { name: 'Meera D.', location: 'Pune', rating: 5, text: 'The attention to detail is incredible. From the hand-poured wax to the eco-friendly packaging, everything speaks quality. Jaai has a customer for life!', product: 'Rose Garden Candle' },
+  { name: 'Sneha T.', location: 'Hyderabad', rating: 5, text: 'I\'ve been ordering from Jaai for months now. Every single candle has been perfect. The customer service is also top-notch!', product: 'Sandalwood Serenity' },
+]
+
+function TestimonialsSection() {
+  const [current, setCurrent] = useState(0)
+
+  const next = useCallback(() => {
+    setCurrent(prev => (prev + 1) % testimonials.length)
+  }, [])
+
+  const prev = useCallback(() => {
+    setCurrent(prev => (prev - 1 + testimonials.length) % testimonials.length)
+  }, [])
+
+  useEffect(() => {
+    const timer = setInterval(next, 5000)
+    return () => clearInterval(timer)
+  }, [next])
+
+  const t = testimonials[current]
+
+  return (
+    <section className="py-16 md:py-24 bg-cream">
+      <div className="container-custom">
+        <div className="text-center mb-12">
+          <h2 className="heading-2 text-charcoal">What Our Customers Say</h2>
+          <p className="mt-4 text-warm-gray">Real stories from the Jaai community</p>
+        </div>
+        <div className="max-w-2xl mx-auto relative">
+          <div className="bg-soft-white rounded-2xl p-8 md:p-10 shadow-soft text-center">
+            <Quote className="w-10 h-10 text-rose/30 mx-auto mb-4" />
+            <p className="text-lg md:text-xl text-charcoal leading-relaxed font-serif italic mb-6">
+              "{t.text}"
+            </p>
+            <div className="flex justify-center gap-1 mb-4">
+              {Array.from({ length: t.rating }).map((_, i) => (
+                <Star key={i} className="w-4 h-4 fill-warning text-warning" />
+              ))}
+            </div>
+            <p className="font-medium text-charcoal">{t.name}</p>
+            <p className="text-sm text-warm-gray">{t.location} · {t.product}</p>
+          </div>
+          <div className="flex justify-center items-center gap-4 mt-6">
+            <button onClick={prev} className="p-2 rounded-full bg-soft-white shadow-soft hover:shadow-soft-md transition-shadow" aria-label="Previous testimonial">
+              <ChevronLeft className="w-5 h-5 text-charcoal" />
+            </button>
+            <div className="flex gap-2">
+              {testimonials.map((_, i) => (
+                <button key={i} onClick={() => setCurrent(i)} className={`w-2 h-2 rounded-full transition-colors ${i === current ? 'bg-rose' : 'bg-blush'}`} aria-label={`Go to testimonial ${i + 1}`} />
+              ))}
+            </div>
+            <button onClick={next} className="p-2 rounded-full bg-soft-white shadow-soft hover:shadow-soft-md transition-shadow" aria-label="Next testimonial">
+              <ChevronRight className="w-5 h-5 text-charcoal" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
 
 // Newsletter Section Component
 function NewsletterSection() {
@@ -92,6 +159,7 @@ function NewsletterSection() {
 }
 
 export default function HomePage() {
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null)
   const { isAuthenticated } = useAuthStore()
   const addToGuestCart = useCartStore((state) => state.addToGuestCart)
   const queryClient = useQueryClient()
@@ -255,6 +323,13 @@ export default function HomePage() {
             products={featuredProducts || []}
             loading={productsLoading}
             onAddToCart={handleAddToCart}
+            onQuickView={setQuickViewProduct}
+          />
+
+          <QuickViewModal
+            product={quickViewProduct}
+            isOpen={!!quickViewProduct}
+            onClose={() => setQuickViewProduct(null)}
           />
         </div>
       </section>
@@ -298,6 +373,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Testimonials */}
+      <TestimonialsSection />
 
       {/* Newsletter */}
       <NewsletterSection />

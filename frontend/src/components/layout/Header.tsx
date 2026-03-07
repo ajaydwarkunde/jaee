@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { ShoppingBag, User, Menu, X, Search, LogOut, Heart } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
@@ -6,10 +6,92 @@ import { useCartStore } from '@/stores/cartStore'
 import { useQuery } from '@tanstack/react-query'
 import { cartService } from '@/services/cartService'
 import { wishlistService } from '@/services/wishlistService'
+import { productService } from '@/services/productService'
+import { formatPrice } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import Button from '../ui/Button'
 import Logo from '../ui/Logo'
 import ThemeToggle from '../ui/ThemeToggle'
+
+function SearchWithSuggestions({ query, onQueryChange, onSearch, onClose }: {
+  query: string
+  onQueryChange: (q: string) => void
+  onSearch: (e: React.FormEvent) => void
+  onClose: () => void
+}) {
+  const [debouncedQuery, setDebouncedQuery] = useState('')
+  const navigate = useNavigate()
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    inputRef.current?.focus()
+  }, [])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query.trim())
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [query])
+
+  const { data: suggestions } = useQuery({
+    queryKey: ['searchSuggestions', debouncedQuery],
+    queryFn: () => productService.getProducts({ search: debouncedQuery, size: 5 }),
+    enabled: debouncedQuery.length >= 2,
+  })
+
+  const handleSelectProduct = (slug: string) => {
+    onQueryChange('')
+    onClose()
+    navigate(`/product/${slug}`)
+  }
+
+  return (
+    <div className="py-4 border-t border-blush animate-slide-up">
+      <form onSubmit={onSearch} className="flex gap-2">
+        <div className="flex-1 relative">
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(e) => onQueryChange(e.target.value)}
+            placeholder="Search products..."
+            className="w-full px-4 py-2 bg-cream border border-blush rounded-lg focus:outline-none focus:border-rose"
+          />
+          {suggestions && suggestions.content.length > 0 && query.length >= 2 && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-soft-white border border-blush rounded-lg shadow-soft-lg z-50 overflow-hidden">
+              {suggestions.content.map((product) => (
+                <button
+                  key={product.id}
+                  type="button"
+                  onClick={() => handleSelectProduct(product.slug)}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blush/50 transition-colors text-left"
+                >
+                  <img
+                    src={product.images[0] || 'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=100'}
+                    alt=""
+                    className="w-10 h-10 rounded object-cover shrink-0"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-charcoal truncate">{product.name}</p>
+                    <p className="text-xs text-rose font-bold">{formatPrice(product.price, product.currency)}</p>
+                  </div>
+                </button>
+              ))}
+              <button
+                type="submit"
+                className="w-full px-4 py-2 text-sm text-rose font-medium hover:bg-blush/50 transition-colors border-t border-blush"
+              >
+                View all results for "{query}"
+              </button>
+            </div>
+          )}
+        </div>
+        <Button type="submit" size="sm">Search</Button>
+      </form>
+    </div>
+  )
+}
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -206,21 +288,14 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Search bar */}
+        {/* Search bar with autocomplete */}
         {searchOpen && (
-          <div className="py-4 border-t border-blush animate-slide-up">
-            <form onSubmit={handleSearch} className="flex gap-2">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search products..."
-                className="flex-1 px-4 py-2 bg-cream border border-blush rounded-lg focus:outline-none focus:border-rose"
-                autoFocus
-              />
-              <Button type="submit" size="sm">Search</Button>
-            </form>
-          </div>
+          <SearchWithSuggestions
+            query={searchQuery}
+            onQueryChange={setSearchQuery}
+            onSearch={handleSearch}
+            onClose={() => setSearchOpen(false)}
+          />
         )}
 
         {/* Mobile menu */}

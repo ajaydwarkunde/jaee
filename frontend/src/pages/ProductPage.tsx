@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ShoppingBag, Heart, Minus, Plus, ChevronLeft, Truck, RotateCcw, Shield, Star, MessageSquare } from 'lucide-react'
+import { ShoppingBag, Heart, Minus, Plus, ChevronLeft, Truck, RotateCcw, Shield, Star, MessageSquare, Share2, Copy, Bell } from 'lucide-react'
 import { productService } from '@/services/productService'
 import { cartService } from '@/services/cartService'
 import { wishlistService } from '@/services/wishlistService'
@@ -19,7 +19,160 @@ import ReviewList from '@/components/review/ReviewList'
 import ReviewForm from '@/components/review/ReviewForm'
 import RecentlyViewed from '@/components/product/RecentlyViewed'
 import { getErrorMessage } from '@/lib/api'
+import type { Product } from '@/types'
 import toast from 'react-hot-toast'
+
+function ShareButtons({ productName }: { productName: string }) {
+  const url = window.location.href
+  const text = `Check out ${productName} from Jaai!`
+
+  const shareWhatsApp = () => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`, '_blank')
+  }
+
+  const shareInstagram = () => {
+    navigator.clipboard.writeText(url)
+    toast.success('Link copied! Share it on Instagram')
+  }
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(url)
+    toast.success('Link copied to clipboard!')
+  }
+
+  return (
+    <div className="flex items-center gap-3 pt-6">
+      <span className="text-sm text-warm-gray flex items-center gap-1.5">
+        <Share2 className="w-4 h-4" /> Share:
+      </span>
+      <button onClick={shareWhatsApp} className="p-2 rounded-full bg-[#25D366]/10 hover:bg-[#25D366]/20 transition-colors" aria-label="Share on WhatsApp">
+        <svg className="w-4 h-4 text-[#25D366]" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      </button>
+      <button onClick={shareInstagram} className="p-2 rounded-full bg-rose/10 hover:bg-rose/20 transition-colors" aria-label="Share on Instagram">
+        <svg className="w-4 h-4 text-rose" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+      </button>
+      <button onClick={copyLink} className="p-2 rounded-full bg-blush hover:bg-champagne transition-colors" aria-label="Copy link">
+        <Copy className="w-4 h-4 text-charcoal" />
+      </button>
+    </div>
+  )
+}
+
+function NotifyMeForm({ productName }: { productName: string }) {
+  const [email, setEmail] = useState('')
+  const [submitted, setSubmitted] = useState(false)
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email || !email.includes('@')) {
+      toast.error('Please enter a valid email')
+      return
+    }
+    setSubmitted(true)
+    toast.success(`We'll notify you when ${productName} is back in stock!`)
+  }
+
+  if (submitted) {
+    return (
+      <div className="bg-success/10 border border-success/30 rounded-lg p-4 mb-8">
+        <p className="text-sm text-success font-medium flex items-center gap-2">
+          <Bell className="w-4 h-4" />
+          We'll email you when this product is back in stock!
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-blush/50 rounded-lg p-4 mb-8">
+      <p className="text-sm font-medium text-charcoal mb-2 flex items-center gap-2">
+        <Bell className="w-4 h-4 text-rose" />
+        Get notified when it's back
+      </p>
+      <form onSubmit={handleSubmit} className="flex gap-2">
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Enter your email"
+          className="flex-1 px-3 py-2 bg-soft-white border border-blush rounded-lg text-sm focus:outline-none focus:border-rose"
+          required
+        />
+        <Button type="submit" size="sm">Notify Me</Button>
+      </form>
+    </div>
+  )
+}
+
+function FrequentlyBoughtTogether({ product, onAddToCart }: { product: Product; onAddToCart: () => void }) {
+  const { isAuthenticated } = useAuthStore()
+  const addToGuestCart = useCartStore((state) => state.addToGuestCart)
+  const queryClient = useQueryClient()
+
+  const { data: relatedProducts = [] } = useQuery({
+    queryKey: ['frequentlyBought', product.id],
+    queryFn: () => productService.getRelatedProducts(product.id, 3),
+    enabled: !!product.id,
+  })
+
+  const addToCartMutation = useMutation({
+    mutationFn: (p: Product) => cartService.addToCart(p.id, 1),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] })
+      toast.success('Added to cart!')
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error))
+    },
+  })
+
+  const handleAddItem = (p: Product) => {
+    if (isAuthenticated) {
+      addToCartMutation.mutate(p)
+    } else {
+      addToGuestCart(p.id, 1)
+      toast.success('Added to cart!')
+    }
+  }
+
+  const handleAddAll = () => {
+    onAddToCart()
+    relatedProducts.filter(p => p.inStock).forEach(p => handleAddItem(p))
+  }
+
+  if (relatedProducts.length === 0) return null
+
+  const totalPrice = product.price + relatedProducts.filter(p => p.inStock).reduce((sum, p) => sum + p.price, 0)
+
+  return (
+    <div className="mt-16 border-t border-blush pt-12">
+      <h2 className="heading-3 text-charcoal mb-8">Frequently Bought Together</h2>
+      <div className="bg-soft-white rounded-xl p-6 shadow-soft">
+        <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 mb-6">
+          {/* Current product */}
+          <div className="w-24 h-24 rounded-lg overflow-hidden border-2 border-rose shrink-0">
+            <img src={product.images[0] || 'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=200'} alt={product.name} className="w-full h-full object-cover" />
+          </div>
+          {relatedProducts.filter(p => p.inStock).map((p) => (
+            <div key={p.id} className="flex items-center gap-3 md:gap-4">
+              <span className="text-2xl text-warm-gray font-light">+</span>
+              <Link to={`/product/${p.slug}`} className="w-24 h-24 rounded-lg overflow-hidden border border-blush hover:border-rose transition-colors shrink-0">
+                <img src={p.images[0] || 'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=200'} alt={p.name} className="w-full h-full object-cover" />
+              </Link>
+            </div>
+          ))}
+        </div>
+        <div className="text-center">
+          <p className="text-sm text-warm-gray mb-1">Total price for all items</p>
+          <p className="text-2xl font-bold text-rose mb-4">{formatPrice(totalPrice, product.currency)}</p>
+          <Button onClick={handleAddAll} icon={<ShoppingBag className="w-4 h-4" />}>
+            Add All to Cart
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function ProductPage() {
   const { slug } = useParams<{ slug: string }>()
@@ -290,6 +443,14 @@ export default function ProductPage() {
               </div>
             )}
 
+            {/* Notify Me (Out of Stock) */}
+            {!product.inStock && (
+              <NotifyMeForm productName={product.name} />
+            )}
+
+            {/* Share */}
+            <ShareButtons productName={product.name} />
+
             {/* Features */}
             <div className="border-t border-blush pt-8 space-y-4">
               {[
@@ -358,6 +519,9 @@ export default function ProductPage() {
           {/* Reviews List */}
           <ReviewList productId={product.id} />
         </div>
+
+        {/* Frequently Bought Together */}
+        <FrequentlyBoughtTogether product={product} onAddToCart={handleAddToCart} />
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (

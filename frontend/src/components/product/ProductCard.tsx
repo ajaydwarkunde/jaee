@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ShoppingBag, Heart, Star, Plus } from 'lucide-react'
+import { ShoppingBag, Heart, Star, Plus, Eye } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatPrice } from '@/lib/utils'
 import { wishlistService } from '@/services/wishlistService'
@@ -12,9 +12,10 @@ import toast from 'react-hot-toast'
 interface ProductCardProps {
   product: Product
   onAddToCart?: () => void
+  onQuickView?: () => void
 }
 
-export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
+export default function ProductCard({ product, onAddToCart, onQuickView }: ProductCardProps) {
   const imageUrl = product.images[0] || 'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=400'
   const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price
   const { isAuthenticated } = useAuthStore()
@@ -83,7 +84,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           )}
         </div>
 
-        {/* Quick actions - Wishlist heart */}
+        {/* Quick actions */}
         <div className="absolute top-3 right-3 flex flex-col gap-2">
           <button
             onClick={handleWishlistToggle}
@@ -96,6 +97,15 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           >
             <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
           </button>
+          {onQuickView && (
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onQuickView() }}
+              className="p-2 rounded-full shadow-soft bg-soft-white/90 backdrop-blur-sm hover:bg-rose hover:text-soft-white transition-colors md:opacity-0 md:group-hover:opacity-100"
+              aria-label="Quick view"
+            >
+              <Eye className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         {/* Add to cart overlay (desktop only - hidden on touch devices) */}

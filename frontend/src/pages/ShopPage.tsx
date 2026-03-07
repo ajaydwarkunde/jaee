@@ -8,6 +8,7 @@ import { cartService } from '@/services/cartService'
 import { useAuthStore } from '@/stores/authStore'
 import { useCartStore } from '@/stores/cartStore'
 import ProductGrid from '@/components/product/ProductGrid'
+import QuickViewModal from '@/components/product/QuickViewModal'
 import Button from '@/components/ui/Button'
 import Select from '@/components/ui/Select'
 import Input from '@/components/ui/Input'
@@ -19,6 +20,7 @@ export default function ShopPage() {
   const { categorySlug } = useParams()
   const [searchParams, setSearchParams] = useSearchParams()
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null)
 
   const { isAuthenticated } = useAuthStore()
   const addToGuestCart = useCartStore((state) => state.addToGuestCart)
@@ -274,7 +276,14 @@ export default function ShopPage() {
               products={productsData?.content || []}
               loading={isLoading}
               onAddToCart={handleAddToCart}
+              onQuickView={setQuickViewProduct}
               emptyMessage="No products found. Try adjusting your filters."
+            />
+
+            <QuickViewModal
+              product={quickViewProduct}
+              isOpen={!!quickViewProduct}
+              onClose={() => setQuickViewProduct(null)}
             />
 
             {/* Pagination */}
