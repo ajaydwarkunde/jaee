@@ -35,9 +35,11 @@ public class DatabaseConfig {
 
         dataSource.setMaximumPoolSize(5);
         dataSource.setMinimumIdle(1);
-        dataSource.setConnectionTimeout(30000);
+        dataSource.setConnectionTimeout(60000);
         dataSource.setIdleTimeout(300000);
         dataSource.setMaxLifetime(600000);
+        dataSource.setInitializationFailTimeout(-1);
+        dataSource.setKeepaliveTime(60000);
 
         return dataSource;
     }
@@ -52,6 +54,8 @@ public class DatabaseConfig {
             ResolvedDbConfig cfg = resolveConfig();
             if (cfg != null) {
                 configuration.dataSource(cfg.url, cfg.username, cfg.password);
+                configuration.connectRetries(5);
+                configuration.connectRetriesInterval(5);
                 log.info("Flyway DataSource configured: url={}, user={}", cfg.url, cfg.username);
             }
         };
@@ -98,7 +102,11 @@ public class DatabaseConfig {
                     + (dbUri.getPort() > 0 ? ":" + dbUri.getPort() : "")
                     + dbUri.getPath();
 
-            jdbcUrl += dbUri.getQuery() != null ? "?" + dbUri.getQuery() : "?sslmode=require";
+            String query = dbUri.getQuery() != null ? dbUri.getQuery() : "sslmode=require";
+            if (!query.contains("connectTimeout")) {
+                query += "&connectTimeout=30&socketTimeout=60";
+            }
+            jdbcUrl += "?" + query;
 
             String[] userInfo = dbUri.getUserInfo() != null ? dbUri.getUserInfo().split(":", 2) : null;
             String username = userInfo != null && userInfo.length > 0 ? userInfo[0] : "";
