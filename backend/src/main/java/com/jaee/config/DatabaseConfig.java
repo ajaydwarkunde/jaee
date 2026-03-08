@@ -44,9 +44,14 @@ public class DatabaseConfig {
         dataSource.setValidationTimeout(5000);
         dataSource.setConnectionTestQuery("SELECT 1");
 
+        dataSource.setLeakDetectionThreshold(30000);
+
         dataSource.addDataSourceProperty("tcpKeepAlive", "true");
         dataSource.addDataSourceProperty("prepareThreshold", "0");
         dataSource.addDataSourceProperty("preferQueryMode", "simple");
+
+        log.info("HikariCP pool: max={}, minIdle={}, maxLifetime={}s, idleTimeout={}s",
+                3, 0, 120, 60);
 
         return dataSource;
     }
