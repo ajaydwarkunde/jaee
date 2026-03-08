@@ -34,16 +34,19 @@ public class DatabaseConfig {
         HikariDataSource dataSource = new HikariDataSource();
         configureDataSource(dataSource, properties);
 
-        dataSource.setMaximumPoolSize(5);
-        dataSource.setMinimumIdle(1);
-        dataSource.setConnectionTimeout(30000);
-        dataSource.setIdleTimeout(120000);
-        dataSource.setMaxLifetime(180000);
+        dataSource.setMaximumPoolSize(3);
+        dataSource.setMinimumIdle(0);
+        dataSource.setConnectionTimeout(20000);
+        dataSource.setIdleTimeout(60000);
+        dataSource.setMaxLifetime(120000);
         dataSource.setInitializationFailTimeout(-1);
-        dataSource.setKeepaliveTime(30000);
+        dataSource.setKeepaliveTime(0);
         dataSource.setValidationTimeout(5000);
         dataSource.setConnectionTestQuery("SELECT 1");
+
         dataSource.addDataSourceProperty("tcpKeepAlive", "true");
+        dataSource.addDataSourceProperty("prepareThreshold", "0");
+        dataSource.addDataSourceProperty("preferQueryMode", "simple");
 
         return dataSource;
     }
