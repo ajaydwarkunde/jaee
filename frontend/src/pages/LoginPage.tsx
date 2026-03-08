@@ -13,6 +13,7 @@ import { getErrorMessage } from '@/lib/api'
 import { signInWithGoogle, signOutFirebase } from '@/lib/firebase'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import PhoneVerification from '@/components/auth/PhoneVerification'
 import toast from 'react-hot-toast'
 import Logo from '@/components/ui/Logo'
 
@@ -21,17 +22,12 @@ const emailLoginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 })
 
-const otpRequestSchema = z.object({
-  mobileNumber: z.string().regex(/^\+?[1-9]\d{9,14}$/, 'Invalid mobile number'),
-})
-
-const otpVerifySchema = z.object({
-  otp: z.string().length(6, 'OTP must be 6 digits'),
+const phoneSchema = z.object({
+  mobileNumber: z.string().min(10, 'Enter a valid mobile number').regex(/^\+?[1-9]\d{6,14}$/, 'Enter a valid mobile number (e.g. +919876543210)'),
 })
 
 type EmailLoginForm = z.infer<typeof emailLoginSchema>
-type OtpRequestForm = z.infer<typeof otpRequestSchema>
-type OtpVerifyForm = z.infer<typeof otpVerifySchema>
+type PhoneForm = z.infer<typeof phoneSchema>
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -42,82 +38,36 @@ export default function LoginPage() {
 
   const [authMode, setAuthMode] = useState<'email' | 'mobile'>('email')
   const [showPassword, setShowPassword] = useState(false)
-  const [otpSent, setOtpSent] = useState(false)
+  const [phoneStep, setPhoneStep] = useState<'enter' | 'verify'>('enter')
   const [mobileNumber, setMobileNumber] = useState('')
-  const [devOtp, setDevOtp] = useState<string | null>(null)  // OTP shown in dev mode
+  const [phoneLoginLoading, setPhoneLoginLoading] = useState(false)
 
   const from = (location.state as { from?: string })?.from || '/'
 
-  // Email login form
   const emailForm = useForm<EmailLoginForm>({
     resolver: zodResolver(emailLoginSchema),
   })
 
-  // OTP request form
-  const otpRequestForm = useForm<OtpRequestForm>({
-    resolver: zodResolver(otpRequestSchema),
+  const phoneForm = useForm<PhoneForm>({
+    resolver: zodResolver(phoneSchema),
   })
 
-  // OTP verify form
-  const otpVerifyForm = useForm<OtpVerifyForm>({
-    resolver: zodResolver(otpVerifySchema),
-  })
-
-  // Merge cart after login
   const mergeCartAndNavigate = async () => {
     if (guestCart.length > 0) {
       try {
         await cartService.mergeCart(guestCart)
         clearGuestCart()
         queryClient.invalidateQueries({ queryKey: ['cart'] })
-      } catch {
-        // Cart merge failed silently
-      }
+      } catch { /* silent */ }
     }
     navigate(from, { replace: true })
   }
 
-  // Email login mutation
   const emailLoginMutation = useMutation({
     mutationFn: (data: EmailLoginForm) => authService.login(data),
     onSuccess: (data) => {
       login(data.user, data.accessToken, data.refreshToken)
       toast.success('Welcome back!')
-      mergeCartAndNavigate()
-    },
-    onError: (error) => {
-      toast.error(getErrorMessage(error))
-    },
-  })
-
-  // OTP request mutation
-  const otpRequestMutation = useMutation({
-    mutationFn: (data: OtpRequestForm) => authService.requestOtp(data),
-    onSuccess: (response) => {
-      setOtpSent(true)
-      setMobileNumber(otpRequestForm.getValues('mobileNumber'))
-      
-      // In dev mode, show OTP on screen
-      if (response.devOtp) {
-        setDevOtp(response.devOtp)
-        toast.success('🧪 Dev Mode: OTP shown on screen')
-      } else {
-        setDevOtp(null)
-        toast.success('OTP sent to your mobile!')
-      }
-    },
-    onError: (error) => {
-      toast.error(getErrorMessage(error))
-    },
-  })
-
-  // OTP verify mutation
-  const otpVerifyMutation = useMutation({
-    mutationFn: (data: OtpVerifyForm) =>
-      authService.verifyOtp({ mobileNumber, otp: data.otp }),
-    onSuccess: (data) => {
-      login(data.user, data.accessToken, data.refreshToken)
-      toast.success('Welcome!')
       mergeCartAndNavigate()
     },
     onError: (error) => {
@@ -144,6 +94,30 @@ export default function LoginPage() {
     } finally {
       setGoogleLoading(false)
     }
+  }
+
+  // Firebase phone verification complete → send token to backend
+  const handlePhoneVerified = async (firebaseIdToken: string) => {
+    setPhoneLoginLoading(true)
+    try {
+      const data = await authService.phoneLogin(firebaseIdToken)
+      await signOutFirebase()
+      login(data.user, data.accessToken, data.refreshToken)
+      toast.success('Welcome!')
+      mergeCartAndNavigate()
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    } finally {
+      setPhoneLoginLoading(false)
+    }
+  }
+
+  const handlePhoneSubmit = (data: PhoneForm) => {
+    const formatted = data.mobileNumber.startsWith('+')
+      ? data.mobileNumber
+      : `+91${data.mobileNumber}`
+    setMobileNumber(formatted)
+    setPhoneStep('verify')
   }
 
   return (
@@ -191,7 +165,7 @@ export default function LoginPage() {
             <button
               onClick={() => {
                 setAuthMode('email')
-                setOtpSent(false)
+                setPhoneStep('enter')
               }}
               className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
                 authMode === 'email'
@@ -205,7 +179,7 @@ export default function LoginPage() {
             <button
               onClick={() => {
                 setAuthMode('mobile')
-                setOtpSent(false)
+                setPhoneStep('enter')
               }}
               className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
                 authMode === 'mobile'
@@ -266,83 +240,39 @@ export default function LoginPage() {
             </form>
           )}
 
-          {/* Mobile OTP Forms */}
-          {authMode === 'mobile' && !otpSent && (
-            <form onSubmit={otpRequestForm.handleSubmit((data) => otpRequestMutation.mutate(data))}>
+          {/* Mobile OTP via Firebase */}
+          {authMode === 'mobile' && phoneStep === 'enter' && (
+            <form onSubmit={phoneForm.handleSubmit(handlePhoneSubmit)}>
               <div className="space-y-4">
                 <Input
                   label="Mobile Number"
                   type="tel"
-                  placeholder="+91 98765 43210"
-                  {...otpRequestForm.register('mobileNumber')}
-                  error={otpRequestForm.formState.errors.mobileNumber?.message}
+                  placeholder="+919876543210"
+                  {...phoneForm.register('mobileNumber')}
+                  error={phoneForm.formState.errors.mobileNumber?.message}
                   icon={<Phone className="w-5 h-5" />}
                 />
               </div>
 
-              <Button
-                type="submit"
-                loading={otpRequestMutation.isPending}
-                className="w-full mt-6"
-              >
-                Send OTP
+              <Button type="submit" className="w-full mt-6">
+                Continue
               </Button>
             </form>
           )}
 
-          {authMode === 'mobile' && otpSent && (
-            <form onSubmit={otpVerifyForm.handleSubmit((data) => otpVerifyMutation.mutate(data))}>
-              <div className="space-y-4">
-                <p className="text-sm text-warm-gray text-center mb-4">
-                  OTP sent to <span className="font-medium text-charcoal">{mobileNumber}</span>
-                </p>
-                
-                {/* Dev Mode OTP Display */}
-                {devOtp && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
-                    <p className="text-amber-800 text-sm font-medium text-center">
-                      🧪 Dev Mode - Your OTP:
-                    </p>
-                    <p className="text-amber-900 text-3xl font-mono font-bold text-center mt-2 tracking-widest">
-                      {devOtp}
-                    </p>
-                    <p className="text-amber-600 text-xs text-center mt-2">
-                      SMS is not configured. In production, OTP will be sent via SMS.
-                    </p>
-                  </div>
-                )}
-                
-                <Input
-                  label="Enter OTP"
-                  type="text"
-                  placeholder="123456"
-                  maxLength={6}
-                  {...otpVerifyForm.register('otp')}
-                  error={otpVerifyForm.formState.errors.otp?.message}
-                  className="text-center text-2xl tracking-widest"
-                />
-              </div>
-
-              <Button
-                type="submit"
-                loading={otpVerifyMutation.isPending}
-                className="w-full mt-6"
-              >
-                Verify OTP
-              </Button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setOtpSent(false)
-                  setDevOtp(null)
-                  otpVerifyForm.reset()
-                }}
-                className="w-full mt-3 text-sm text-rose hover:underline"
-              >
-                Change number
-              </button>
-            </form>
+          {authMode === 'mobile' && phoneStep === 'verify' && (
+            <>
+              <PhoneVerification
+                phoneNumber={mobileNumber}
+                onVerified={handlePhoneVerified}
+                onCancel={() => setPhoneStep('enter')}
+              />
+              {phoneLoginLoading && (
+                <div className="mt-4 text-center text-sm text-warm-gray">
+                  Signing you in...
+                </div>
+              )}
+            </>
           )}
 
           {/* Footer */}

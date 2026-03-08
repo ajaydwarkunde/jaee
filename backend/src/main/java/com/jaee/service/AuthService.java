@@ -129,6 +129,32 @@ public class AuthService {
     }
 
     @Transactional
+    public AuthResponse phoneLogin(PhoneLoginRequest request) {
+        String phone = firebaseService.verifyPhoneToken(request.getIdToken());
+        if (phone == null) {
+            throw new UnauthorizedException("Phone verification failed. Please try again.");
+        }
+
+        User user = userRepository.findByMobileNumber(phone)
+                .orElseGet(() -> {
+                    User newUser = User.builder()
+                            .mobileNumber(phone)
+                            .mobileVerified(true)
+                            .role(User.Role.USER)
+                            .build();
+                    userRepository.save(newUser);
+                    log.info("New user created via Firebase phone login: {}", phone);
+                    return newUser;
+                });
+
+        user.setMobileVerified(true);
+        userRepository.save(user);
+
+        log.info("User logged in via Firebase phone: {}", phone);
+        return createAuthResponse(user);
+    }
+
+    @Transactional
     public AuthResponse socialLogin(SocialLoginRequest request) {
         SocialProfile profile = firebaseService.verifySocialToken(request.getIdToken());
         if (profile == null) {

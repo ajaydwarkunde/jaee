@@ -40,6 +40,13 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Login successful", response));
     }
 
+    @PostMapping("/phone")
+    @Operation(summary = "Login or register with Firebase phone verification")
+    public ResponseEntity<ApiResponse<AuthResponse>> phoneLogin(@Valid @RequestBody PhoneLoginRequest request) {
+        AuthResponse response = authService.phoneLogin(request);
+        return ResponseEntity.ok(ApiResponse.success("Login successful", response));
+    }
+
     @PostMapping("/social")
     @Operation(summary = "Login or register with social provider (Google, GitHub)")
     public ResponseEntity<ApiResponse<AuthResponse>> socialLogin(@Valid @RequestBody SocialLoginRequest request) {
