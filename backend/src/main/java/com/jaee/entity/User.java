@@ -40,6 +40,13 @@ public class User implements UserDetails {
     private Boolean emailVerified = false;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "auth_provider")
+    @Builder.Default
+    private AuthProvider authProvider = AuthProvider.LOCAL;
+
+    private String providerId;
+
+    @Enumerated(EnumType.STRING)
     @Builder.Default
     private Role role = Role.USER;
 
@@ -91,5 +98,9 @@ public class User implements UserDetails {
 
     public enum Role {
         USER, ADMIN
+    }
+
+    public enum AuthProvider {
+        LOCAL, GOOGLE, GITHUB
     }
 }

@@ -86,6 +86,43 @@ public class FirebaseService {
     }
 
     /**
+     * Verify a Firebase ID token from social login and extract user profile.
+     * Returns null if verification fails or Firebase is disabled.
+     */
+    public SocialProfile verifySocialToken(String idToken) {
+        if (!firebaseEnabled || firebaseAuth == null) {
+            log.warn("Firebase not available for social login verification");
+            return null;
+        }
+
+        if (idToken == null || idToken.isBlank()) {
+            log.warn("Empty Firebase token for social login");
+            return null;
+        }
+
+        try {
+            FirebaseToken decoded = firebaseAuth.verifyIdToken(idToken);
+            String email = decoded.getEmail();
+            String name = decoded.getName();
+            String uid = decoded.getUid();
+            String picture = decoded.getPicture();
+
+            if (email == null || email.isBlank()) {
+                log.warn("Social login token has no email claim");
+                return null;
+            }
+
+            log.info("Social login verified for: {}", email);
+            return new SocialProfile(uid, email, name, picture);
+        } catch (FirebaseAuthException e) {
+            log.error("Social login token verification failed: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    public record SocialProfile(String uid, String email, String name, String picture) {}
+
+    /**
      * Check if Firebase verification is enabled
      */
     public boolean isEnabled() {

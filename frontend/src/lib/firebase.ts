@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth'
+import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, signInWithPopup, GoogleAuthProvider, type ConfirmationResult } from 'firebase/auth'
 
 // Firebase configuration - these are public keys (safe to expose)
 const firebaseConfig = {
@@ -67,6 +67,16 @@ export async function getIdToken(): Promise<string | null> {
   const user = auth.currentUser
   if (!user) return null
   return user.getIdToken()
+}
+
+// Google sign-in and return the Firebase ID token
+export async function signInWithGoogle(): Promise<string> {
+  const provider = new GoogleAuthProvider()
+  provider.addScope('email')
+  provider.addScope('profile')
+  const result = await signInWithPopup(auth, provider)
+  const idToken = await result.user.getIdToken()
+  return idToken
 }
 
 // Sign out from Firebase (after registration is complete)

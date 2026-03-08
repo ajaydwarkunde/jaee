@@ -32,6 +32,11 @@ export const authService = {
     return response.data.data
   },
 
+  socialLogin: async (idToken: string, provider: string): Promise<AuthResponse> => {
+    const response = await api.post<ApiResponse<AuthResponse>>('/auth/social', { idToken, provider })
+    return response.data.data
+  },
+
   login: async (data: LoginFormData): Promise<AuthResponse> => {
     const response = await api.post<ApiResponse<AuthResponse>>('/auth/login', {
       ...data,

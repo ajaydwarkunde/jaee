@@ -8,6 +8,7 @@ import com.jaee.exception.UnauthorizedException;
 import com.jaee.repository.RefreshTokenRepository;
 import com.jaee.repository.UserRepository;
 import com.jaee.security.JwtService;
+import com.jaee.service.FirebaseService.SocialProfile;
 import com.jaee.util.PasswordUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -125,6 +126,52 @@ public class AuthService {
                     });
         }
         log.info("User logged out: {}", user.getUsername());
+    }
+
+    @Transactional
+    public AuthResponse socialLogin(SocialLoginRequest request) {
+        SocialProfile profile = firebaseService.verifySocialToken(request.getIdToken());
+        if (profile == null) {
+            throw new UnauthorizedException("Social login verification failed. Please try again.");
+        }
+
+        User.AuthProvider provider;
+        try {
+            provider = User.AuthProvider.valueOf(request.getProvider().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Unsupported provider: " + request.getProvider());
+        }
+
+        if (provider == User.AuthProvider.LOCAL) {
+            throw new BadRequestException("Use email/password login for local accounts");
+        }
+
+        String email = profile.email().toLowerCase();
+
+        User user = userRepository.findByEmail(email).orElse(null);
+
+        if (user != null) {
+            if (user.getAuthProvider() == User.AuthProvider.LOCAL) {
+                user.setAuthProvider(provider);
+                user.setProviderId(profile.uid());
+                user.setEmailVerified(true);
+                userRepository.save(user);
+                log.info("Linked {} provider to existing local account: {}", provider, email);
+            }
+        } else {
+            user = User.builder()
+                    .name(profile.name() != null ? profile.name() : email.split("@")[0])
+                    .email(email)
+                    .authProvider(provider)
+                    .providerId(profile.uid())
+                    .emailVerified(true)
+                    .role(User.Role.USER)
+                    .build();
+            userRepository.save(user);
+            log.info("New social user registered via {}: {}", provider, email);
+        }
+
+        return createAuthResponse(user);
     }
 
     private AuthResponse createAuthResponse(User user) {
