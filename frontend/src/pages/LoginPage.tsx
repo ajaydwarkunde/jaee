@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Mail, Phone, Eye, EyeOff } from 'lucide-react'
+import { Mail, Eye, EyeOff } from 'lucide-react'
 import { authService } from '@/services/authService'
 import { cartService } from '@/services/cartService'
 import { useAuthStore } from '@/stores/authStore'
@@ -13,7 +13,6 @@ import { getErrorMessage } from '@/lib/api'
 import { signInWithGoogle, signOutFirebase } from '@/lib/firebase'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
-import PhoneVerification from '@/components/auth/PhoneVerification'
 import toast from 'react-hot-toast'
 import Logo from '@/components/ui/Logo'
 
@@ -22,12 +21,12 @@ const emailLoginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 })
 
-const phoneSchema = z.object({
-  mobileNumber: z.string().min(10, 'Enter a valid mobile number').regex(/^\+?[1-9]\d{6,14}$/, 'Enter a valid mobile number (e.g. +919876543210)'),
+const emailOtpSchema = z.object({
+  email: z.string().email('Invalid email address'),
 })
 
 type EmailLoginForm = z.infer<typeof emailLoginSchema>
-type PhoneForm = z.infer<typeof phoneSchema>
+type EmailOtpForm = z.infer<typeof emailOtpSchema>
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -36,11 +35,13 @@ export default function LoginPage() {
   const { login } = useAuthStore()
   const { guestCart, clearGuestCart } = useCartStore()
 
-  const [authMode, setAuthMode] = useState<'email' | 'mobile'>('email')
+  const [authMode, setAuthMode] = useState<'password' | 'emailOtp'>('password')
   const [showPassword, setShowPassword] = useState(false)
-  const [phoneStep, setPhoneStep] = useState<'enter' | 'verify'>('enter')
-  const [mobileNumber, setMobileNumber] = useState('')
-  const [phoneLoginLoading, setPhoneLoginLoading] = useState(false)
+  const [otpSent, setOtpSent] = useState(false)
+  const [otpEmail, setOtpEmail] = useState('')
+  const [otp, setOtp] = useState(['', '', '', '', '', ''])
+  const [otpError, setOtpError] = useState<string | null>(null)
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   const from = (location.state as { from?: string })?.from || '/'
 
@@ -48,8 +49,8 @@ export default function LoginPage() {
     resolver: zodResolver(emailLoginSchema),
   })
 
-  const phoneForm = useForm<PhoneForm>({
-    resolver: zodResolver(phoneSchema),
+  const emailOtpForm = useForm<EmailOtpForm>({
+    resolver: zodResolver(emailOtpSchema),
   })
 
   const mergeCartAndNavigate = async () => {
@@ -75,6 +76,34 @@ export default function LoginPage() {
     },
   })
 
+  // Request email OTP
+  const requestOtpMutation = useMutation({
+    mutationFn: (email: string) => authService.requestEmailOtp(email),
+    onSuccess: () => {
+      setOtpSent(true)
+      toast.success('OTP sent to your email!')
+      setTimeout(() => inputRefs.current[0]?.focus(), 100)
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error))
+    },
+  })
+
+  // Verify email OTP
+  const verifyOtpMutation = useMutation({
+    mutationFn: (data: { email: string; otp: string }) => authService.verifyEmailOtp(data.email, data.otp),
+    onSuccess: (data) => {
+      login(data.user, data.accessToken, data.refreshToken)
+      toast.success('Welcome!')
+      mergeCartAndNavigate()
+    },
+    onError: (error) => {
+      setOtpError(getErrorMessage(error))
+      setOtp(['', '', '', '', '', ''])
+      inputRefs.current[0]?.focus()
+    },
+  })
+
   // Google sign-in
   const [googleLoading, setGoogleLoading] = useState(false)
   const handleGoogleLogin = async () => {
@@ -96,28 +125,43 @@ export default function LoginPage() {
     }
   }
 
-  // Firebase phone verification complete → send token to backend
-  const handlePhoneVerified = async (firebaseIdToken: string) => {
-    setPhoneLoginLoading(true)
-    try {
-      const data = await authService.phoneLogin(firebaseIdToken)
-      await signOutFirebase()
-      login(data.user, data.accessToken, data.refreshToken)
-      toast.success('Welcome!')
-      mergeCartAndNavigate()
-    } catch (error) {
-      toast.error(getErrorMessage(error))
-    } finally {
-      setPhoneLoginLoading(false)
+  const handleEmailOtpSubmit = (data: EmailOtpForm) => {
+    setOtpEmail(data.email)
+    requestOtpMutation.mutate(data.email)
+  }
+
+  const handleOtpChange = (index: number, value: string) => {
+    setOtpError(null)
+    if (value.length > 1) {
+      const digits = value.replace(/\D/g, '').slice(0, 6)
+      const newOtp = [...otp]
+      digits.split('').forEach((digit, i) => {
+        if (index + i < 6) newOtp[index + i] = digit
+      })
+      setOtp(newOtp)
+      const nextIndex = Math.min(index + digits.length, 5)
+      inputRefs.current[nextIndex]?.focus()
+    } else {
+      const newOtp = [...otp]
+      newOtp[index] = value.replace(/\D/g, '')
+      setOtp(newOtp)
+      if (value && index < 5) inputRefs.current[index + 1]?.focus()
     }
   }
 
-  const handlePhoneSubmit = (data: PhoneForm) => {
-    const formatted = data.mobileNumber.startsWith('+')
-      ? data.mobileNumber
-      : `+91${data.mobileNumber}`
-    setMobileNumber(formatted)
-    setPhoneStep('verify')
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus()
+    }
+  }
+
+  const handleVerifyOtp = () => {
+    const otpString = otp.join('')
+    if (otpString.length !== 6) {
+      setOtpError('Please enter the complete 6-digit OTP')
+      return
+    }
+    verifyOtpMutation.mutate({ email: otpEmail, otp: otpString })
   }
 
   return (
@@ -135,36 +179,37 @@ export default function LoginPage() {
           <div className="flex mb-6 bg-blush rounded-lg p-1">
             <button
               onClick={() => {
-                setAuthMode('email')
-                setPhoneStep('enter')
+                setAuthMode('password')
+                setOtpSent(false)
+                setOtpError(null)
               }}
               className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
-                authMode === 'email'
+                authMode === 'password'
                   ? 'bg-soft-white text-charcoal shadow-soft'
                   : 'text-warm-gray'
               }`}
             >
-              <Mail className="w-4 h-4 inline-block mr-2" />
-              Email
+              Password
             </button>
             <button
               onClick={() => {
-                setAuthMode('mobile')
-                setPhoneStep('enter')
+                setAuthMode('emailOtp')
+                setOtpSent(false)
+                setOtpError(null)
               }}
               className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
-                authMode === 'mobile'
+                authMode === 'emailOtp'
                   ? 'bg-soft-white text-charcoal shadow-soft'
                   : 'text-warm-gray'
               }`}
             >
-              <Phone className="w-4 h-4 inline-block mr-2" />
-              Mobile OTP
+              <Mail className="w-4 h-4 inline-block mr-1" />
+              Email OTP
             </button>
           </div>
 
-          {/* Email Login Form */}
-          {authMode === 'email' && (
+          {/* Password Login Form */}
+          {authMode === 'password' && (
             <form onSubmit={emailForm.handleSubmit((data) => emailLoginMutation.mutate(data))}>
               <div className="space-y-4">
                 <Input
@@ -193,8 +238,8 @@ export default function LoginPage() {
               </div>
 
               <div className="flex justify-end mt-2">
-                <Link 
-                  to="/forgot-password" 
+                <Link
+                  to="/forgot-password"
                   className="text-sm text-rose hover:underline"
                 >
                   Forgot password?
@@ -211,39 +256,97 @@ export default function LoginPage() {
             </form>
           )}
 
-          {/* Mobile OTP via Firebase */}
-          {authMode === 'mobile' && phoneStep === 'enter' && (
-            <form onSubmit={phoneForm.handleSubmit(handlePhoneSubmit)}>
+          {/* Email OTP - Request */}
+          {authMode === 'emailOtp' && !otpSent && (
+            <form onSubmit={emailOtpForm.handleSubmit(handleEmailOtpSubmit)}>
               <div className="space-y-4">
                 <Input
-                  label="Mobile Number"
-                  type="tel"
-                  placeholder="+919876543210"
-                  {...phoneForm.register('mobileNumber')}
-                  error={phoneForm.formState.errors.mobileNumber?.message}
-                  icon={<Phone className="w-5 h-5" />}
+                  label="Email"
+                  type="email"
+                  placeholder="you@example.com"
+                  {...emailOtpForm.register('email')}
+                  error={emailOtpForm.formState.errors.email?.message}
+                  icon={<Mail className="w-5 h-5" />}
                 />
               </div>
+              <p className="text-warm-gray text-xs mt-2">
+                We'll send a 6-digit code to your email
+              </p>
 
-              <Button type="submit" className="w-full mt-6">
-                Continue
+              <Button
+                type="submit"
+                loading={requestOtpMutation.isPending}
+                className="w-full mt-4"
+              >
+                Send OTP
               </Button>
             </form>
           )}
 
-          {authMode === 'mobile' && phoneStep === 'verify' && (
-            <>
-              <PhoneVerification
-                phoneNumber={mobileNumber}
-                onVerified={handlePhoneVerified}
-                onCancel={() => setPhoneStep('enter')}
-              />
-              {phoneLoginLoading && (
-                <div className="mt-4 text-center text-sm text-warm-gray">
-                  Signing you in...
-                </div>
+          {/* Email OTP - Verify */}
+          {authMode === 'emailOtp' && otpSent && (
+            <div>
+              <p className="text-sm text-warm-gray text-center mb-6">
+                Enter the 6-digit code sent to<br />
+                <span className="font-medium text-charcoal">{otpEmail}</span>
+              </p>
+
+              <div className="flex justify-center gap-2 mb-4">
+                {otp.map((digit, index) => (
+                  <input
+                    key={index}
+                    ref={(el) => { inputRefs.current[index] = el }}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={digit}
+                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                    className="w-11 h-12 text-center text-xl font-semibold border-2 border-warm-gray/30 rounded-lg focus:border-rose focus:ring-2 focus:ring-rose/20 outline-none transition-all bg-soft-white"
+                    disabled={verifyOtpMutation.isPending}
+                  />
+                ))}
+              </div>
+
+              {otpError && (
+                <p className="text-red-500 text-sm text-center mb-4">{otpError}</p>
               )}
-            </>
+
+              <Button
+                onClick={handleVerifyOtp}
+                loading={verifyOtpMutation.isPending}
+                disabled={otp.join('').length !== 6}
+                className="w-full mb-4"
+              >
+                Verify & Sign In
+              </Button>
+
+              <div className="flex justify-center gap-4 text-sm">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOtp(['', '', '', '', '', ''])
+                    setOtpError(null)
+                    requestOtpMutation.mutate(otpEmail)
+                  }}
+                  disabled={requestOtpMutation.isPending}
+                  className="text-rose hover:underline"
+                >
+                  Resend OTP
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOtpSent(false)
+                    setOtp(['', '', '', '', '', ''])
+                    setOtpError(null)
+                  }}
+                  className="text-warm-gray hover:underline"
+                >
+                  Change email
+                </button>
+              </div>
+            </div>
           )}
 
           {/* Divider */}
