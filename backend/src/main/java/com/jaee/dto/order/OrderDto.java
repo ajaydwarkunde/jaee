@@ -31,6 +31,11 @@ public class OrderDto {
     // Coupon fields
     private String couponCode;
     private BigDecimal discountAmount;
+
+    // Tracking fields
+    private String trackingNumber;
+    private String trackingUrl;
+    private String carrier;
     
     // Admin fields
     private Long userId;
@@ -53,6 +58,9 @@ public class OrderDto {
                 .paidAt(order.getPaidAt())
                 .couponCode(order.getCouponCode())
                 .discountAmount(order.getDiscountAmount())
+                .trackingNumber(order.getTrackingNumber())
+                .trackingUrl(order.getTrackingUrl())
+                .carrier(order.getCarrier())
                 .userId(order.getUser() != null ? order.getUser().getId() : null)
                 .userName(order.getUser() != null ? order.getUser().getName() : null)
                 .itemCount(order.getItems() != null ? order.getItems().size() : 0)

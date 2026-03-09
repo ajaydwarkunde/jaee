@@ -122,6 +122,9 @@ export interface Order {
   customerPhone: string | null
   createdAt: string
   paidAt: string | null
+  trackingNumber: string | null
+  trackingUrl: string | null
+  carrier: string | null
   // Admin fields
   userId?: number | null
   userName?: string | null

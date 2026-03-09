@@ -86,6 +86,21 @@ public class OrderService {
         return OrderDto.fromEntity(saved);
     }
     
+    @Transactional
+    public OrderDto updateOrderTracking(Long orderId, String trackingNumber, String trackingUrl, String carrier) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException("Order not found"));
+        
+        order.setTrackingNumber(trackingNumber);
+        order.setTrackingUrl(trackingUrl);
+        order.setCarrier(carrier);
+        
+        log.info("Order {} tracking updated: carrier={}, tracking={}", orderId, carrier, trackingNumber);
+        
+        Order saved = orderRepository.save(order);
+        return OrderDto.fromEntity(saved);
+    }
+
     @Transactional(readOnly = true)
     public Map<String, Long> getOrderStats() {
         Map<String, Long> stats = new HashMap<>();
