@@ -32,6 +32,15 @@ export const authService = {
     return response.data.data
   },
 
+  requestEmailOtp: async (email: string): Promise<void> => {
+    await api.post('/auth/email-otp/request', { email })
+  },
+
+  verifyEmailOtp: async (email: string, otp: string): Promise<AuthResponse> => {
+    const response = await api.post<ApiResponse<AuthResponse>>('/auth/email-otp/verify', { email, otp })
+    return response.data.data
+  },
+
   phoneLogin: async (idToken: string): Promise<AuthResponse> => {
     const response = await api.post<ApiResponse<AuthResponse>>('/auth/phone', { idToken })
     return response.data.data

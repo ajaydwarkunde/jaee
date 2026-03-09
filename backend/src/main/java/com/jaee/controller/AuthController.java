@@ -4,6 +4,7 @@ import com.jaee.dto.auth.*;
 import com.jaee.dto.common.ApiResponse;
 import com.jaee.entity.User;
 import com.jaee.service.AuthService;
+import com.jaee.service.EmailOtpService;
 import com.jaee.service.EmailVerificationService;
 import com.jaee.service.OtpService;
 import com.jaee.service.UserService;
@@ -23,6 +24,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final OtpService otpService;
+    private final EmailOtpService emailOtpService;
     private final UserService userService;
     private final EmailVerificationService emailVerificationService;
 
@@ -87,6 +89,20 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> verifyOtp(@Valid @RequestBody OtpVerifyRequest request) {
         AuthResponse response = otpService.verifyOtp(request);
         return ResponseEntity.ok(ApiResponse.success("OTP verified successfully", response));
+    }
+
+    @PostMapping("/email-otp/request")
+    @Operation(summary = "Request OTP via email for passwordless login")
+    public ResponseEntity<ApiResponse<Void>> requestEmailOtp(@Valid @RequestBody EmailOtpRequest request) {
+        emailOtpService.requestOtp(request.getEmail());
+        return ResponseEntity.ok(ApiResponse.success("OTP sent to your email", null));
+    }
+
+    @PostMapping("/email-otp/verify")
+    @Operation(summary = "Verify email OTP and login")
+    public ResponseEntity<ApiResponse<AuthResponse>> verifyEmailOtp(@Valid @RequestBody EmailOtpVerifyRequest request) {
+        AuthResponse response = emailOtpService.verifyOtp(request.getEmail(), request.getOtp());
+        return ResponseEntity.ok(ApiResponse.success("Login successful", response));
     }
 
     @PostMapping("/forgot-password")
