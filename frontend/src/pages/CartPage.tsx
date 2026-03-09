@@ -437,7 +437,7 @@ export default function CartPage() {
                       <div className="p-4 border border-blush rounded-lg space-y-3">
                         <h4 className="font-medium text-charcoal text-sm">New Address</h4>
                         <Input
-                          label="Address Line 1"
+                          label="Address Line 1 *"
                           value={addressForm.line1}
                           onChange={(e) => setAddressForm({ ...addressForm, line1: e.target.value })}
                           placeholder="123 Main Street, Apt 4B"
@@ -451,39 +451,42 @@ export default function CartPage() {
                         />
                         <div className="grid grid-cols-2 gap-3">
                           <Input
-                            label="City"
+                            label="City *"
                             value={addressForm.city}
                             onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
                             placeholder="Mumbai"
                             required
                           />
                           <Input
-                            label="State"
+                            label="State *"
                             value={addressForm.state || ''}
                             onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })}
                             placeholder="Maharashtra"
+                            required
                           />
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                           <Input
-                            label="PIN Code"
+                            label="PIN Code *"
                             value={addressForm.zip || ''}
                             onChange={(e) => setAddressForm({ ...addressForm, zip: e.target.value })}
                             placeholder="400001"
+                            required
                           />
                           <Input
-                            label="Phone"
+                            label="Phone *"
                             value={addressForm.phone || ''}
                             onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
                             placeholder="+91 98765 43210"
+                            required
                           />
                         </div>
                         <div className="flex gap-2">
                           <Button
                             size="sm"
                             onClick={() => {
-                              if (!addressForm.line1 || !addressForm.city) {
-                                toast.error('Please fill address line 1 and city')
+                              if (!addressForm.line1 || !addressForm.city || !addressForm.state || !addressForm.zip || !addressForm.phone) {
+                                toast.error('Please fill all required fields')
                                 return
                               }
                               addAddressMutation.mutate(addressForm)

@@ -52,4 +52,9 @@ export const orderService = {
     const response = await api.patch<ApiResponse<Order>>(`/admin/orders/${orderId}/status`, { status })
     return response.data.data
   },
+
+  updateOrderTracking: async (orderId: number, tracking: { trackingNumber: string; trackingUrl: string; carrier: string }): Promise<Order> => {
+    const response = await api.patch<ApiResponse<Order>>(`/admin/orders/${orderId}/tracking`, tracking)
+    return response.data.data
+  },
 }

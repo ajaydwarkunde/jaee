@@ -1,6 +1,6 @@
 import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, Package, Truck, CheckCircle, Clock, XCircle, MapPin, Phone, Mail, MessageCircle } from 'lucide-react'
+import { ArrowLeft, Package, Truck, CheckCircle, Clock, XCircle, MapPin, Phone, Mail, MessageCircle, ExternalLink } from 'lucide-react'
 import { orderService } from '@/services/orderService'
 import { formatPrice, formatDate } from '@/lib/utils'
 import Badge from '@/components/ui/Badge'
@@ -196,6 +196,38 @@ export default function OrderDetailPage() {
               </div>
             )}
 
+            {/* Tracking Info */}
+            {order.trackingNumber && (
+              <div className="bg-soft-white rounded-xl shadow-soft p-6">
+                <h2 className="font-serif text-lg font-medium text-charcoal mb-4">
+                  Tracking Details
+                </h2>
+                <div className="space-y-3">
+                  {order.carrier && (
+                    <div className="flex items-center gap-3 text-warm-gray">
+                      <Truck className="w-4 h-4" />
+                      <span className="text-sm font-medium">{order.carrier}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-3 text-warm-gray">
+                    <Package className="w-4 h-4" />
+                    <span className="text-sm font-mono">{order.trackingNumber}</span>
+                  </div>
+                  {order.trackingUrl && (
+                    <a
+                      href={order.trackingUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-rose hover:bg-rose/90 text-white text-sm font-medium rounded-lg transition-colors"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      Track Order
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Actions */}
             <div className="bg-soft-white rounded-xl shadow-soft p-6">
               <h2 className="font-serif text-lg font-medium text-charcoal mb-4">
@@ -211,19 +243,11 @@ export default function OrderDetailPage() {
                   <MessageCircle className="w-4 h-4" />
                   Share on WhatsApp
                 </a>
-                <Button variant="outline" className="w-full" size="sm">
-                  Track Order
-                </Button>
                 <a href="mailto:jaeestudio12@gmail.com">
                   <Button variant="outline" className="w-full" size="sm">
                     Contact Support
                   </Button>
                 </a>
-                {order.status === 'PAID' && (
-                  <Button variant="outline" className="w-full text-error border-error hover:bg-error/10" size="sm">
-                    Request Cancellation
-                  </Button>
-                )}
               </div>
             </div>
           </div>

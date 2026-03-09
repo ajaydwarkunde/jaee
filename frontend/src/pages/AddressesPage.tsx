@@ -72,8 +72,8 @@ export default function AddressesPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.line1 || !formData.city) {
-      toast.error('Please fill required fields')
+    if (!formData.line1 || !formData.city || !formData.state || !formData.zip || !formData.phone) {
+      toast.error('Please fill all required fields')
       return
     }
     if (editingId) {
@@ -129,12 +129,12 @@ export default function AddressesPage() {
               <Input label="Address Line 2" name="line2" value={formData.line2 || ''} onChange={handleChange} placeholder="Apartment, suite, etc." />
               <div className="grid grid-cols-2 gap-4">
                 <Input label="City *" name="city" value={formData.city} onChange={handleChange} placeholder="Mumbai" required />
-                <Input label="State" name="state" value={formData.state || ''} onChange={handleChange} placeholder="Maharashtra" />
+                <Input label="State *" name="state" value={formData.state || ''} onChange={handleChange} placeholder="Maharashtra" required />
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <Input label="Country" name="country" value={formData.country} onChange={handleChange} placeholder="India" />
-                <Input label="PIN Code" name="zip" value={formData.zip || ''} onChange={handleChange} placeholder="400001" />
-                <Input label="Phone" name="phone" value={formData.phone || ''} onChange={handleChange} placeholder="+91 98765 43210" />
+                <Input label="PIN Code *" name="zip" value={formData.zip || ''} onChange={handleChange} placeholder="400001" required />
+                <Input label="Phone *" name="phone" value={formData.phone || ''} onChange={handleChange} placeholder="+91 98765 43210" required />
               </div>
               <div className="flex gap-3 pt-2">
                 <Button type="submit" loading={createMutation.isPending || updateMutation.isPending}>

@@ -64,6 +64,12 @@ public class Order {
     @Builder.Default
     private BigDecimal discountAmount = BigDecimal.ZERO;
 
+    private String trackingNumber;
+
+    private String trackingUrl;
+
+    private String carrier;
+
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 

@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { Package, Eye, ChevronDown, ArrowLeft, Clock, CheckCircle, Truck, XCircle, DollarSign } from 'lucide-react'
+import { Package, Eye, ChevronDown, ArrowLeft, Clock, CheckCircle, Truck, XCircle, DollarSign, MapPin } from 'lucide-react'
 import { orderService } from '@/services/orderService'
 import { formatPrice } from '@/lib/utils'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
+import Input from '@/components/ui/Input'
 import Modal from '@/components/ui/Modal'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import toast from 'react-hot-toast'
@@ -28,6 +29,8 @@ export default function AdminOrders() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [showStatusModal, setShowStatusModal] = useState(false)
   const [newStatus, setNewStatus] = useState('')
+  const [showTrackingModal, setShowTrackingModal] = useState(false)
+  const [trackingForm, setTrackingForm] = useState({ trackingNumber: '', trackingUrl: '', carrier: '' })
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ['admin-orders', statusFilter, page],
@@ -54,15 +57,44 @@ export default function AdminOrders() {
     },
   })
 
+  const updateTrackingMutation = useMutation({
+    mutationFn: ({ orderId, tracking }: { orderId: number; tracking: { trackingNumber: string; trackingUrl: string; carrier: string } }) =>
+      orderService.updateOrderTracking(orderId, tracking),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] })
+      toast.success('Tracking info updated')
+      setShowTrackingModal(false)
+      setSelectedOrder(null)
+    },
+    onError: () => {
+      toast.error('Failed to update tracking')
+    },
+  })
+
   const handleUpdateStatus = () => {
     if (!selectedOrder || !newStatus) return
     updateStatusMutation.mutate({ orderId: selectedOrder.id, status: newStatus })
+  }
+
+  const handleUpdateTracking = () => {
+    if (!selectedOrder) return
+    updateTrackingMutation.mutate({ orderId: selectedOrder.id, tracking: trackingForm })
   }
 
   const openStatusModal = (order: Order) => {
     setSelectedOrder(order)
     setNewStatus(order.status)
     setShowStatusModal(true)
+  }
+
+  const openTrackingModal = (order: Order) => {
+    setSelectedOrder(order)
+    setTrackingForm({
+      trackingNumber: order.trackingNumber || '',
+      trackingUrl: order.trackingUrl || '',
+      carrier: order.carrier || '',
+    })
+    setShowTrackingModal(true)
   }
 
   const formatDate = (date: string) => {
@@ -183,6 +215,13 @@ export default function AdminOrders() {
                             <Eye className="w-4 h-4" />
                           </Link>
                           <button
+                            onClick={() => openTrackingModal(order)}
+                            className="p-2 text-warm-gray hover:text-blue-600 transition-colors"
+                            title="Update Tracking"
+                          >
+                            <MapPin className="w-4 h-4" />
+                          </button>
+                          <button
                             onClick={() => openStatusModal(order)}
                             className="p-2 text-warm-gray hover:text-rose transition-colors"
                             title="Update Status"
@@ -274,6 +313,48 @@ export default function AdminOrders() {
                 className="flex-1"
               >
                 Update Status
+              </Button>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Update Tracking Modal */}
+        <Modal
+          isOpen={showTrackingModal}
+          onClose={() => setShowTrackingModal(false)}
+          title={`Tracking — Order #${selectedOrder?.id}`}
+          size="sm"
+        >
+          <div className="space-y-4">
+            <Input
+              label="Carrier"
+              value={trackingForm.carrier}
+              onChange={(e) => setTrackingForm({ ...trackingForm, carrier: e.target.value })}
+              placeholder="e.g. Delhivery, BlueDart, India Post"
+            />
+            <Input
+              label="Tracking Number"
+              value={trackingForm.trackingNumber}
+              onChange={(e) => setTrackingForm({ ...trackingForm, trackingNumber: e.target.value })}
+              placeholder="e.g. AWB1234567890"
+            />
+            <Input
+              label="Tracking URL"
+              value={trackingForm.trackingUrl}
+              onChange={(e) => setTrackingForm({ ...trackingForm, trackingUrl: e.target.value })}
+              placeholder="https://www.delhivery.com/track/package/..."
+            />
+
+            <div className="flex gap-3 pt-4">
+              <Button variant="outline" onClick={() => setShowTrackingModal(false)} className="flex-1">
+                Cancel
+              </Button>
+              <Button
+                onClick={handleUpdateTracking}
+                loading={updateTrackingMutation.isPending}
+                className="flex-1"
+              >
+                Save Tracking
               </Button>
             </div>
           </div>

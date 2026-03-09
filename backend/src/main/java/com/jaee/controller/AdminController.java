@@ -126,6 +126,21 @@ public class AdminController {
         OrderDto order = orderService.updateOrderStatus(orderId, newStatus);
         return ResponseEntity.ok(ApiResponse.success("Order status updated", order));
     }
+
+    @PatchMapping("/orders/{orderId}/tracking")
+    @Operation(summary = "Update order tracking info")
+    public ResponseEntity<ApiResponse<OrderDto>> updateOrderTracking(
+            @PathVariable Long orderId,
+            @RequestBody Map<String, String> request
+    ) {
+        OrderDto order = orderService.updateOrderTracking(
+                orderId,
+                request.get("trackingNumber"),
+                request.get("trackingUrl"),
+                request.get("carrier")
+        );
+        return ResponseEntity.ok(ApiResponse.success("Tracking info updated", order));
+    }
     
     // ============================================
     // Coupon Management
