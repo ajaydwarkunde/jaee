@@ -97,7 +97,19 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
   
   const { isAuthenticated, isAdmin, user, logout } = useAuthStore()
   const guestCartCount = useCartStore((state) => state.getGuestCartCount())
@@ -198,55 +210,69 @@ export default function Header() {
 
             {/* Search button */}
             <button
-              onClick={() => setSearchOpen(!searchOpen)}
+              onClick={() => {
+                setSearchOpen(!searchOpen)
+                setUserMenuOpen(false)
+              }}
               className="p-2 text-charcoal hover:text-rose transition-colors"
               aria-label="Search"
             >
-              <Search className="w-5 h-5" />
+              {searchOpen ? <X className="w-5 h-5" /> : <Search className="w-5 h-5" />}
             </button>
 
             {/* User menu */}
             {isAuthenticated ? (
-              <div className="relative group">
-                <button className="p-2 text-charcoal hover:text-rose transition-colors">
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  onClick={() => {
+                    setUserMenuOpen(!userMenuOpen)
+                    setSearchOpen(false)
+                  }}
+                  className="p-2 text-charcoal hover:text-rose transition-colors"
+                >
                   <User className="w-5 h-5" />
                 </button>
-                <div className="absolute right-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                  <div className="bg-soft-white rounded-lg shadow-soft-lg border border-blush py-2 min-w-[180px]">
-                    <div className="px-4 py-2 border-b border-blush">
-                      <p className="text-sm font-medium text-charcoal truncate">
-                        {user?.name || user?.email || 'Account'}
-                      </p>
-                    </div>
-                    <Link
-                      to="/account"
-                      className="block px-4 py-2 text-sm text-charcoal hover:bg-blush transition-colors"
-                    >
-                      My Account
-                    </Link>
-                    <Link
-                      to="/orders"
-                      className="block px-4 py-2 text-sm text-charcoal hover:bg-blush transition-colors"
-                    >
-                      My Orders
-                    </Link>
-                    {isAdmin && (
+                {userMenuOpen && (
+                  <div className="absolute right-0 top-full pt-2 z-50 animate-slide-up">
+                    <div className="bg-soft-white rounded-lg shadow-soft-lg border border-blush py-2 min-w-[180px]">
+                      <div className="px-4 py-2 border-b border-blush">
+                        <p className="text-sm font-medium text-charcoal truncate">
+                          {user?.name || user?.email || 'Account'}
+                        </p>
+                      </div>
                       <Link
-                        to="/admin"
+                        to="/account"
+                        onClick={() => setUserMenuOpen(false)}
                         className="block px-4 py-2 text-sm text-charcoal hover:bg-blush transition-colors"
                       >
-                        Admin Panel
+                        My Account
                       </Link>
-                    )}
-                    <button
-                      onClick={handleLogout}
-                      className="w-full px-4 py-2 text-sm text-left text-error hover:bg-blush transition-colors flex items-center gap-2"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Logout
-                    </button>
+                      <Link
+                        to="/orders"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="block px-4 py-2 text-sm text-charcoal hover:bg-blush transition-colors"
+                      >
+                        My Orders
+                      </Link>
+                      {isAdmin && (
+                        <Link
+                          to="/admin"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="block px-4 py-2 text-sm text-charcoal hover:bg-blush transition-colors"
+                        >
+                          Admin Panel
+                        </Link>
+                      )}
+                      <button
+                        onClick={() => { setUserMenuOpen(false); handleLogout() }}
+                        className="w-full px-4 py-2 text-sm text-left text-error hover:bg-blush transition-colors flex items-center gap-2"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Logout
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             ) : (
               <Link
@@ -294,7 +320,7 @@ export default function Header() {
             query={searchQuery}
             onQueryChange={setSearchQuery}
             onSearch={handleSearch}
-            onClose={() => setSearchOpen(false)}
+            onClose={() => { setSearchOpen(false); setSearchQuery('') }}
           />
         )}
 
