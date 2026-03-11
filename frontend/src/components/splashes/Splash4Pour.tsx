@@ -1,149 +1,127 @@
 import { useState, useEffect } from 'react'
 
-type Phase = 'pour1' | 'pour2' | 'streams' | 'reveal' | 'emboss' | 'fade' | 'done'
-
-const TIMINGS: Record<Phase, number> = {
-  pour1: 800,
-  pour2: 600,
-  streams: 900,
-  reveal: 700,
-  emboss: 600,
-  fade: 500,
-  done: 0,
-}
-
 export default function Splash4Pour({ onComplete }: { onComplete: () => void }) {
-  const [phase, setPhase] = useState<Phase>('pour1')
+  const [phase, setPhase] = useState(0)
 
   useEffect(() => {
-    const phases: Phase[] = ['pour1', 'pour2', 'streams', 'reveal', 'emboss', 'fade', 'done']
-    let i = 0
-    let timeout: ReturnType<typeof setTimeout>
-
-    const advance = () => {
-      if (i >= phases.length - 1) {
-        onComplete()
-        return
-      }
-      timeout = setTimeout(() => {
-        i++
-        setPhase(phases[i])
-        advance()
-      }, TIMINGS[phases[i]])
-    }
-    advance()
-
-    return () => clearTimeout(timeout)
+    const timers = [
+      setTimeout(() => setPhase(1), 100),
+      setTimeout(() => setPhase(2), 2000),
+      setTimeout(() => setPhase(3), 3400),
+      setTimeout(() => setPhase(4), 4400),
+      setTimeout(() => onComplete(), 5200),
+    ]
+    return () => timers.forEach(clearTimeout)
   }, [onComplete])
 
-  if (phase === 'done') return null
-
-  const pour1 = phase === 'pour1' || phase === 'pour2' || phase === 'streams' || phase === 'reveal' || phase === 'emboss' || phase === 'fade'
-  const pour2 = phase === 'pour2' || phase === 'streams' || phase === 'reveal' || phase === 'emboss' || phase === 'fade'
-  const streams = phase === 'streams' || phase === 'reveal' || phase === 'emboss' || phase === 'fade'
-  const reveal = phase === 'reveal' || phase === 'emboss' || phase === 'fade'
-  const emboss = phase === 'emboss' || phase === 'fade'
-  const fading = phase === 'fade'
-
-  const waxHeight = pour1 ? '100%' : '0%'
-  const stream2Height = pour2 ? '100%' : '0%'
-  const stream3Height = streams ? '100%' : '0%'
-
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
-      style={{
-        background: fading ? 'transparent' : '#000',
-        opacity: fading ? 0 : 1,
-        transition: 'opacity 500ms ease',
-        pointerEvents: 'none',
-      }}
-    >
-      {/* Main pour - from top center */}
-      <div
-        className="absolute top-0 left-1/2 -translate-x-1/2 overflow-hidden"
-        style={{
-          width: 60,
-          height: '100%',
-          transition: 'opacity 300ms ease',
-        }}
-      >
-        <div
-          className="absolute bottom-0 left-0 w-full rounded-t-[30px]"
-          style={{
-            height: waxHeight,
-            transition: 'height 800ms cubic-bezier(0.2,0.8,0.3,1)',
-            background: 'linear-gradient(180deg, #D4A843 0%, #B4617B 40%, #8a3558 100%)',
-            boxShadow: 'inset 0 0 30px rgba(255,255,255,0.1)',
-          }}
-        />
-      </div>
-
-      {/* Second stream - left */}
-      <div
-        className="absolute top-0 left-[30%] -translate-x-1/2 overflow-hidden"
-        style={{ width: 35, height: '100%' }}
-      >
-        <div
-          className="absolute bottom-0 left-0 w-full rounded-t-[18px]"
-          style={{
-            height: stream2Height,
-            transition: 'height 600ms cubic-bezier(0.2,0.8,0.3,1) 200ms',
-            background: 'linear-gradient(180deg, #c9957a 0%, #B4617B 60%, #8a3558 100%)',
-          }}
-        />
-      </div>
-
-      {/* Third stream - right */}
-      <div
-        className="absolute top-0 left-[70%] -translate-x-1/2 overflow-hidden"
-        style={{ width: 35, height: '100%' }}
-      >
-        <div
-          className="absolute bottom-0 left-0 w-full rounded-t-[18px]"
-          style={{
-            height: stream3Height,
-            transition: 'height 600ms cubic-bezier(0.2,0.8,0.3,1) 400ms',
-            background: 'linear-gradient(180deg, #c9957a 0%, #B4617B 60%, #8a3558 100%)',
-          }}
-        />
-      </div>
-
-      {/* Overlay transitions to transparent as wax reaches bottom */}
+    <div className="fixed inset-0 z-[100]" style={{ pointerEvents: phase >= 4 ? 'none' : 'all' }}>
       <div
         className="absolute inset-0"
         style={{
-          background: reveal ? 'transparent' : '#000',
-          transition: 'background 700ms ease',
+          background: '#0a0a0a',
+          opacity: phase >= 4 ? 0 : 1,
+          transition: 'opacity 800ms cubic-bezier(0.4, 0, 0, 1)',
         }}
       />
 
-      {/* Remaining wax layer - bottom strip with embossed Jaai */}
-      <div
-        className="absolute bottom-0 left-0 right-0 overflow-hidden"
-        style={{
-          height: emboss ? 120 : 0,
-          opacity: emboss ? 1 : 0,
-          transition: 'height 400ms ease, opacity 400ms ease',
-        }}
-      >
+      {/* Gradient curtain wipe — two panels sliding apart */}
+      <div className="absolute inset-0 overflow-hidden">
         <div
-          className="absolute inset-x-0 bottom-0 h-full flex items-center justify-center"
+          className="absolute inset-y-0 left-0"
           style={{
-            background: 'linear-gradient(180deg, transparent, rgba(180,97,123,0.95) 20%, rgba(138,53,88,0.98) 100%)',
+            width: '50.5%',
+            background: 'linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 50%, #1a1218 100%)',
+            transform: phase >= 2 ? 'translateX(-102%)' : 'translateX(0)',
+            transition: 'transform 1200ms cubic-bezier(0.7, 0, 0.3, 1)',
           }}
         >
-          <h1
-            className="font-serif text-3xl md:text-4xl tracking-widest"
+          <div
+            className="absolute inset-0"
             style={{
-              color: 'rgba(255,255,255,0.9)',
-              textShadow: '0 2px 0 rgba(0,0,0,0.3), 0 -1px 0 rgba(255,255,255,0.2)',
+              background: 'linear-gradient(90deg, transparent 70%, rgba(212,168,67,0.08) 100%)',
             }}
-          >
-            Jaai
-          </h1>
+          />
+        </div>
+        <div
+          className="absolute inset-y-0 right-0"
+          style={{
+            width: '50.5%',
+            background: 'linear-gradient(225deg, #1a1a1a 0%, #0a0a0a 50%, #1a1218 100%)',
+            transform: phase >= 2 ? 'translateX(102%)' : 'translateX(0)',
+            transition: 'transform 1200ms cubic-bezier(0.7, 0, 0.3, 1)',
+          }}
+        >
+          <div
+            className="absolute inset-0"
+            style={{
+              background: 'linear-gradient(270deg, transparent 70%, rgba(180,97,123,0.08) 100%)',
+            }}
+          />
         </div>
       </div>
+
+      {/* Center line that grows then fades */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div
+          style={{
+            width: '1px',
+            height: phase >= 1 ? '60vh' : '0',
+            background: 'linear-gradient(180deg, transparent, rgba(212,168,67,0.5), rgba(180,97,123,0.3), transparent)',
+            opacity: phase >= 2 ? 0 : 1,
+            transition: phase >= 2
+              ? 'opacity 400ms ease'
+              : 'height 1600ms cubic-bezier(0.16, 1, 0.3, 1)',
+          }}
+        />
+      </div>
+
+      {/* Edge glow during split */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div
+          style={{
+            width: phase >= 2 ? '4px' : '1px',
+            height: '100vh',
+            background: 'linear-gradient(180deg, transparent, rgba(212,168,67,0.4), rgba(180,97,123,0.2), transparent)',
+            filter: 'blur(8px)',
+            opacity: phase >= 2 && phase < 3 ? 1 : 0,
+            transition: 'opacity 600ms ease, width 400ms ease',
+          }}
+        />
+      </div>
+
+      {/* Brand */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <h1
+          className="font-serif tracking-[0.35em] text-4xl md:text-5xl"
+          style={{
+            color: '#2D2D2D',
+            opacity: phase >= 3 ? 1 : 0,
+            transform: phase >= 3 ? 'translateY(0)' : 'translateY(6px)',
+            transition: 'opacity 900ms cubic-bezier(0.4, 0, 0, 1), transform 900ms cubic-bezier(0.4, 0, 0, 1)',
+          }}
+        >
+          Jaai
+        </h1>
+        <p
+          className="mt-4 text-[10px] tracking-[0.4em] uppercase"
+          style={{
+            color: 'rgba(180,97,123,0.5)',
+            opacity: phase >= 3 ? 1 : 0,
+            transition: 'opacity 800ms ease 300ms',
+          }}
+        >
+          Gifts Crafted with Love
+        </p>
+      </div>
+
+      <div
+        className="absolute inset-0 bg-[#FBF6F3]"
+        style={{
+          opacity: phase >= 4 ? 1 : 0,
+          transition: 'opacity 700ms cubic-bezier(0.4, 0, 0, 1)',
+        }}
+      />
     </div>
   )
 }

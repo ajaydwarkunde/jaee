@@ -1,48 +1,58 @@
 import { useState, useCallback, lazy, Suspense, type ComponentType } from 'react'
-import { Play, RotateCcw, Sparkles } from 'lucide-react'
+import { Play, RotateCcw } from 'lucide-react'
 
 interface SplashDef {
   id: number
   name: string
   desc: string
-  vibe: string
+  tags: string[]
   loader: () => Promise<{ default: ComponentType<{ onComplete: () => void }> }>
 }
 
 const splashes: SplashDef[] = [
-  { id: 1, name: 'Unwrap', desc: 'Gold ribbon pulls apart, wrapping paper tears open from center', vibe: 'Festive & Gift-like', loader: () => import('@/components/splashes/Splash1Unwrap') },
-  { id: 2, name: 'Matchstick Strike', desc: 'Match drags across screen, ignites, warm glow expands outward', vibe: 'Dramatic & Warm', loader: () => import('@/components/splashes/Splash2Matchstick') },
-  { id: 3, name: 'Wax Seal', desc: 'Rose wax seal cracks apart, envelope flap opens with light', vibe: 'Classic & Elegant', loader: () => import('@/components/splashes/Splash3WaxSeal') },
-  { id: 4, name: 'Pour', desc: 'Warm wax pours down from top, fills and then shatters away', vibe: 'Satisfying & Tactile', loader: () => import('@/components/splashes/Splash4Pour') },
-  { id: 5, name: 'Gift Tag', desc: 'Minimal tag sways, flips, drops — black curtains split open', vibe: 'Clean & Minimal', loader: () => import('@/components/splashes/Splash5GiftTag') },
-  { id: 6, name: 'Fragrance Drift', desc: 'Smoke wisps rise and form logo text, then disperse', vibe: 'Ethereal & Luxe', loader: () => import('@/components/splashes/Splash6Fragrance') },
-  { id: 7, name: 'Candle Drip', desc: 'Rose overlay melts away via wax drips from top edge', vibe: 'ASMR & Satisfying', loader: () => import('@/components/splashes/Splash7CandleDrip') },
-  { id: 8, name: 'Bloom', desc: 'Flower petals unfurl one by one in brand colors, reveal site', vibe: 'Organic & Feminine', loader: () => import('@/components/splashes/Splash8Bloom') },
-  { id: 9, name: 'Stamp & Reveal', desc: 'Gold foil stamp presses down, surface cracks and shatters', vibe: 'Bold & Luxurious', loader: () => import('@/components/splashes/Splash9Stamp') },
-  { id: 10, name: 'Thread & Stitch', desc: 'Gold thread stitches out "Jaai" in cursive, frame draws, fabric folds', vibe: 'Handcrafted & Artisanal', loader: () => import('@/components/splashes/Splash10Thread') },
-  { id: 11, name: 'Lid Lift', desc: '3D gift box lid lifts, golden glow pours out, sparkles rise, Jaai fades in', vibe: 'Luxurious & Gift-like', loader: () => import('@/components/splashes/Splash11LidLift') },
-  { id: 12, name: 'Ribbon Untie', desc: 'Gold ribbon bow unties, tails sweep to corners, rose-gold light expands', vibe: 'Elegant & Gift-like', loader: () => import('@/components/splashes/Splash12RibbonUntie') },
-  { id: 13, name: 'Box Burst', desc: 'Gift box shakes and bursts open, candles, flowers, hearts explode outward', vibe: 'Exciting & Playful', loader: () => import('@/components/splashes/Splash13BoxBurst') },
-  { id: 14, name: 'Tissue Reveal', desc: 'Tissue paper unfolds from gift box, product silhouettes rise with warm glow', vibe: 'Gentle & Unwrapping', loader: () => import('@/components/splashes/Splash14TissueReveal') },
-  { id: 15, name: 'Unbox', desc: 'Hands lift box lid, products bounce up one by one, confetti falls', vibe: 'Real Unboxing Feel', loader: () => import('@/components/splashes/Splash15Unbox') },
+  {
+    id: 1, name: 'Slit',
+    desc: 'A thin blade of warm light appears horizontally, casting subtle rays. It widens to fill the screen, revealing the brand.',
+    tags: ['Cinematic', 'Minimal'],
+    loader: () => import('@/components/splashes/Splash1Unwrap'),
+  },
+  {
+    id: 2, name: 'Ink Bloom',
+    desc: 'A drop of gold ink blooms organically from the center using turbulence, spreading outward like ink in water.',
+    tags: ['Organic', 'Artsy'],
+    loader: () => import('@/components/splashes/Splash2Matchstick'),
+  },
+  {
+    id: 3, name: 'Aurora',
+    desc: 'Monogram draws itself in gold. Soft aurora gradients drift across the dark. Particles float and scatter as the brand reveals.',
+    tags: ['Premium', 'Ethereal'],
+    loader: () => import('@/components/splashes/Splash3WaxSeal'),
+  },
+  {
+    id: 4, name: 'Curtain',
+    desc: 'A vertical seam of light splits the dark. Two panels slide apart like theater curtains, revealing the brand on cream.',
+    tags: ['Elegant', 'Theatrical'],
+    loader: () => import('@/components/splashes/Splash4Pour'),
+  },
+  {
+    id: 5, name: 'Letter Cascade',
+    desc: 'Each letter of "Jaai" cascades in with depth. An underline draws. A circular mask wipe reveals the final scene.',
+    tags: ['Typographic', 'Modern'],
+    loader: () => import('@/components/splashes/Splash5GiftTag'),
+  },
 ]
 
-const vibeColors: Record<string, string> = {
-  'Festive & Gift-like': 'bg-rose/10 text-rose',
-  'Dramatic & Warm': 'bg-amber-100 text-amber-700',
-  'Classic & Elegant': 'bg-champagne/40 text-charcoal',
-  'Satisfying & Tactile': 'bg-blush/40 text-rose',
-  'Clean & Minimal': 'bg-warm-gray/10 text-warm-gray',
-  'Ethereal & Luxe': 'bg-purple-100 text-purple-700',
-  'ASMR & Satisfying': 'bg-pink-100 text-pink-700',
-  'Organic & Feminine': 'bg-green-100 text-green-700',
-  'Bold & Luxurious': 'bg-yellow-100 text-yellow-700',
-  'Handcrafted & Artisanal': 'bg-orange-100 text-orange-700',
-  'Luxurious & Gift-like': 'bg-amber-50 text-amber-800',
-  'Elegant & Gift-like': 'bg-rose-50 text-rose-700',
-  'Exciting & Playful': 'bg-pink-100 text-pink-700',
-  'Gentle & Unwrapping': 'bg-rose-50 text-rose-600',
-  'Real Unboxing Feel': 'bg-violet-100 text-violet-700',
+const tagColors: Record<string, string> = {
+  Cinematic: 'bg-amber-50 text-amber-700 border-amber-200',
+  Minimal: 'bg-stone-50 text-stone-600 border-stone-200',
+  Organic: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  Artsy: 'bg-violet-50 text-violet-700 border-violet-200',
+  Premium: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+  Ethereal: 'bg-indigo-50 text-indigo-600 border-indigo-200',
+  Elegant: 'bg-rose-50 text-rose-700 border-rose-200',
+  Theatrical: 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200',
+  Typographic: 'bg-slate-50 text-slate-700 border-slate-200',
+  Modern: 'bg-cyan-50 text-cyan-700 border-cyan-200',
 }
 
 export default function SplashDemoPage() {
@@ -61,59 +71,53 @@ export default function SplashDemoPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-cream py-12">
-      <div className="container-custom">
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-rose/10 text-rose text-sm font-medium px-4 py-1.5 rounded-full mb-4">
-            <Sparkles className="w-4 h-4" />
-            Preview All Options
-          </div>
-          <h1 className="heading-2 text-charcoal mb-2">Splash Screen Animations</h1>
-          <p className="text-warm-gray max-w-xl mx-auto">
-            Click any card to see the full-screen animation. Pick the one that best represents the brand.
-          </p>
+    <div className="min-h-screen bg-[#FAFAF8] py-16">
+      <div className="max-w-5xl mx-auto px-6">
+        <div className="text-center mb-16">
+          <p className="text-[11px] tracking-[0.4em] uppercase text-[#B4617B] mb-3 font-medium">Select an Animation</p>
+          <h1 className="font-serif text-3xl md:text-4xl text-[#2D2D2D] tracking-wide">Splash Screen</h1>
+          <div className="w-12 h-px bg-[#D4A843] mx-auto mt-4" />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {splashes.map((splash) => (
-            <div
+            <button
               key={splash.id}
-              className="group bg-soft-white rounded-2xl shadow-soft hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col"
+              onClick={() => handlePlay(splash)}
+              className="group text-left bg-white rounded-2xl overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1 border border-stone-100"
             >
-              <div className="relative bg-charcoal h-40 flex items-center justify-center overflow-hidden">
-                <span className="absolute top-3 left-3 bg-black/40 backdrop-blur-sm text-white/80 text-xs font-mono px-2 py-0.5 rounded-md">
-                  #{splash.id}
-                </span>
-                <div className="font-serif text-2xl tracking-widest text-soft-white/20 select-none">
+              <div className="relative h-44 bg-[#0a0a0a] flex items-center justify-center overflow-hidden">
+                <div
+                  className="font-serif text-2xl tracking-[0.3em] transition-all duration-700 group-hover:tracking-[0.5em] group-hover:opacity-60"
+                  style={{ color: 'rgba(251,246,243,0.12)' }}
+                >
                   Jaai
                 </div>
-                <button
-                  onClick={() => handlePlay(splash)}
-                  className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/40 transition-colors duration-300 cursor-pointer"
-                  aria-label={`Play ${splash.name}`}
-                >
-                  <div className="w-14 h-14 rounded-full bg-soft-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100 transition-all duration-300 shadow-lg">
-                    <Play className="w-6 h-6 text-charcoal ml-0.5" />
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20">
+                    <Play className="w-5 h-5 text-white/90 ml-0.5" />
                   </div>
-                </button>
-              </div>
-              <div className="p-5 flex flex-col flex-1">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-serif text-lg font-medium text-charcoal">{splash.name}</h3>
-                  <button
-                    onClick={() => handlePlay(splash)}
-                    className="text-warm-gray hover:text-rose transition-colors p-1"
-                    aria-label={`Replay ${splash.name}`}
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                  </button>
                 </div>
-                <p className="text-sm text-warm-gray leading-relaxed mb-3 flex-1">{splash.desc}</p>
-                <span className={`inline-block self-start text-xs font-medium px-2.5 py-1 rounded-full ${vibeColors[splash.vibe] || 'bg-gray-100 text-gray-600'}`}>
-                  {splash.vibe}
-                </span>
+                <div
+                  className="absolute bottom-0 inset-x-0 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  style={{ background: 'linear-gradient(90deg, transparent, #D4A843, transparent)' }}
+                />
               </div>
-            </div>
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-serif text-lg text-[#2D2D2D]">{splash.name}</h3>
+                  <RotateCcw className="w-3.5 h-3.5 text-stone-300 group-hover:text-[#B4617B] transition-colors" />
+                </div>
+                <p className="text-[13px] text-stone-400 leading-relaxed mb-4">{splash.desc}</p>
+                <div className="flex gap-2">
+                  {splash.tags.map(tag => (
+                    <span key={tag} className={`text-[10px] tracking-wider uppercase px-2 py-0.5 rounded-full border ${tagColors[tag] || 'bg-gray-50 text-gray-500 border-gray-200'}`}>
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </button>
           ))}
         </div>
       </div>
@@ -123,7 +127,7 @@ export default function SplashDemoPage() {
           <SplashComponent onComplete={handleComplete} />
           <button
             onClick={handleComplete}
-            className="fixed top-6 right-6 z-[200] bg-soft-white/90 backdrop-blur-sm text-charcoal text-sm font-medium px-4 py-2 rounded-full shadow-lg hover:bg-soft-white transition-colors"
+            className="fixed top-6 right-6 z-[200] text-white/40 hover:text-white/80 text-xs tracking-widest uppercase transition-colors duration-300"
           >
             Skip
           </button>
