@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Package, Tag, ShoppingBag, ShoppingCart, Settings, Percent, Flame } from 'lucide-react'
+import { Package, Tag, ShoppingBag, ShoppingCart, Settings, Percent, Flame, Gift } from 'lucide-react'
 import { productService } from '@/services/productService'
 import { categoryService } from '@/services/categoryService'
 import { orderService } from '@/services/orderService'
@@ -28,7 +28,13 @@ export default function AdminDashboard() {
     queryFn: () => api.get('/custom-candles/admin/all').then(res => res.data.data as unknown[]),
   })
 
+  const { data: giftHampers } = useQuery({
+    queryKey: ['admin-gift-hampers-count'],
+    queryFn: () => api.get('/gift-hampers/admin/all').then(res => res.data.data as unknown[]),
+  })
+
   const pendingCandles = (customCandles || []).filter((c: any) => c.status === 'PENDING').length
+  const pendingHampers = (giftHampers || []).filter((h: any) => h.status === 'PENDING').length
 
   const stats = [
     {
@@ -66,6 +72,13 @@ export default function AdminDashboard() {
       link: '/admin/custom-candles',
       color: 'bg-rose/10 text-rose',
     },
+    {
+      title: 'Gift Hampers',
+      value: giftHampers?.length || 0,
+      icon: Gift,
+      link: '/admin/gift-hampers',
+      color: 'bg-success/10 text-success',
+    },
   ]
 
   return (
@@ -77,7 +90,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           {stats.map((stat) => (
             <Link key={stat.title} to={stat.link}>
               <Card hover className="h-full">
@@ -156,6 +169,24 @@ export default function AdminDashboard() {
             <CardContent>
               <p className="mb-4">View custom candle requests</p>
               <Link to="/admin/custom-candles" className="text-rose hover:underline font-medium">
+                Manage Requests →
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardTitle className="flex items-center gap-2">
+              <Gift className="w-5 h-5" />
+              Gift Hampers
+              {pendingHampers > 0 && (
+                <span className="ml-auto px-2 py-0.5 bg-warning/10 text-warning text-xs font-bold rounded-full">
+                  {pendingHampers} new
+                </span>
+              )}
+            </CardTitle>
+            <CardContent>
+              <p className="mb-4">View gift hamper requests</p>
+              <Link to="/admin/gift-hampers" className="text-rose hover:underline font-medium">
                 Manage Requests →
               </Link>
             </CardContent>

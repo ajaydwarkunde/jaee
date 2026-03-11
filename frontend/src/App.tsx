@@ -28,11 +28,13 @@ const AdminOrders = lazy(() => import('./pages/admin/AdminOrders'))
 const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'))
 const AdminCoupons = lazy(() => import('./pages/admin/AdminCoupons'))
 const AdminCustomCandles = lazy(() => import('./pages/admin/AdminCustomCandles'))
+const AdminGiftHampers = lazy(() => import('./pages/admin/AdminGiftHampers'))
 const SalePage = lazy(() => import('./pages/SalePage'))
 const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage'))
 const WishlistPage = lazy(() => import('./pages/WishlistPage'))
 const AboutPage = lazy(() => import('./pages/AboutPage'))
 const CustomCandlePage = lazy(() => import('./pages/CustomCandlePage'))
+const CustomHamperPage = lazy(() => import('./pages/CustomHamperPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 const LoaderDemoPage = lazy(() => import('./pages/LoaderDemoPage'))
 
@@ -58,6 +60,7 @@ function App() {
           <Route path="order-failure" element={<OrderFailurePage />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="custom-candle" element={<CustomCandlePage />} />
+          <Route path="custom-hamper" element={<CustomHamperPage />} />
           <Route path="loader-demo" element={<LoaderDemoPage />} />
 
           {/* Protected routes */}
@@ -77,6 +80,7 @@ function App() {
             <Route path="orders" element={<AdminOrders />} />
             <Route path="coupons" element={<AdminCoupons />} />
             <Route path="custom-candles" element={<AdminCustomCandles />} />
+            <Route path="gift-hampers" element={<AdminGiftHampers />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>
 
