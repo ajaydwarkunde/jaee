@@ -22,6 +22,7 @@ import { stockNotificationService } from '@/services/stockNotificationService'
 import { getErrorMessage } from '@/lib/api'
 import type { Product } from '@/types'
 import toast from 'react-hot-toast'
+import { showCartToast } from '@/components/ui/CartToast'
 
 function ShareButtons({ productName }: { productName: string }) {
   const url = window.location.href
@@ -135,9 +136,9 @@ function FrequentlyBoughtTogether({ product, onAddToCart }: { product: Product; 
 
   const addToCartMutation = useMutation({
     mutationFn: (p: Product) => cartService.addToCart(p.id, 1),
-    onSuccess: () => {
+    onSuccess: (_, p) => {
       queryClient.invalidateQueries({ queryKey: ['cart'] })
-      toast.success('Added to cart!')
+      showCartToast({ productName: p.name, productImage: p.images[0], price: p.price, currency: p.currency })
     },
     onError: (error) => {
       toast.error(getErrorMessage(error))
@@ -149,7 +150,7 @@ function FrequentlyBoughtTogether({ product, onAddToCart }: { product: Product; 
       addToCartMutation.mutate(p)
     } else {
       addToGuestCart(p.id, 1)
-      toast.success('Added to cart!')
+      showCartToast({ productName: p.name, productImage: p.images[0], price: p.price, currency: p.currency })
     }
   }
 
@@ -227,7 +228,7 @@ export default function ProductPage() {
     mutationFn: () => cartService.addToCart(product!.id, quantity),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] })
-      toast.success(`Added ${quantity} item(s) to cart!`)
+      showCartToast({ productName: product!.name, productImage: product!.images[0], price: product!.price, currency: product!.currency, quantity })
     },
     onError: (error) => {
       toast.error(getErrorMessage(error))
@@ -277,7 +278,7 @@ export default function ProductPage() {
       addToCartMutation.mutate()
     } else {
       addToGuestCart(product.id, quantity)
-      toast.success(`Added ${quantity} item(s) to cart!`)
+      showCartToast({ productName: product.name, productImage: product.images[0], price: product.price, currency: product.currency, quantity })
     }
   }
 

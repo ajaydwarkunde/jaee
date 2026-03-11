@@ -17,6 +17,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
 import { getErrorMessage } from '@/lib/api'
 import toast from 'react-hot-toast'
+import { showCartToast } from '@/components/ui/CartToast'
 import type { Product } from '@/types'
 
 const testimonials = [
@@ -178,9 +179,9 @@ export default function HomePage() {
 
   const addToCartMutation = useMutation({
     mutationFn: (product: Product) => cartService.addToCart(product.id, 1),
-    onSuccess: () => {
+    onSuccess: (_, product) => {
       queryClient.invalidateQueries({ queryKey: ['cart'] })
-      toast.success('Added to cart!')
+      showCartToast({ productName: product.name, productImage: product.images[0], price: product.price, currency: product.currency })
     },
     onError: (error) => {
       toast.error(getErrorMessage(error))
@@ -192,7 +193,7 @@ export default function HomePage() {
       addToCartMutation.mutate(product)
     } else {
       addToGuestCart(product.id, 1)
-      toast.success('Added to cart!')
+      showCartToast({ productName: product.name, productImage: product.images[0], price: product.price, currency: product.currency })
     }
   }
 

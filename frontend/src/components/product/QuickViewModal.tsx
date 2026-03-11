@@ -13,6 +13,7 @@ import Modal from '../ui/Modal'
 import Button from '../ui/Button'
 import Badge from '../ui/Badge'
 import toast from 'react-hot-toast'
+import { showCartToast } from '@/components/ui/CartToast'
 
 interface QuickViewModalProps {
   product: Product | null
@@ -39,7 +40,7 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
     mutationFn: () => cartService.addToCart(product!.id, quantity),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] })
-      toast.success(`Added ${quantity} item(s) to cart!`)
+      showCartToast({ productName: product!.name, productImage: product!.images[0], price: product!.price, currency: product!.currency, quantity })
       onClose()
     },
     onError: (error) => toast.error(getErrorMessage(error)),
@@ -65,7 +66,7 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
       addToCartMutation.mutate()
     } else {
       addToGuestCart(product.id, quantity)
-      toast.success(`Added ${quantity} item(s) to cart!`)
+      showCartToast({ productName: product.name, productImage: product.images[0], price: product.price, currency: product.currency, quantity })
       onClose()
     }
   }
