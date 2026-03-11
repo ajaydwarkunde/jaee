@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Plus, Pencil, Trash2, ToggleLeft, ToggleRight, Flame, Gift, Save, X } from 'lucide-react'
+import { ArrowLeft, Plus, Pencil, Trash2, Flame, Gift, Save, X } from 'lucide-react'
 import { api } from '@/lib/api'
 import { formatPrice } from '@/lib/utils'
 import { cn } from '@/lib/utils'
@@ -172,31 +172,22 @@ export default function AdminBuilderOptions() {
         </div>
 
         {/* Builder Type Toggle */}
-        <div className="flex gap-2 mb-6">
-          <button
-            onClick={() => { setBuilderType('CANDLE'); setActiveType('SIZE') }}
-            className={cn(
-              'flex items-center gap-2 px-5 py-3 rounded-xl font-medium transition-all',
-              builderType === 'CANDLE'
-                ? 'bg-rose text-soft-white shadow-soft-md'
-                : 'bg-soft-white text-charcoal hover:bg-blush'
-            )}
-          >
-            <Flame className="w-4 h-4" />
-            Custom Candles
-          </button>
-          <button
-            onClick={() => { setBuilderType('HAMPER'); setActiveType('SIZE') }}
-            className={cn(
-              'flex items-center gap-2 px-5 py-3 rounded-xl font-medium transition-all',
-              builderType === 'HAMPER'
-                ? 'bg-rose text-soft-white shadow-soft-md'
-                : 'bg-soft-white text-charcoal hover:bg-blush'
-            )}
-          >
-            <Gift className="w-4 h-4" />
-            Gift Hampers
-          </button>
+        <div className="inline-flex bg-soft-white rounded-xl p-1 shadow-soft mb-6">
+          {([['CANDLE', 'Custom Candles', Flame], ['HAMPER', 'Gift Hampers', Gift]] as const).map(([type, label, Icon]) => (
+            <button
+              key={type}
+              onClick={() => { setBuilderType(type as 'CANDLE' | 'HAMPER'); setActiveType('SIZE') }}
+              className={cn(
+                'relative flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-all duration-200',
+                builderType === type
+                  ? 'bg-rose text-soft-white shadow-md'
+                  : 'text-warm-gray hover:text-charcoal'
+              )}
+            >
+              <Icon className="w-4 h-4" />
+              {label}
+            </button>
+          ))}
         </div>
 
         {/* Option Type Tabs */}
@@ -298,17 +289,25 @@ export default function AdminBuilderOptions() {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-1 shrink-0">
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   onClick={() => toggleMutation.mutate(opt.id)}
-                  className={cn(
-                    'p-2 rounded-lg transition-colors',
-                    opt.active ? 'text-success hover:bg-success/10' : 'text-warm-gray hover:bg-blush'
-                  )}
+                  className="group relative flex items-center"
                   title={opt.active ? 'Active — click to disable' : 'Inactive — click to enable'}
+                  role="switch"
+                  aria-checked={opt.active}
                 >
-                  {opt.active ? <ToggleRight className="w-5 h-5" /> : <ToggleLeft className="w-5 h-5" />}
+                  <div className={cn(
+                    'w-11 h-6 rounded-full transition-colors duration-200',
+                    opt.active ? 'bg-success' : 'bg-warm-gray/30'
+                  )}>
+                    <div className={cn(
+                      'absolute top-0.5 left-0.5 w-5 h-5 bg-soft-white rounded-full shadow-md transition-transform duration-200',
+                      opt.active && 'translate-x-5'
+                    )} />
+                  </div>
                 </button>
+                <div className="w-px h-5 bg-blush mx-1" />
                 <button
                   onClick={() => openEdit(opt)}
                   className="p-2 text-warm-gray hover:text-charcoal hover:bg-blush rounded-lg transition-colors"
