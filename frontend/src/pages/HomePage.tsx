@@ -426,6 +426,68 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Gift Hamper Builder CTA */}
+      <section className="py-16 md:py-24 bg-soft-white">
+        <div className="container-custom">
+          <div className="relative bg-gradient-to-br from-champagne/60 via-blush/40 to-cream rounded-2xl md:rounded-3xl shadow-soft-lg overflow-hidden">
+            <div className="absolute top-0 left-0 w-48 h-48 bg-success/10 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2" />
+            <div className="absolute bottom-0 right-0 w-64 h-64 bg-rose/10 rounded-full blur-3xl translate-y-1/2 translate-x-1/2" />
+
+            <div className="relative grid md:grid-cols-2 gap-8 items-center p-8 md:p-12 lg:p-16">
+              <div className="hidden md:flex justify-center order-1 md:order-none">
+                <svg width="180" height="180" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="hp-hbox" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#B4617B" />
+                      <stop offset="100%" stopColor="#D4A843" />
+                    </linearGradient>
+                    <radialGradient id="hp-hglow" cx="50%" cy="40%" r="50%">
+                      <stop offset="0%" stopColor="#D4A843" stopOpacity="0.12" />
+                      <stop offset="100%" stopColor="#D4A843" stopOpacity="0" />
+                    </radialGradient>
+                  </defs>
+                  <circle cx="100" cy="100" r="75" fill="url(#hp-hglow)">
+                    <animate attributeName="r" values="73;80;73" dur="3s" repeatCount="indefinite" />
+                  </circle>
+                  <rect x="35" y="90" width="130" height="80" rx="6" fill="url(#hp-hbox)" opacity="0.9" />
+                  <rect x="35" y="90" width="130" height="80" rx="6" fill="none" stroke="#F2E3E8" strokeWidth="1" opacity="0.4" />
+                  <rect x="30" y="78" width="140" height="16" rx="4" fill="#B4617B" opacity="0.85" />
+                  <rect x="94" y="78" width="12" height="92" fill="#F2E3E8" opacity="0.4" />
+                  <rect x="30" y="82" width="140" height="8" fill="#F2E3E8" opacity="0.3" />
+                  <ellipse cx="92" cy="68" rx="18" ry="12" fill="#B4617B" opacity="0.7">
+                    <animate attributeName="ry" values="11;13;11" dur="2s" repeatCount="indefinite" />
+                  </ellipse>
+                  <ellipse cx="108" cy="68" rx="18" ry="12" fill="#D4A843" opacity="0.7">
+                    <animate attributeName="ry" values="13;11;13" dur="2s" repeatCount="indefinite" />
+                  </ellipse>
+                  <circle cx="100" cy="70" r="5" fill="#F2E3E8" opacity="0.8" />
+                  <ellipse cx="100" cy="178" rx="50" ry="5" fill="#B4617B" opacity="0.06" />
+                </svg>
+              </div>
+
+              <div>
+                <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-rose/10 text-rose text-sm font-medium rounded-full mb-6">
+                  <Gift className="w-4 h-4" />
+                  Gift Hampers
+                </span>
+                <h2 className="heading-2 text-charcoal mb-4">
+                  Curate a{' '}
+                  <span className="text-gradient">Custom Gift</span>
+                </h2>
+                <p className="text-warm-gray leading-relaxed mb-8 max-w-md">
+                  Birthdays, weddings, festivals, or just because — pick the items, wrapping, and message. We'll assemble a beautiful hamper they'll love.
+                </p>
+                <Link to="/custom-hamper">
+                  <Button size="lg" icon={<ArrowRight className="w-5 h-5" />}>
+                    Build a Hamper
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Lifestyle Showcase */}
       <section className="py-16 md:py-24 bg-cream overflow-hidden">
         <div className="container-custom">

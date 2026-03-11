@@ -55,10 +55,12 @@ public class SecurityConfig {
                 .requestMatchers("/newsletter/**").permitAll()
                 .requestMatchers("/stock-notifications/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/custom-candles").permitAll()
+                .requestMatchers(HttpMethod.POST, "/gift-hampers").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers("/swagger-ui/**", "/api-docs/**", "/swagger-ui.html").permitAll()
                 // Admin endpoints
                 .requestMatchers("/custom-candles/admin/**").hasRole("ADMIN")
+                .requestMatchers("/gift-hampers/admin/**").hasRole("ADMIN")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 // All other requests require authentication
                 .anyRequest().authenticated()

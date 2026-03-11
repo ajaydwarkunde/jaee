@@ -152,7 +152,7 @@ export default function Header() {
     { to: '/shop', label: 'Shop' },
     { to: '/sale', label: 'Sale' },
     { to: '/custom-candle', label: 'Create' },
-    { to: '/shop/gift-sets', label: 'Gifts' },
+    { to: '/custom-hamper', label: 'Gifts' },
   ]
 
   return (
