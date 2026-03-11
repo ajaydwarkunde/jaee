@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Package, Tag, ShoppingBag, ShoppingCart, Settings, Percent, Flame, Gift } from 'lucide-react'
+import { Package, Tag, ShoppingBag, ShoppingCart, Settings, Percent, Flame, Gift, Sliders } from 'lucide-react'
 import { productService } from '@/services/productService'
 import { categoryService } from '@/services/categoryService'
 import { orderService } from '@/services/orderService'
@@ -188,6 +188,19 @@ export default function AdminDashboard() {
               <p className="mb-4">View gift hamper requests</p>
               <Link to="/admin/gift-hampers" className="text-rose hover:underline font-medium">
                 Manage Requests →
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardTitle className="flex items-center gap-2">
+              <Sliders className="w-5 h-5" />
+              Builder Options
+            </CardTitle>
+            <CardContent>
+              <p className="mb-4">Manage candle & hamper choices</p>
+              <Link to="/admin/builder-options" className="text-rose hover:underline font-medium">
+                Manage Options →
               </Link>
             </CardContent>
           </Card>
