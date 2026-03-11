@@ -9,6 +9,7 @@ import Button from '@/components/ui/Button'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import LazyImage from '@/components/ui/LazyImage'
 import toast from 'react-hot-toast'
+import { showCartToast } from '@/components/ui/CartToast'
 
 export default function WishlistPage() {
   const { isAuthenticated } = useAuthStore()
@@ -33,10 +34,11 @@ export default function WishlistPage() {
   })
 
   const addToCartMutation = useMutation({
-    mutationFn: (productId: number) => cartService.addToCart(productId, 1),
-    onSuccess: () => {
+    mutationFn: (product: { id: number; name: string; images: string[]; price: number; currency: string }) =>
+      cartService.addToCart(product.id, 1),
+    onSuccess: (_, product) => {
       queryClient.invalidateQueries({ queryKey: ['cart'] })
-      toast.success('Added to cart!')
+      showCartToast({ productName: product.name, productImage: product.images[0], price: product.price, currency: product.currency })
     },
     onError: () => {
       toast.error('Failed to add to cart')
@@ -137,7 +139,7 @@ export default function WishlistPage() {
                       size="sm"
                       className="flex-1"
                       icon={<ShoppingBag className="w-4 h-4" />}
-                      onClick={() => addToCartMutation.mutate(item.product.id)}
+                      onClick={() => addToCartMutation.mutate(item.product)}
                       loading={addToCartMutation.isPending}
                       disabled={!item.product.inStock}
                     >
