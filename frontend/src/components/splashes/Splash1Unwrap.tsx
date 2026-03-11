@@ -1,132 +1,109 @@
-import { useState, useEffect } from 'react'
-
-type Phase = 'wrap' | 'ribbonPull' | 'reveal' | 'logo' | 'fade' | 'done'
-
-const TIMINGS: Record<Phase, number> = {
-  wrap: 600,
-  ribbonPull: 900,
-  reveal: 800,
-  logo: 700,
-  fade: 500,
-  done: 0,
-}
+import { useState, useEffect, useRef } from 'react'
 
 export default function Splash1Unwrap({ onComplete }: { onComplete: () => void }) {
-  const [phase, setPhase] = useState<Phase>('wrap')
+  const [phase, setPhase] = useState(0)
+  const rafRef = useRef<number>(0)
+  const startRef = useRef(0)
 
   useEffect(() => {
-    const phases: Phase[] = ['wrap', 'ribbonPull', 'reveal', 'logo', 'fade', 'done']
-    let i = 0
-    let timeout: ReturnType<typeof setTimeout>
-
-    const advance = () => {
-      if (i >= phases.length - 1) {
-        onComplete()
-        return
-      }
-      timeout = setTimeout(() => {
-        i++
-        setPhase(phases[i])
-        advance()
-      }, TIMINGS[phases[i]])
+    startRef.current = performance.now()
+    const animate = (now: number) => {
+      const elapsed = now - startRef.current
+      if (elapsed < 400) setPhase(0)
+      else if (elapsed < 1600) setPhase(1)
+      else if (elapsed < 2800) setPhase(2)
+      else if (elapsed < 3800) setPhase(3)
+      else if (elapsed < 4600) setPhase(4)
+      else { onComplete(); return }
+      rafRef.current = requestAnimationFrame(animate)
     }
-    advance()
-
-    return () => clearTimeout(timeout)
+    rafRef.current = requestAnimationFrame(animate)
+    return () => cancelAnimationFrame(rafRef.current)
   }, [onComplete])
 
-  if (phase === 'done') return null
-
-  const ribbonPull = phase === 'ribbonPull' || phase === 'reveal' || phase === 'logo' || phase === 'fade'
-  const reveal = phase === 'reveal' || phase === 'logo' || phase === 'fade'
-  const logoVisible = phase === 'logo' || phase === 'fade'
-  const fading = phase === 'fade'
-
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
-      style={{
-        background: fading ? 'transparent' : '#000',
-        opacity: fading ? 0 : 1,
-        transition: 'background 400ms ease, opacity 500ms ease',
-        pointerEvents: 'none',
-      }}
-    >
-      {/* Wrapping paper (rose/gold) - splits from center outward */}
+    <div className="fixed inset-0 z-[100]" style={{ pointerEvents: phase >= 4 ? 'none' : 'all' }}>
+      {/* Deep black base */}
       <div
-        className="absolute inset-0 flex"
-        style={{ overflow: 'hidden' }}
-      >
-        <div
-          className="absolute inset-y-0 left-0 w-1/2 origin-right"
-          style={{
-            background: 'linear-gradient(135deg, #B4617B 0%, #8A3558 40%, #D4A843 100%)',
-            transform: reveal ? 'scaleX(0)' : 'scaleX(1)',
-            transition: 'transform 800ms cubic-bezier(0.4,0,0.2,1)',
-          }}
-        />
-        <div
-          className="absolute inset-y-0 right-0 w-1/2 origin-left"
-          style={{
-            background: 'linear-gradient(225deg, #B4617B 0%, #6E2D44 60%, #D4A843 100%)',
-            transform: reveal ? 'scaleX(0)' : 'scaleX(1)',
-            transition: 'transform 800ms cubic-bezier(0.4,0,0.2,1)',
-          }}
-        />
-      </div>
-
-      {/* Gold ribbon cross - pulls apart */}
-      <div
-        className="absolute inset-0 flex items-center justify-center"
-        style={{ zIndex: 2 }}
-      >
-        {/* Vertical ribbon - pulls up/down */}
-        <div
-          className="absolute w-2"
-          style={{
-            height: '120%',
-            top: ribbonPull ? '-10%' : '50%',
-            left: '50%',
-            transform: 'translateX(-50%) translateY(-50%)',
-            transition: 'top 900ms cubic-bezier(0.4,0,0.2,1)',
-            background: 'linear-gradient(180deg, transparent, #D4A843 20%, #F0D78C 50%, #D4A843 80%, transparent)',
-            boxShadow: '0 0 20px rgba(212,168,67,0.4)',
-          }}
-        />
-        {/* Horizontal ribbon - pulls left/right */}
-        <div
-          className="absolute h-2"
-          style={{
-            width: '120%',
-            left: ribbonPull ? '-10%' : '50%',
-            top: '50%',
-            transform: 'translateY(-50%) translateX(-50%)',
-            transition: 'left 900ms cubic-bezier(0.4,0,0.2,1)',
-            background: 'linear-gradient(90deg, transparent, #D4A843 20%, #F0D78C 50%, #D4A843 80%, transparent)',
-            boxShadow: '0 0 20px rgba(212,168,67,0.4)',
-          }}
-        />
-      </div>
-
-      {/* Jaai logo in the gap */}
-      <div
-        className="absolute inset-0 flex items-center justify-center pointer-events-none"
+        className="absolute inset-0"
         style={{
-          opacity: logoVisible ? 1 : 0,
-          transition: 'opacity 400ms ease',
-          zIndex: 5,
+          background: '#0a0a0a',
+          opacity: phase >= 4 ? 0 : 1,
+          transition: 'opacity 800ms cubic-bezier(0.4, 0, 0, 1)',
         }}
-      >
+      />
+
+      {/* Horizontal slit of light */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div
+          style={{
+            width: phase >= 1 ? '100vw' : '0px',
+            height: phase >= 2 ? '100vh' : phase >= 1 ? '2px' : '0px',
+            background: phase >= 2
+              ? 'radial-gradient(ellipse at center, rgba(212,168,67,0.15) 0%, transparent 70%)'
+              : 'linear-gradient(90deg, transparent, #D4A843, #F2E3E8, #D4A843, transparent)',
+            boxShadow: phase >= 1 && phase < 3
+              ? '0 0 60px 20px rgba(212,168,67,0.3), 0 0 120px 40px rgba(180,97,123,0.15)'
+              : 'none',
+            transition: phase >= 2
+              ? 'width 800ms cubic-bezier(0.4, 0, 0, 1), height 1000ms cubic-bezier(0.4, 0, 0, 1)'
+              : 'width 1000ms cubic-bezier(0.16, 1, 0.3, 1), height 200ms ease',
+          }}
+        />
+      </div>
+
+      {/* Subtle light rays */}
+      {phase >= 1 && phase < 4 && (
+        <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
+          {[...Array(5)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute"
+              style={{
+                width: '1px',
+                height: phase >= 2 ? '0' : '40vh',
+                background: `linear-gradient(180deg, transparent, rgba(212,168,67,${0.08 - i * 0.01}), transparent)`,
+                transform: `rotate(${-40 + i * 20}deg)`,
+                opacity: phase >= 2 ? 0 : 1,
+                transition: 'height 1200ms ease, opacity 600ms ease',
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Brand text */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
         <h1
-          className="font-serif text-4xl md:text-5xl tracking-widest"
+          className="font-serif tracking-[0.3em] text-4xl md:text-5xl"
           style={{
             color: '#FBF6F3',
-            textShadow: '0 0 30px rgba(212,168,67,0.5), 0 2px 10px rgba(0,0,0,0.3)',
+            opacity: phase >= 3 ? 1 : 0,
+            transform: phase >= 3 ? 'translateY(0)' : 'translateY(8px)',
+            transition: 'opacity 900ms cubic-bezier(0.4, 0, 0, 1), transform 900ms cubic-bezier(0.4, 0, 0, 1)',
+            mixBlendMode: 'difference',
           }}
         >
           Jaai
         </h1>
+        <div
+          className="mt-4 h-px"
+          style={{
+            width: phase >= 3 ? '80px' : '0px',
+            background: 'linear-gradient(90deg, transparent, #D4A843, transparent)',
+            transition: 'width 800ms cubic-bezier(0.4, 0, 0, 1) 200ms',
+          }}
+        />
       </div>
+
+      {/* Final fade */}
+      <div
+        className="absolute inset-0 bg-[#FBF6F3]"
+        style={{
+          opacity: phase >= 4 ? 1 : 0,
+          transition: 'opacity 700ms cubic-bezier(0.4, 0, 0, 1)',
+        }}
+      />
     </div>
   )
 }

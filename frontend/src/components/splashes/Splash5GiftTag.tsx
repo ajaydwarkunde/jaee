@@ -1,134 +1,116 @@
-import { useState, useEffect } from 'react'
-
-type Phase = 'sway' | 'flip' | 'drop' | 'curtains' | 'done'
-
-const TIMINGS: Record<Phase, number> = {
-  sway: 800,
-  flip: 500,
-  drop: 400,
-  curtains: 500,
-  done: 0,
-}
+import { useState, useEffect, useMemo } from 'react'
 
 export default function Splash5GiftTag({ onComplete }: { onComplete: () => void }) {
-  const [phase, setPhase] = useState<Phase>('sway')
+  const [phase, setPhase] = useState(0)
 
   useEffect(() => {
-    const phases: Phase[] = ['sway', 'flip', 'drop', 'curtains', 'done']
-    let i = 0
-    let timeout: ReturnType<typeof setTimeout>
-
-    const advance = () => {
-      if (i >= phases.length - 1) {
-        onComplete()
-        return
-      }
-      timeout = setTimeout(() => {
-        i++
-        setPhase(phases[i])
-        advance()
-      }, TIMINGS[phases[i]])
-    }
-    advance()
-
-    return () => clearTimeout(timeout)
+    const timers = [
+      setTimeout(() => setPhase(1), 200),
+      setTimeout(() => setPhase(2), 1400),
+      setTimeout(() => setPhase(3), 2800),
+      setTimeout(() => setPhase(4), 3800),
+      setTimeout(() => setPhase(5), 4600),
+      setTimeout(() => onComplete(), 5400),
+    ]
+    return () => timers.forEach(clearTimeout)
   }, [onComplete])
 
-  if (phase === 'done') return null
-
-  const flipped = phase === 'flip' || phase === 'drop' || phase === 'curtains'
-  const dropped = phase === 'drop' || phase === 'curtains'
-  const curtainsOpen = phase === 'curtains'
+  const letters = useMemo(() => ['J', 'a', 'a', 'i'], [])
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
-      style={{
-        background: curtainsOpen ? 'transparent' : '#000',
-        opacity: curtainsOpen ? 0 : 1,
-        transition: curtainsOpen ? 'opacity 300ms ease' : 'none',
-        pointerEvents: 'none',
-      }}
-    >
-      {/* Curtain halves - slide apart */}
+    <div className="fixed inset-0 z-[100]" style={{ pointerEvents: phase >= 5 ? 'none' : 'all' }}>
       <div
-        className="absolute inset-0 flex"
-        style={{ zIndex: 10 }}
-      >
-        <div
-          className="absolute left-0 inset-y-0 bg-black w-1/2"
-          style={{
-            transform: curtainsOpen ? 'translateX(-100%)' : 'translateX(0)',
-            transition: 'transform 500ms cubic-bezier(0.4,0,0.2,1)',
-          }}
-        />
-        <div
-          className="absolute right-0 inset-y-0 bg-black w-1/2"
-          style={{
-            transform: curtainsOpen ? 'translateX(100%)' : 'translateX(0)',
-            transition: 'transform 500ms cubic-bezier(0.4,0,0.2,1)',
-          }}
-        />
-      </div>
-
-      {/* Gift tag */}
-      <div
-        className="absolute"
+        className="absolute inset-0"
         style={{
-          top: dropped ? '70%' : '45%',
-          left: '50%',
-          transform: `translate(-50%, ${dropped ? '-50%' : '-60%'})`,
-          transition: 'top 400ms cubic-bezier(0.4,0,0.2,1)',
-          zIndex: 5,
+          background: '#0a0a0a',
+          opacity: phase >= 5 ? 0 : 1,
+          transition: 'opacity 800ms cubic-bezier(0.4, 0, 0, 1)',
         }}
-      >
-        {/* Gold string */}
-        <div
-          className="absolute -top-8 left-1/2 -translate-x-1/2 w-0.5 h-8 rounded"
-          style={{
-            background: 'linear-gradient(180deg, #F0D78C, #D4A843)',
-            transformOrigin: 'center top',
-            animation: phase === 'sway' ? 'sway 1.5s ease-in-out infinite' : 'none',
-          }}
-        />
+      />
 
-        {/* Tag - 3D flip */}
-        <div
-          className="relative"
-          style={{
-            perspective: 400,
-          }}
-        >
-          <div
-            className="w-24 h-14 rounded-md flex items-center justify-center shadow-lg"
-            style={{
-              background: 'linear-gradient(135deg, #FBF6F3 0%, #F2E3E8 100%)',
-              border: '1px solid rgba(212,168,67,0.5)',
-              transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-              transformStyle: 'preserve-3d',
-              transition: 'transform 500ms cubic-bezier(0.4,0,0.2,1)',
-              backfaceVisibility: 'hidden',
-            }}
-          >
-            <h1
-              className="font-serif text-lg tracking-widest"
+      {/* Subtle grain texture */}
+      <div
+        className="absolute inset-0"
+        style={{
+          opacity: 0.03,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+        }}
+      />
+
+      {/* Animated letter reveal — each letter fades in with stagger */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="flex items-baseline gap-1">
+          {letters.map((letter, i) => (
+            <span
+              key={i}
+              className="font-serif"
               style={{
-                color: '#B4617B',
-                transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                fontSize: 'clamp(40px, 8vw, 64px)',
+                letterSpacing: '0.15em',
+                color: '#FBF6F3',
+                opacity: phase >= 1 ? 1 : 0,
+                transform: phase >= 1 ? 'translateY(0) rotateX(0)' : 'translateY(20px) rotateX(40deg)',
+                transition: `opacity 600ms cubic-bezier(0.4, 0, 0, 1) ${200 + i * 150}ms, transform 600ms cubic-bezier(0.4, 0, 0, 1) ${200 + i * 150}ms`,
               }}
             >
-              Jaai
-            </h1>
-          </div>
+              {letter}
+            </span>
+          ))}
         </div>
       </div>
 
-      <style>{`
-        @keyframes sway {
-          0%, 100% { transform: translateX(-50%) rotate(-4deg); }
-          50% { transform: translateX(-50%) rotate(4deg); }
-        }
-      `}</style>
+      {/* Underline stroke */}
+      <div className="absolute inset-0 flex items-center justify-center" style={{ paddingTop: 'clamp(60px, 10vw, 90px)' }}>
+        <div
+          style={{
+            width: phase >= 2 ? '140px' : '0px',
+            height: '1px',
+            background: 'linear-gradient(90deg, transparent, #D4A843, transparent)',
+            transition: 'width 800ms cubic-bezier(0.16, 1, 0.3, 1)',
+          }}
+        />
+      </div>
+
+      {/* Tagline */}
+      <div className="absolute inset-0 flex items-center justify-center" style={{ paddingTop: 'clamp(100px, 14vw, 140px)' }}>
+        <p
+          className="text-[10px] md:text-xs tracking-[0.5em] uppercase"
+          style={{
+            color: 'rgba(228,213,207,0.5)',
+            opacity: phase >= 2 ? 1 : 0,
+            transition: 'opacity 800ms ease 200ms',
+          }}
+        >
+          Illuminate Your Space
+        </p>
+      </div>
+
+      {/* Circular mask reveal from center */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: '#FBF6F3',
+          clipPath: phase >= 3
+            ? 'circle(150% at 50% 50%)'
+            : 'circle(0% at 50% 50%)',
+          transition: 'clip-path 1000ms cubic-bezier(0.7, 0, 0.3, 1)',
+          opacity: phase >= 3 ? 1 : 0,
+        }}
+      />
+
+      {/* Brand on cream (after reveal) */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <h1
+          className="font-serif tracking-[0.35em] text-4xl md:text-5xl"
+          style={{
+            color: '#2D2D2D',
+            opacity: phase >= 4 ? 1 : 0,
+            transition: 'opacity 600ms ease',
+          }}
+        >
+          Jaai
+        </h1>
+      </div>
     </div>
   )
 }
