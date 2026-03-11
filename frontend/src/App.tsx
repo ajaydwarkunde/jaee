@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import { Suspense, lazy } from 'react'
 import Layout from './components/layout/Layout'
 import LoadingSpinner from './components/ui/LoadingSpinner'
+import ErrorBoundary from './components/ErrorBoundary'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import AdminRoute from './components/auth/AdminRoute'
 
@@ -41,6 +42,7 @@ const LoaderDemoPage = lazy(() => import('./pages/LoaderDemoPage'))
 
 function App() {
   return (
+    <ErrorBoundary>
     <Suspense fallback={<LoadingSpinner fullScreen />}>
       <Routes>
         <Route path="/" element={<Layout />}>
@@ -91,6 +93,7 @@ function App() {
         </Route>
       </Routes>
     </Suspense>
+    </ErrorBoundary>
   )
 }
 
