@@ -11,9 +11,9 @@ interface SplashDef {
 
 const splashes: SplashDef[] = [
   {
-    id: 0, name: 'Hamper Unveil',
-    desc: 'Line-art gift box draws itself. Lid lifts with warm glow. Elegant product icons float up gracefully. Brand fades in.',
-    tags: ['Gift', 'Sleek'],
+    id: 0, name: 'Luxury Unbox',
+    desc: 'Matte black gift box with gold ribbon. Lid hinges open, warm golden glow pours out. Products rise inside. Sparkles, volumetric light, film grain.',
+    tags: ['Cinematic', 'Gift'],
     loader: () => import('@/components/splashes/Splash0Hamper'),
   },
   {
