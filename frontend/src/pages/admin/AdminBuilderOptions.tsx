@@ -55,7 +55,11 @@ const TYPE_LABELS: Record<string, string> = {
 }
 
 function fetchOptions(builderType: string): Promise<BuilderOption[]> {
-  return api.get(`/builder-options/admin/${builderType}`).then(res => res.data.data)
+  return api.get(`/builder-options/admin/${builderType}`).then(res => {
+    const data = res.data.data
+    if (Array.isArray(data)) return data
+    return Object.values(data as Record<string, BuilderOption[]>).flat()
+  })
 }
 
 export default function AdminBuilderOptions() {
