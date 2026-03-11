@@ -173,6 +173,255 @@
   }
 }
 
+/* ── 3D Candle Loader ── */
+.candle-scene {
+  position: relative;
+  width: 100px;
+  height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.candle-ambient {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(146,60,91,0.12) 0%, rgba(146,60,91,0.04) 50%, transparent 70%);
+  animation: candle-light-on 1.2s ease-out forwards, ambient-pulse 3s ease-in-out 1.2s infinite;
+  opacity: 0;
+}
+
+/* Candle body */
+.candle-body {
+  position: relative;
+  width: 44px;
+  height: 90px;
+  border-radius: 4px 4px 6px 6px;
+  background: linear-gradient(135deg, #F2E3E8 0%, #E4D5CF 40%, #d4c0b8 100%);
+  box-shadow:
+    inset -8px 0 12px rgba(146,60,91,0.08),
+    inset 4px 0 8px rgba(255,255,255,0.3),
+    2px 4px 12px rgba(45,45,45,0.15);
+  overflow: visible;
+}
+
+.candle-rim {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(to right, #E4D5CF, #F2E3E8, #E4D5CF);
+  box-shadow: 0 -1px 3px rgba(146,60,91,0.1);
+}
+
+.candle-wax-pool {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  right: 4px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(146,60,91,0.15) 0%, rgba(228,213,207,0.3) 60%, transparent 100%);
+  animation: candle-light-on 1.2s ease-out forwards;
+  opacity: 0;
+}
+
+.candle-shine {
+  position: absolute;
+  top: 10px;
+  left: 4px;
+  width: 10px;
+  height: 60px;
+  border-radius: 4px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.4), rgba(255,255,255,0.05));
+}
+
+.candle-drip {
+  position: absolute;
+  width: 8px;
+  border-radius: 0 0 50% 50%;
+  background: linear-gradient(to bottom, #E4D5CF, #d4c0b8);
+  box-shadow: inset -2px 0 3px rgba(0,0,0,0.05);
+}
+.candle-drip-1 {
+  top: 0;
+  right: 6px;
+  height: 18px;
+  animation: drip-flow 4s ease-in-out 2s infinite;
+}
+.candle-drip-2 {
+  top: 0;
+  left: 8px;
+  height: 12px;
+  width: 6px;
+  animation: drip-flow 5s ease-in-out 3.5s infinite;
+}
+
+/* Wick */
+.candle-wick {
+  position: relative;
+  width: 2px;
+  height: 14px;
+  background: linear-gradient(to top, #4a3a3a, #2D2D2D);
+  border-radius: 1px;
+  z-index: 2;
+  margin-bottom: -2px;
+}
+
+/* Flame */
+.candle-flame-group {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 50px;
+  z-index: 3;
+  animation: candle-light-on 1s ease-out forwards;
+  opacity: 0;
+}
+
+.flame-body {
+  position: relative;
+  width: 14px;
+  height: 32px;
+  background: linear-gradient(to top, #B4617B 0%, #E9868B 30%, #F2E3E8 70%, #FFF8F0 100%);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  animation: flame-dance 0.8s ease-in-out infinite alternate;
+  filter: blur(0.5px);
+}
+
+.flame-inner {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 16px;
+  background: linear-gradient(to top, #FBF6F3, #FFF8F0);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  animation: flame-dance 0.6s ease-in-out infinite alternate-reverse;
+  filter: blur(0.3px);
+}
+
+.flame-glow {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 50px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(180,97,123,0.4) 0%, rgba(146,60,91,0.15) 40%, transparent 70%);
+  animation: glow-flicker 1.5s ease-in-out infinite;
+  filter: blur(4px);
+}
+
+.flame-rays {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(233,134,139,0.08) 0%, transparent 70%);
+  animation: glow-flicker 2s ease-in-out infinite 0.5s;
+}
+
+/* Smoke */
+.candle-smoke {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  opacity: 0;
+  animation: candle-light-on 2s ease-out 1.5s forwards;
+}
+
+.smoke-wisp {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(146,60,91,0.06);
+  filter: blur(3px);
+}
+.smoke-wisp-1 {
+  animation: smoke-rise 3s ease-out infinite;
+}
+.smoke-wisp-2 {
+  left: 4px;
+  animation: smoke-rise 3.5s ease-out 1s infinite;
+}
+
+/* Surface reflection */
+.candle-reflection {
+  width: 60px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(146,60,91,0.15) 0%, transparent 70%);
+  margin-top: 2px;
+  animation: candle-light-on 1.2s ease-out forwards, reflection-pulse 3s ease-in-out 1.2s infinite;
+  opacity: 0;
+}
+
+/* Keyframes */
+@keyframes candle-light-on {
+  0% { opacity: 0; transform: scale(0.5) translateX(-50%); }
+  60% { opacity: 1; transform: scale(1.1) translateX(-50%); }
+  100% { opacity: 1; transform: scale(1) translateX(-50%); }
+}
+.candle-flame-group { animation: flame-appear 1s ease-out forwards; opacity: 0; }
+@keyframes flame-appear {
+  0% { opacity: 0; transform: scaleY(0); }
+  50% { opacity: 1; transform: scaleY(1.2); }
+  100% { opacity: 1; transform: scaleY(1); }
+}
+
+@keyframes flame-dance {
+  0% { transform: scaleX(1) scaleY(1) rotate(-1deg); }
+  33% { transform: scaleX(0.92) scaleY(1.04) rotate(1deg); }
+  66% { transform: scaleX(1.04) scaleY(0.96) rotate(-0.5deg); }
+  100% { transform: scaleX(0.96) scaleY(1.02) rotate(1.5deg); }
+}
+
+@keyframes glow-flicker {
+  0%, 100% { opacity: 0.8; transform: translateX(-50%) scale(1); }
+  25% { opacity: 1; transform: translateX(-50%) scale(1.05); }
+  50% { opacity: 0.7; transform: translateX(-50%) scale(0.95); }
+  75% { opacity: 0.95; transform: translateX(-50%) scale(1.02); }
+}
+
+@keyframes ambient-pulse {
+  0%, 100% { opacity: 0.8; transform: translateX(-50%) scale(1); }
+  50% { opacity: 1; transform: translateX(-50%) scale(1.08); }
+}
+
+@keyframes reflection-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes smoke-rise {
+  0% { opacity: 0; transform: translateY(0) scale(1); }
+  20% { opacity: 0.5; }
+  100% { opacity: 0; transform: translateY(-40px) translateX(8px) scale(2.5); }
+}
+
+@keyframes drip-flow {
+  0%, 100% { height: inherit; }
+  50% { height: calc(100% * 1.4); }
+}
+
 /* ── Loader Preview Animations ── */
 @keyframes flame-sway {
   0%, 100% { transform: translateX(-50%) rotate(-3deg); }
