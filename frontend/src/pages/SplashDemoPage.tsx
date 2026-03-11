@@ -14,7 +14,7 @@ const splashes: SplashDef[] = [
     id: 0, name: 'Hamper Unveil',
     desc: 'Line-art gift box draws itself. Lid lifts with warm glow. Elegant product icons float up gracefully. Brand fades in.',
     tags: ['Gift', 'Sleek'],
-    loader: () => import('@/components/SplashScreen'),
+    loader: () => import('@/components/splashes/Splash0Hamper'),
   },
   {
     id: 1, name: 'Slit',
