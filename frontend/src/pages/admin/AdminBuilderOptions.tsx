@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Plus, Pencil, Trash2, ToggleLeft, ToggleRight, Flame, Gift, Save, X } from 'lucide-react'
@@ -251,7 +251,7 @@ export default function AdminBuilderOptions() {
                 )}
                 {opt.colorsJson && !opt.hexColor && (
                   <div className="flex gap-0.5 shrink-0">
-                    {JSON.parse(opt.colorsJson).map((c: string, i: number) => (
+                    {(() => { try { return JSON.parse(opt.colorsJson) as string[] } catch { return [] } })().map((c: string, i: number) => (
                       <div key={i} className="w-6 h-6 rounded-full border border-blush/50" style={{ backgroundColor: c }} />
                     ))}
                   </div>
@@ -373,44 +373,35 @@ function OptionFormModal({
 
   const isEditing = !!option
 
-  const resetForm = (opt: BuilderOption | null) => {
-    if (opt) {
-      setForm({
-        optionKey: opt.optionKey,
-        label: opt.label,
-        description: opt.description || '',
-        emoji: opt.emoji || '',
-        hexColor: opt.hexColor || '',
-        colorsJson: opt.colorsJson || '',
-        basePrice: String(opt.basePrice || 0),
-        surcharge: String(opt.surcharge || 0),
-        displayOrder: String(opt.displayOrder || 0),
-      })
-    } else {
-      setForm({
-        optionKey: '',
-        label: '',
-        description: '',
-        emoji: '',
-        hexColor: '',
-        colorsJson: '',
-        basePrice: '0',
-        surcharge: '0',
-        displayOrder: '0',
-      })
+  useEffect(() => {
+    if (isOpen) {
+      if (option) {
+        setForm({
+          optionKey: option.optionKey,
+          label: option.label,
+          description: option.description || '',
+          emoji: option.emoji || '',
+          hexColor: option.hexColor || '',
+          colorsJson: option.colorsJson || '',
+          basePrice: String(option.basePrice || 0),
+          surcharge: String(option.surcharge || 0),
+          displayOrder: String(option.displayOrder || 0),
+        })
+      } else {
+        setForm({
+          optionKey: '',
+          label: '',
+          description: '',
+          emoji: '',
+          hexColor: '',
+          colorsJson: '',
+          basePrice: '0',
+          surcharge: '0',
+          displayOrder: '0',
+        })
+      }
     }
-  }
-
-  // Reset form when modal opens
-  useState(() => { resetForm(option) })
-
-  // Also reset when option changes
-  if (isOpen && option && form.optionKey !== option.optionKey) {
-    resetForm(option)
-  }
-  if (isOpen && !option && form.optionKey !== '') {
-    resetForm(null)
-  }
+  }, [isOpen, option])
 
   const showEmoji = ['SCENT', 'OCCASION', 'ITEM'].includes(optionType)
   const showHexColor = optionType === 'COLOR'
