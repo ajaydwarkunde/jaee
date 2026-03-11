@@ -230,7 +230,7 @@ interface CandleConfig {
 /* ──────── Main Page ──────── */
 
 export default function CustomCandlePage() {
-  const { user, isAuthenticated } = useAuthStore()
+  const { user } = useAuthStore()
   const [step, setStep] = useState(0)
   const [submitted, setSubmitted] = useState(false)
 
