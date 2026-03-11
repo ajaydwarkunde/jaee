@@ -172,3 +172,32 @@
     overflow: hidden;
   }
 }
+
+/* Kinetic Dots Loader animations */
+@keyframes kdl-bounce {
+  0% { transform: translateY(0); animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1); }
+  50% { transform: translateY(-40px); animation-timing-function: cubic-bezier(0.32, 0, 0.67, 0); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes kdl-morph {
+  0% { transform: scale(1.4, 0.6); }
+  5% { transform: scale(0.9, 1.1); }
+  15% { transform: scale(1, 1); }
+  50% { transform: scale(1, 1); }
+  85% { transform: scale(0.9, 1.1); }
+  100% { transform: scale(1.4, 0.6); }
+}
+
+@keyframes kdl-shadow {
+  0% { transform: scale(1.4); opacity: 0.6; }
+  50% { transform: scale(0.5); opacity: 0.1; }
+  100% { transform: scale(1.4); opacity: 0.6; }
+}
+
+@keyframes kdl-ripple {
+  0% { transform: scale(0.5); opacity: 0; border-width: 4px; }
+  5% { opacity: 0.8; }
+  30% { transform: scale(1.5); opacity: 0; border-width: 0px; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
