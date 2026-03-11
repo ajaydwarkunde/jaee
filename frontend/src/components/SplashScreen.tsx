@@ -73,11 +73,11 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
 
       {/* Center content */}
       <div className="relative z-10 flex flex-col items-center">
-        {/* Candle SVG */}
+        {/* Candle SVG — tall sleek vessel */}
         <svg
-          width="120"
-          height="200"
-          viewBox="0 0 120 200"
+          width="90"
+          height="240"
+          viewBox="0 0 90 260"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           className="transition-opacity duration-700"
@@ -86,101 +86,161 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
           <defs>
             <linearGradient id="sp-flame" x1="0" y1="1" x2="0" y2="0">
               <stop offset="0%" stopColor="#923C5B" />
-              <stop offset="35%" stopColor="#E9868B" />
-              <stop offset="70%" stopColor="#F2E3E8" />
-              <stop offset="100%" stopColor="#FFF8F0" />
+              <stop offset="30%" stopColor="#D4796A" />
+              <stop offset="60%" stopColor="#E9B88B" />
+              <stop offset="85%" stopColor="#FFF0D4" />
+              <stop offset="100%" stopColor="#FFFEFA" />
             </linearGradient>
-            <linearGradient id="sp-body" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#E4D5CF" stopOpacity="0.9" />
-              <stop offset="40%" stopColor="#FBF6F3" />
-              <stop offset="100%" stopColor="#D4C0B8" />
+            <linearGradient id="sp-vessel" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#1a1216" stopOpacity="0.7" />
+              <stop offset="15%" stopColor="#2a2025" stopOpacity="0.4" />
+              <stop offset="40%" stopColor="#3a3035" stopOpacity="0.15" />
+              <stop offset="60%" stopColor="#2a2025" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#1a1216" stopOpacity="0.6" />
             </linearGradient>
-            <radialGradient id="sp-glow" cx="50%" cy="20%" r="60%">
-              <stop offset="0%" stopColor="#B4617B" stopOpacity="0.3" />
+            <linearGradient id="sp-wax" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#D4C0B8" />
+              <stop offset="30%" stopColor="#F2E3E8" />
+              <stop offset="70%" stopColor="#FBF6F3" />
+              <stop offset="100%" stopColor="#E4D5CF" />
+            </linearGradient>
+            <linearGradient id="sp-rim" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#8B7355" />
+              <stop offset="30%" stopColor="#D4A843" />
+              <stop offset="60%" stopColor="#F0D78C" />
+              <stop offset="100%" stopColor="#8B7355" />
+            </linearGradient>
+            <radialGradient id="sp-glow" cx="50%" cy="15%" r="50%">
+              <stop offset="0%" stopColor="#E9B88B" stopOpacity="0.35" />
+              <stop offset="50%" stopColor="#B4617B" stopOpacity="0.12" />
               <stop offset="100%" stopColor="#B4617B" stopOpacity="0" />
             </radialGradient>
-            <filter id="sp-flame-blur"><feGaussianBlur stdDeviation="2" /></filter>
+            <radialGradient id="sp-wax-glow" cx="50%" cy="0%" r="80%">
+              <stop offset="0%" stopColor="#FFF0D4" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="#FBF6F3" stopOpacity="0" />
+            </radialGradient>
+            <filter id="sp-flame-blur"><feGaussianBlur stdDeviation="1.8" /></filter>
             <filter id="sp-soft-glow">
-              <feGaussianBlur stdDeviation="6" result="blur" />
+              <feGaussianBlur stdDeviation="5" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
+            <clipPath id="sp-vessel-clip">
+              <path d="M25 88 Q24 90 24 95 L24 240 Q24 248 32 248 L58 248 Q66 248 66 240 L66 95 Q66 90 65 88 Z" />
+            </clipPath>
           </defs>
 
           {/* Flame glow halo */}
           <circle
-            cx="60" cy="55" r="40"
+            cx="45" cy="45" r="40"
             fill="url(#sp-glow)"
             className="transition-opacity duration-700"
             style={{ opacity: flameVisible ? 1 : 0 }}
           >
-            <animate attributeName="r" values="38;44;38" dur="2.5s" repeatCount="indefinite" />
+            <animate attributeName="r" values="38;46;38" dur="2.5s" repeatCount="indefinite" />
           </circle>
 
-          {/* Outer flame */}
+          {/* Outer flame — tall tapered shape */}
           <g
             filter="url(#sp-flame-blur)"
             className="transition-all duration-700"
             style={{
               opacity: flameVisible ? 0.9 : 0,
-              transform: flameVisible ? 'scale(1)' : 'scale(0.2)',
-              transformOrigin: '60px 75px',
+              transform: flameVisible ? 'scale(1)' : 'scale(0.15)',
+              transformOrigin: '45px 72px',
             }}
           >
             <path
-              d="M60 28 C65 48,73 58,70 68 C68 74,64 76,60 76 C56 76,52 74,50 68 C47 58,55 48,60 28Z"
+              d="M45 18 C48 38,55 52,53 62 C52 68,49 72,45 72 C41 72,38 68,37 62 C35 52,42 38,45 18Z"
               fill="url(#sp-flame)"
               filter="url(#sp-soft-glow)"
             >
               <animate
                 attributeName="d"
-                values="M60 28 C65 48,73 58,70 68 C68 74,64 76,60 76 C56 76,52 74,50 68 C47 58,55 48,60 28Z;M60 24 C67 44,71 56,69 66 C67 73,63 75,60 75 C57 75,53 73,51 66 C49 56,53 44,60 24Z;M60 28 C65 48,73 58,70 68 C68 74,64 76,60 76 C56 76,52 74,50 68 C47 58,55 48,60 28Z"
+                values="M45 18 C48 38,55 52,53 62 C52 68,49 72,45 72 C41 72,38 68,37 62 C35 52,42 38,45 18Z;M45 14 C49 36,53 50,52 61 C51 67,48 71,45 71 C42 71,39 67,38 61 C37 50,41 36,45 14Z;M45 18 C48 38,55 52,53 62 C52 68,49 72,45 72 C41 72,38 68,37 62 C35 52,42 38,45 18Z"
                 dur="1.4s"
                 repeatCount="indefinite"
               />
             </path>
           </g>
 
-          {/* Inner flame (bright core) */}
+          {/* Inner flame core */}
           <path
-            d="M60 50 C62 58,65 62,64 67 C63 70,61 71,60 71 C59 71,57 70,56 67 C55 62,58 58,60 50Z"
-            fill="#FFF8F0"
+            d="M45 44 C47 52,49 58,48 64 C47.5 67,46 68,45 68 C44 68,42.5 67,42 64 C41 58,43 52,45 44Z"
+            fill="#FFFEFA"
             className="transition-all duration-700"
             style={{
-              opacity: flameVisible ? 0.85 : 0,
+              opacity: flameVisible ? 0.9 : 0,
               transform: flameVisible ? 'scale(1)' : 'scale(0)',
-              transformOrigin: '60px 68px',
+              transformOrigin: '45px 64px',
             }}
           >
             <animate
               attributeName="d"
-              values="M60 50 C62 58,65 62,64 67 C63 70,61 71,60 71 C59 71,57 70,56 67 C55 62,58 58,60 50Z;M60 48 C63 56,64 61,63 66 C62 69,61 70,60 70 C59 70,58 69,57 66 C56 61,57 56,60 48Z;M60 50 C62 58,65 62,64 67 C63 70,61 71,60 71 C59 71,57 70,56 67 C55 62,58 58,60 50Z"
+              values="M45 44 C47 52,49 58,48 64 C47.5 67,46 68,45 68 C44 68,42.5 67,42 64 C41 58,43 52,45 44Z;M45 42 C47.5 50,48 57,47 63 C46.5 66,46 67,45 67 C44 67,43.5 66,43 63 C42 57,42.5 50,45 42Z;M45 44 C47 52,49 58,48 64 C47.5 67,46 68,45 68 C44 68,42.5 67,42 64 C41 58,43 52,45 44Z"
               dur="0.9s"
               repeatCount="indefinite"
             />
           </path>
 
-          {/* Wick */}
-          <line x1="60" y1="72" x2="60" y2="84" stroke="#3a2a2a" strokeWidth="1.5" strokeLinecap="round" />
+          {/* Wick — thin, slightly curved */}
+          <path d="M45 68 Q45.5 74,45 82" stroke="#2a2025" strokeWidth="1" strokeLinecap="round" fill="none" />
 
-          {/* Candle body - glass jar */}
-          <rect x="30" y="82" width="60" height="90" rx="5" fill="url(#sp-body)" />
-          <rect x="27" y="80" width="66" height="94" rx="7" fill="none" stroke="#d4c0b8" strokeWidth="1" opacity="0.5" />
-          {/* Highlight streak */}
-          <rect x="33" y="85" width="10" height="78" rx="3" fill="white" opacity="0.15" />
-          {/* Wax surface */}
-          <ellipse cx="60" cy="84" rx="28" ry="4" fill="#FBF6F3" opacity="0.7" />
+          {/* Vessel body — tall slim glass */}
+          <path
+            d="M25 88 Q24 90 24 95 L24 240 Q24 248 32 248 L58 248 Q66 248 66 240 L66 95 Q66 90 65 88 Z"
+            fill="url(#sp-vessel)"
+          />
+          {/* Glass edge highlight left */}
+          <path
+            d="M27 92 L27 242 Q27 246 32 246"
+            stroke="rgba(251,246,243,0.08)"
+            strokeWidth="1.5"
+            fill="none"
+          />
+          {/* Glass reflection streak */}
+          <rect x="29" y="95" width="5" height="140" rx="2.5" fill="white" opacity="0.06" />
+          {/* Second subtle reflection */}
+          <rect x="56" y="100" width="3" height="120" rx="1.5" fill="white" opacity="0.03" />
 
-          {/* Shadow */}
+          {/* Wax fill inside vessel */}
+          <g clipPath="url(#sp-vessel-clip)">
+            <rect x="24" y="84" width="42" height="170" fill="url(#sp-wax)" opacity="0.85" />
+            {/* Wax highlight */}
+            <rect x="28" y="86" width="8" height="160" rx="4" fill="white" opacity="0.12" />
+            {/* Warm glow on wax from flame */}
+            <rect
+              x="24" y="84" width="42" height="40"
+              fill="url(#sp-wax-glow)"
+              className="transition-opacity duration-700"
+              style={{ opacity: flameVisible ? 1 : 0 }}
+            />
+          </g>
+
+          {/* Wax pool surface — slight melt pool */}
+          <ellipse cx="45" cy="86" rx="20" ry="3.5" fill="#FBF6F3" opacity="0.8" />
           <ellipse
-            cx="60" cy="180" rx="35" ry="4"
+            cx="45" cy="86" rx="12" ry="2"
+            fill="#FFF0D4"
+            className="transition-opacity duration-700"
+            style={{ opacity: flameVisible ? 0.5 : 0 }}
+          >
+            <animate attributeName="rx" values="11;13;11" dur="3s" repeatCount="indefinite" />
+          </ellipse>
+
+          {/* Gold rim at top */}
+          <ellipse cx="45" cy="88" rx="21" ry="3" fill="none" stroke="url(#sp-rim)" strokeWidth="0.8" opacity="0.6" />
+
+          {/* Soft reflection on floor */}
+          <ellipse
+            cx="45" cy="255" rx="25" ry="3"
             fill="#B4617B"
             className="transition-opacity duration-1000"
-            style={{ opacity: flameVisible ? 0.12 : 0.03 }}
+            style={{ opacity: flameVisible ? 0.1 : 0.02 }}
           >
-            <animate attributeName="opacity" values="0.08;0.15;0.08" dur="3s" repeatCount="indefinite" />
+            <animate attributeName="opacity" values="0.06;0.12;0.06" dur="3s" repeatCount="indefinite" />
           </ellipse>
         </svg>
 
