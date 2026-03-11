@@ -17,7 +17,10 @@
     "test:prod": "TEST_URL=https://jaai-store.vercel.app playwright test",
     "test:api": "playwright test tests/api.spec.ts",
     "test:full": "playwright test tests/full-flow.spec.ts",
-    "test:quick": "playwright test tests/home.spec.ts tests/shop.spec.ts --reporter=list","test:render":"TEST_URL=https://jaee-frontend.onrender.com playwright test tests/render-e2e.spec.ts","test:comprehensive":"TEST_URL=https://jaai-store.vercel.app playwright test tests/comprehensive-e2e.spec.ts","test:remaining":"TEST_URL=https://jaai-store.vercel.app playwright test tests/remaining-features-e2e.spec.ts"
+    "test:quick": "playwright test tests/home.spec.ts tests/shop.spec.ts --reporter=list",
+    "test:render": "TEST_URL=https://jaee-frontend.onrender.com playwright test tests/render-e2e.spec.ts",
+    "test:comprehensive": "TEST_URL=https://jaai-store.vercel.app playwright test tests/comprehensive-e2e.spec.ts",
+    "test:remaining": "TEST_URL=https://jaai-store.vercel.app playwright test tests/remaining-features-e2e.spec.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
@@ -31,6 +34,7 @@
     "react-hook-form": "^7.49.0",
     "react-hot-toast": "^2.4.1",
     "react-router-dom": "^6.21.0",
+    "serve": "^14.2.6",
     "zod": "^3.22.4",
     "zustand": "^4.4.7"
   },
