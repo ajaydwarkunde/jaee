@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Package, Tag, ShoppingBag, ShoppingCart, Settings, Percent } from 'lucide-react'
+import { Package, Tag, ShoppingBag, ShoppingCart, Settings, Percent, Flame } from 'lucide-react'
 import { productService } from '@/services/productService'
 import { categoryService } from '@/services/categoryService'
 import { orderService } from '@/services/orderService'
+import { api } from '@/lib/api'
 import Card, { CardContent, CardTitle } from '@/components/ui/Card'
 
 export default function AdminDashboard() {
@@ -21,6 +22,13 @@ export default function AdminDashboard() {
     queryKey: ['admin-order-stats'],
     queryFn: orderService.getOrderStats,
   })
+
+  const { data: customCandles } = useQuery({
+    queryKey: ['admin-custom-candles-count'],
+    queryFn: () => api.get('/custom-candles/admin/all').then(res => res.data.data as unknown[]),
+  })
+
+  const pendingCandles = (customCandles || []).filter((c: any) => c.status === 'PENDING').length
 
   const stats = [
     {
@@ -51,6 +59,13 @@ export default function AdminDashboard() {
       link: '/admin/orders?status=PENDING',
       color: 'bg-charcoal/10 text-charcoal',
     },
+    {
+      title: 'Custom Candles',
+      value: customCandles?.length || 0,
+      icon: Flame,
+      link: '/admin/custom-candles',
+      color: 'bg-rose/10 text-rose',
+    },
   ]
 
   return (
@@ -62,7 +77,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           {stats.map((stat) => (
             <Link key={stat.title} to={stat.link}>
               <Card hover className="h-full">
@@ -124,6 +139,24 @@ export default function AdminDashboard() {
               <p className="mb-4">Manage discount coupons</p>
               <Link to="/admin/coupons" className="text-rose hover:underline font-medium">
                 Manage Coupons →
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardTitle className="flex items-center gap-2">
+              <Flame className="w-5 h-5" />
+              Custom Candles
+              {pendingCandles > 0 && (
+                <span className="ml-auto px-2 py-0.5 bg-warning/10 text-warning text-xs font-bold rounded-full">
+                  {pendingCandles} new
+                </span>
+              )}
+            </CardTitle>
+            <CardContent>
+              <p className="mb-4">View custom candle requests</p>
+              <Link to="/admin/custom-candles" className="text-rose hover:underline font-medium">
+                Manage Requests →
               </Link>
             </CardContent>
           </Card>

@@ -27,6 +27,7 @@ const AdminCategories = lazy(() => import('./pages/admin/AdminCategories'))
 const AdminOrders = lazy(() => import('./pages/admin/AdminOrders'))
 const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'))
 const AdminCoupons = lazy(() => import('./pages/admin/AdminCoupons'))
+const AdminCustomCandles = lazy(() => import('./pages/admin/AdminCustomCandles'))
 const SalePage = lazy(() => import('./pages/SalePage'))
 const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage'))
 const WishlistPage = lazy(() => import('./pages/WishlistPage'))
@@ -75,6 +76,7 @@ function App() {
             <Route path="categories" element={<AdminCategories />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="coupons" element={<AdminCoupons />} />
+            <Route path="custom-candles" element={<AdminCustomCandles />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>
 
