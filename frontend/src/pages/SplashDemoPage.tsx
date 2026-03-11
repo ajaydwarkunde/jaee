@@ -130,7 +130,7 @@ export default function SplashDemoPage() {
         </div>
       </div>
 
-      {activeId && SplashComponent && (
+      {activeId !== null && SplashComponent && (
         <Suspense fallback={null}>
           <SplashComponent onComplete={handleComplete} />
           <button
