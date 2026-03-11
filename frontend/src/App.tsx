@@ -40,6 +40,7 @@ const CustomCandlePage = lazy(() => import('./pages/CustomCandlePage'))
 const CustomHamperPage = lazy(() => import('./pages/CustomHamperPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 const LoaderDemoPage = lazy(() => import('./pages/LoaderDemoPage'))
+const SplashDemoPage = lazy(() => import('./pages/SplashDemoPage'))
 
 function shouldShowSplash() {
   if (typeof window === 'undefined') return false
@@ -80,6 +81,7 @@ function App() {
           <Route path="custom-candle" element={<CustomCandlePage />} />
           <Route path="custom-hamper" element={<CustomHamperPage />} />
           <Route path="loader-demo" element={<LoaderDemoPage />} />
+          <Route path="splash-demo" element={<SplashDemoPage />} />
 
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>

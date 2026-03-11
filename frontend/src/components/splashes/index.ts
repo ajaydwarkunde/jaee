@@ -1,0 +1,5 @@
+export { default as Splash1Unwrap } from './Splash1Unwrap'
+export { default as Splash2Matchstick } from './Splash2Matchstick'
+export { default as Splash3WaxSeal } from './Splash3WaxSeal'
+export { default as Splash4Pour } from './Splash4Pour'
+export { default as Splash5GiftTag } from './Splash5GiftTag'
