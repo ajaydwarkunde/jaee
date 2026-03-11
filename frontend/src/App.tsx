@@ -29,6 +29,7 @@ const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'))
 const AdminCoupons = lazy(() => import('./pages/admin/AdminCoupons'))
 const AdminCustomCandles = lazy(() => import('./pages/admin/AdminCustomCandles'))
 const AdminGiftHampers = lazy(() => import('./pages/admin/AdminGiftHampers'))
+const AdminBuilderOptions = lazy(() => import('./pages/admin/AdminBuilderOptions'))
 const SalePage = lazy(() => import('./pages/SalePage'))
 const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage'))
 const WishlistPage = lazy(() => import('./pages/WishlistPage'))
@@ -81,6 +82,7 @@ function App() {
             <Route path="coupons" element={<AdminCoupons />} />
             <Route path="custom-candles" element={<AdminCustomCandles />} />
             <Route path="gift-hampers" element={<AdminGiftHampers />} />
+            <Route path="builder-options" element={<AdminBuilderOptions />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>
 

@@ -56,6 +56,8 @@ public class SecurityConfig {
                 .requestMatchers("/stock-notifications/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/custom-candles").permitAll()
                 .requestMatchers(HttpMethod.POST, "/gift-hampers").permitAll()
+                .requestMatchers(HttpMethod.GET, "/builder-options/*/active").permitAll()
+                .requestMatchers("/builder-options/admin/**").hasRole("ADMIN")
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers("/swagger-ui/**", "/api-docs/**", "/swagger-ui.html").permitAll()
                 // Admin endpoints

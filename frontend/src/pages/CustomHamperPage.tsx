@@ -5,55 +5,11 @@ import { useAuthStore } from '@/stores/authStore'
 import { api } from '@/lib/api'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import toast from 'react-hot-toast'
 import { cn, formatPrice } from '@/lib/utils'
 import { Link } from 'react-router-dom'
-
-/* ──────── Configuration Data ──────── */
-
-const SIZES = [
-  { id: 'small', label: 'Petite', desc: '3–4 items · Perfect for a thoughtful gesture', basePrice: 999 },
-  { id: 'medium', label: 'Classic', desc: '5–6 items · A well-rounded gift', basePrice: 1999 },
-  { id: 'large', label: 'Grand', desc: '7–8 items · Make a statement', basePrice: 2999 },
-  { id: 'premium', label: 'Luxe', desc: '10+ items · The ultimate indulgence', basePrice: 4999 },
-]
-
-const OCCASIONS = [
-  { id: 'birthday', label: 'Birthday', emoji: '🎂' },
-  { id: 'wedding', label: 'Wedding', emoji: '💒' },
-  { id: 'anniversary', label: 'Anniversary', emoji: '💕' },
-  { id: 'housewarming', label: 'Housewarming', emoji: '🏠' },
-  { id: 'thankyou', label: 'Thank You', emoji: '🙏' },
-  { id: 'corporate', label: 'Corporate', emoji: '💼' },
-  { id: 'festival', label: 'Festival', emoji: '🪔' },
-  { id: 'other', label: 'Other', emoji: '🎁' },
-]
-
-const ITEMS = [
-  { id: 'candle', label: 'Scented Candle', emoji: '🕯️', surcharge: 200 },
-  { id: 'diffuser', label: 'Reed Diffuser', emoji: '🌿', surcharge: 350 },
-  { id: 'bath-salts', label: 'Bath Salts', emoji: '🛁', surcharge: 150 },
-  { id: 'chocolates', label: 'Artisan Chocolates', emoji: '🍫', surcharge: 250 },
-  { id: 'dried-flowers', label: 'Dried Flowers', emoji: '💐', surcharge: 200 },
-  { id: 'soap', label: 'Handmade Soap', emoji: '🧼', surcharge: 100 },
-  { id: 'tea', label: 'Premium Tea', emoji: '🍵', surcharge: 150 },
-  { id: 'essential-oils', label: 'Essential Oils', emoji: '💧', surcharge: 300 },
-]
-
-const WRAPPINGS = [
-  { id: 'classic', label: 'Classic', desc: 'Elegant kraft & ribbon', surcharge: 0 },
-  { id: 'luxury', label: 'Luxury', desc: 'Satin box with gold foil', surcharge: 200 },
-  { id: 'eco-friendly', label: 'Eco-Friendly', desc: 'Recycled paper & jute', surcharge: 100 },
-  { id: 'festive', label: 'Festive', desc: 'Seasonal themed wrap', surcharge: 150 },
-]
-
-const COLOR_THEMES = [
-  { id: 'rose-gold', label: 'Rose Gold', colors: ['#B4617B', '#D4A843', '#F2E3E8'] },
-  { id: 'pastels', label: 'Pastels', colors: ['#F2E3E8', '#E4D5CF', '#D5E8D4'] },
-  { id: 'earth-tones', label: 'Earth Tones', colors: ['#8B5E3C', '#C4A882', '#6B9E76'] },
-  { id: 'monochrome', label: 'Monochrome', colors: ['#2D2D2D', '#777', '#FBF6F3'] },
-  { id: 'vibrant', label: 'Vibrant', colors: ['#923C5B', '#D4A843', '#6B9E76'] },
-]
+import { useBuilderOptions, type BuilderOption } from '@/hooks/useBuilderOptions'
 
 const STEPS = [
   { id: 'size', label: 'Size', icon: Package },
@@ -81,13 +37,13 @@ interface HamperConfig {
 
 /* ──────── Price Calculator ──────── */
 
-function calculatePrice(config: HamperConfig): number {
-  const size = SIZES.find(s => s.id === config.hamperSize)
-  const wrapping = WRAPPINGS.find(w => w.id === config.wrapping)
+function calculatePrice(config: HamperConfig, sizes: BuilderOption[], items: BuilderOption[], wrappings: BuilderOption[]): number {
+  const size = sizes.find(s => s.optionKey === config.hamperSize)
+  const wrapping = wrappings.find(w => w.optionKey === config.wrapping)
 
-  let price = size?.basePrice ?? 1999
+  let price = (size?.basePrice ?? 1999) + (size?.surcharge ?? 0)
   config.items.forEach(itemId => {
-    const item = ITEMS.find(i => i.id === itemId)
+    const item = items.find(i => i.optionKey === itemId)
     if (item) price += item.surcharge
   })
   price += wrapping?.surcharge ?? 0
@@ -98,8 +54,8 @@ function calculatePrice(config: HamperConfig): number {
 
 /* ──────── Hamper Preview SVG ──────── */
 
-function HamperPreview({ colorTheme, items, wrapping }: { colorTheme: string; items: string[]; wrapping: string }) {
-  const theme = COLOR_THEMES.find(t => t.id === colorTheme) || COLOR_THEMES[0]
+function HamperPreview({ themeColors, itemCount, wrapping }: { themeColors: string[]; itemCount: number; wrapping: string }) {
+  const colors = themeColors.length >= 3 ? themeColors : ['#B4617B', '#D4A843', '#F2E3E8']
   const isLuxury = wrapping === 'luxury'
   const isFestive = wrapping === 'festive'
 
@@ -108,16 +64,16 @@ function HamperPreview({ colorTheme, items, wrapping }: { colorTheme: string; it
       <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="hb-box" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor={theme.colors[0]} />
-            <stop offset="100%" stopColor={theme.colors[1]} />
+            <stop offset="0%" stopColor={colors[0]} />
+            <stop offset="100%" stopColor={colors[1]} />
           </linearGradient>
           <linearGradient id="hb-lid" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={theme.colors[0]} stopOpacity="0.9" />
-            <stop offset="100%" stopColor={theme.colors[1]} stopOpacity="0.7" />
+            <stop offset="0%" stopColor={colors[0]} stopOpacity="0.9" />
+            <stop offset="100%" stopColor={colors[1]} stopOpacity="0.7" />
           </linearGradient>
           <radialGradient id="hb-glow" cx="50%" cy="40%" r="50%">
-            <stop offset="0%" stopColor={theme.colors[0]} stopOpacity="0.15" />
-            <stop offset="100%" stopColor={theme.colors[0]} stopOpacity="0" />
+            <stop offset="0%" stopColor={colors[0]} stopOpacity="0.15" />
+            <stop offset="100%" stopColor={colors[0]} stopOpacity="0" />
           </radialGradient>
         </defs>
 
@@ -128,28 +84,28 @@ function HamperPreview({ colorTheme, items, wrapping }: { colorTheme: string; it
 
         {/* Box body */}
         <rect x="35" y="90" width="130" height="80" rx="6" fill="url(#hb-box)" opacity="0.95" />
-        <rect x="35" y="90" width="130" height="80" rx="6" fill="none" stroke={theme.colors[2]} strokeWidth="1" opacity="0.4" />
+        <rect x="35" y="90" width="130" height="80" rx="6" fill="none" stroke={colors[2]} strokeWidth="1" opacity="0.4" />
 
         {/* Box shine */}
         <rect x="40" y="95" width="15" height="60" rx="3" fill="white" opacity="0.1" />
 
         {/* Lid */}
         <rect x="30" y="78" width="140" height="16" rx="4" fill="url(#hb-lid)" />
-        <rect x="30" y="78" width="140" height="16" rx="4" fill="none" stroke={theme.colors[2]} strokeWidth="0.5" opacity="0.3" />
+        <rect x="30" y="78" width="140" height="16" rx="4" fill="none" stroke={colors[2]} strokeWidth="0.5" opacity="0.3" />
 
         {/* Ribbon vertical */}
-        <rect x="94" y="78" width="12" height="92" fill={theme.colors[2]} opacity="0.5" />
+        <rect x="94" y="78" width="12" height="92" fill={colors[2]} opacity="0.5" />
         {/* Ribbon horizontal */}
-        <rect x="30" y="82" width="140" height="8" fill={theme.colors[2]} opacity="0.4" />
+        <rect x="30" y="82" width="140" height="8" fill={colors[2]} opacity="0.4" />
 
         {/* Bow */}
-        <ellipse cx="92" cy="68" rx="18" ry="12" fill={theme.colors[0]} opacity="0.8">
+        <ellipse cx="92" cy="68" rx="18" ry="12" fill={colors[0]} opacity="0.8">
           <animate attributeName="ry" values="11;13;11" dur="2s" repeatCount="indefinite" />
         </ellipse>
-        <ellipse cx="108" cy="68" rx="18" ry="12" fill={theme.colors[1]} opacity="0.8">
+        <ellipse cx="108" cy="68" rx="18" ry="12" fill={colors[1]} opacity="0.8">
           <animate attributeName="ry" values="13;11;13" dur="2s" repeatCount="indefinite" />
         </ellipse>
-        <circle cx="100" cy="70" r="5" fill={theme.colors[2]} opacity="0.9" />
+        <circle cx="100" cy="70" r="5" fill={colors[2]} opacity="0.9" />
 
         {isLuxury && (
           <>
@@ -168,17 +124,17 @@ function HamperPreview({ colorTheme, items, wrapping }: { colorTheme: string; it
         )}
 
         {/* Item count indicator */}
-        {items.length > 0 && (
+        {itemCount > 0 && (
           <g>
-            <circle cx="155" cy="155" r="14" fill={theme.colors[0]} />
+            <circle cx="155" cy="155" r="14" fill={colors[0]} />
             <text x="155" y="160" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">
-              {items.length}
+              {itemCount}
             </text>
           </g>
         )}
 
         {/* Shadow */}
-        <ellipse cx="100" cy="178" rx="55" ry="5" fill={theme.colors[0]} opacity="0.08">
+        <ellipse cx="100" cy="178" rx="55" ry="5" fill={colors[0]} opacity="0.08">
           <animate attributeName="opacity" values="0.06;0.12;0.06" dur="3s" repeatCount="indefinite" />
         </ellipse>
       </svg>
@@ -190,20 +146,41 @@ function HamperPreview({ colorTheme, items, wrapping }: { colorTheme: string; it
 
 export default function CustomHamperPage() {
   const { user } = useAuthStore()
+  const { byType, isLoading } = useBuilderOptions('HAMPER')
+
+  const sizes = byType('SIZE')
+  const occasions = byType('OCCASION')
+  const items = byType('ITEM')
+  const wrappings = byType('WRAPPING')
+  const colorThemes = byType('COLOR_THEME')
+
   const [step, setStep] = useState(0)
   const [submitted, setSubmitted] = useState(false)
 
   const [config, setConfig] = useState<HamperConfig>({
-    hamperSize: 'medium',
-    occasion: 'birthday',
-    items: ['candle'],
-    wrapping: 'classic',
-    colorTheme: 'rose-gold',
+    hamperSize: '',
+    occasion: '',
+    items: [],
+    wrapping: '',
+    colorTheme: '',
     messageCard: '',
     recipientName: '',
     quantity: 1,
     notes: '',
   })
+
+  const [defaultsSet, setDefaultsSet] = useState(false)
+  if (!defaultsSet && sizes.length > 0) {
+    setConfig(prev => ({
+      ...prev,
+      hamperSize: prev.hamperSize || sizes[0]?.optionKey || '',
+      occasion: prev.occasion || occasions[0]?.optionKey || '',
+      items: prev.items.length ? prev.items : [items[0]?.optionKey].filter(Boolean),
+      wrapping: prev.wrapping || wrappings[0]?.optionKey || '',
+      colorTheme: prev.colorTheme || colorThemes[0]?.optionKey || '',
+    }))
+    setDefaultsSet(true)
+  }
 
   const [contact, setContact] = useState({
     customerName: user?.name || '',
@@ -211,7 +188,7 @@ export default function CustomHamperPage() {
     customerPhone: '',
   })
 
-  const price = calculatePrice(config)
+  const price = calculatePrice(config, sizes, items, wrappings)
 
   const submitMutation = useMutation({
     mutationFn: () =>
@@ -244,6 +221,15 @@ export default function CustomHamperPage() {
     if (step === 2 && config.items.length === 0) return false
     if (step === 6) return contact.customerName.trim() && contact.customerEmail.trim()
     return true
+  }
+
+  if (isLoading) return <LoadingSpinner fullScreen />
+
+  const findOpt = (list: BuilderOption[], key: string) => list.find(o => o.optionKey === key)
+  const getThemeColors = (key: string): string[] => {
+    const t = colorThemes.find(ct => ct.optionKey === key)
+    if (t?.colorsJson) { try { return JSON.parse(t.colorsJson) } catch { return ['#B4617B', '#D4A843', '#F2E3E8'] } }
+    return ['#B4617B', '#D4A843', '#F2E3E8']
   }
 
   if (submitted) {
@@ -339,17 +325,17 @@ export default function CustomHamperPage() {
                   <h2 className="heading-4 text-charcoal mb-2">Choose Hamper Size</h2>
                   <p className="text-warm-gray text-sm mb-6">How grand should your gift be?</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {SIZES.map(s => (
+                    {sizes.map(s => (
                       <button
-                        key={s.id}
-                        onClick={() => update('hamperSize', s.id)}
+                        key={s.optionKey}
+                        onClick={() => update('hamperSize', s.optionKey)}
                         className={cn(
                           'p-5 rounded-xl border-2 text-left transition-all hover:shadow-soft-md',
-                          config.hamperSize === s.id ? 'border-rose bg-rose/5' : 'border-blush hover:border-rose/30'
+                          config.hamperSize === s.optionKey ? 'border-rose bg-rose/5' : 'border-blush hover:border-rose/30'
                         )}
                       >
                         <p className="font-medium text-charcoal">{s.label}</p>
-                        <p className="text-xs text-warm-gray mt-1">{s.desc}</p>
+                        {s.description && <p className="text-xs text-warm-gray mt-1">{s.description}</p>}
                         <p className="text-rose font-bold mt-2">{formatPrice(s.basePrice)}</p>
                       </button>
                     ))}
@@ -363,16 +349,16 @@ export default function CustomHamperPage() {
                   <h2 className="heading-4 text-charcoal mb-2">What's the Occasion?</h2>
                   <p className="text-warm-gray text-sm mb-6">We'll tailor the presentation to match</p>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {OCCASIONS.map(o => (
+                    {occasions.map(o => (
                       <button
-                        key={o.id}
-                        onClick={() => update('occasion', o.id)}
+                        key={o.optionKey}
+                        onClick={() => update('occasion', o.optionKey)}
                         className={cn(
                           'p-4 rounded-xl border-2 text-center transition-all hover:shadow-soft-md',
-                          config.occasion === o.id ? 'border-rose bg-rose/5' : 'border-blush hover:border-rose/30'
+                          config.occasion === o.optionKey ? 'border-rose bg-rose/5' : 'border-blush hover:border-rose/30'
                         )}
                       >
-                        <span className="text-2xl mb-1 block">{o.emoji}</span>
+                        {o.emoji && <span className="text-2xl mb-1 block">{o.emoji}</span>}
                         <p className="text-sm font-medium text-charcoal">{o.label}</p>
                       </button>
                     ))}
@@ -386,12 +372,12 @@ export default function CustomHamperPage() {
                   <h2 className="heading-4 text-charcoal mb-2">Select Items</h2>
                   <p className="text-warm-gray text-sm mb-6">Pick what goes into your hamper (select multiple)</p>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {ITEMS.map(item => {
-                      const selected = config.items.includes(item.id)
+                    {items.map(item => {
+                      const selected = config.items.includes(item.optionKey)
                       return (
                         <button
-                          key={item.id}
-                          onClick={() => toggleItem(item.id)}
+                          key={item.optionKey}
+                          onClick={() => toggleItem(item.optionKey)}
                           className={cn(
                             'p-4 rounded-xl border-2 text-center transition-all hover:shadow-soft-md relative',
                             selected ? 'border-rose bg-rose/5' : 'border-blush hover:border-rose/30'
@@ -402,9 +388,9 @@ export default function CustomHamperPage() {
                               <Check className="w-3 h-3 text-soft-white" />
                             </div>
                           )}
-                          <span className="text-2xl mb-1 block">{item.emoji}</span>
+                          {item.emoji && <span className="text-2xl mb-1 block">{item.emoji}</span>}
                           <p className="text-xs font-medium text-charcoal">{item.label}</p>
-                          <p className="text-[10px] text-rose mt-1">+{formatPrice(item.surcharge)}</p>
+                          {item.surcharge > 0 && <p className="text-[10px] text-rose mt-1">+{formatPrice(item.surcharge)}</p>}
                         </button>
                       )
                     })}
@@ -421,17 +407,17 @@ export default function CustomHamperPage() {
                   <h2 className="heading-4 text-charcoal mb-2">Choose Wrapping</h2>
                   <p className="text-warm-gray text-sm mb-6">How should we wrap your gift?</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {WRAPPINGS.map(w => (
+                    {wrappings.map(w => (
                       <button
-                        key={w.id}
-                        onClick={() => update('wrapping', w.id)}
+                        key={w.optionKey}
+                        onClick={() => update('wrapping', w.optionKey)}
                         className={cn(
                           'p-5 rounded-xl border-2 text-left transition-all hover:shadow-soft-md',
-                          config.wrapping === w.id ? 'border-rose bg-rose/5' : 'border-blush hover:border-rose/30'
+                          config.wrapping === w.optionKey ? 'border-rose bg-rose/5' : 'border-blush hover:border-rose/30'
                         )}
                       >
                         <p className="font-medium text-charcoal">{w.label}</p>
-                        <p className="text-xs text-warm-gray mt-1">{w.desc}</p>
+                        {w.description && <p className="text-xs text-warm-gray mt-1">{w.description}</p>}
                         {w.surcharge > 0 && (
                           <p className="text-xs text-rose mt-2">+{formatPrice(w.surcharge)}</p>
                         )}
@@ -450,23 +436,26 @@ export default function CustomHamperPage() {
                   <h2 className="heading-4 text-charcoal mb-2">Pick a Color Theme</h2>
                   <p className="text-warm-gray text-sm mb-6">Sets the mood for the entire hamper</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {COLOR_THEMES.map(t => (
-                      <button
-                        key={t.id}
-                        onClick={() => update('colorTheme', t.id)}
-                        className={cn(
-                          'p-5 rounded-xl border-2 flex items-center gap-4 transition-all hover:shadow-soft-md',
-                          config.colorTheme === t.id ? 'border-rose bg-rose/5' : 'border-blush hover:border-rose/30'
-                        )}
-                      >
-                        <div className="flex gap-1">
-                          {t.colors.map((c, i) => (
-                            <div key={i} className="w-8 h-8 rounded-full border border-blush/50" style={{ backgroundColor: c }} />
-                          ))}
-                        </div>
-                        <p className="font-medium text-charcoal">{t.label}</p>
-                      </button>
-                    ))}
+                    {colorThemes.map(t => {
+                      const tc = t.colorsJson ? (() => { try { return JSON.parse(t.colorsJson) as string[] } catch { return [] } })() : []
+                      return (
+                        <button
+                          key={t.optionKey}
+                          onClick={() => update('colorTheme', t.optionKey)}
+                          className={cn(
+                            'p-5 rounded-xl border-2 flex items-center gap-4 transition-all hover:shadow-soft-md',
+                            config.colorTheme === t.optionKey ? 'border-rose bg-rose/5' : 'border-blush hover:border-rose/30'
+                          )}
+                        >
+                          <div className="flex gap-1">
+                            {tc.map((c: string, i: number) => (
+                              <div key={i} className="w-8 h-8 rounded-full border border-blush/50" style={{ backgroundColor: c }} />
+                            ))}
+                          </div>
+                          <p className="font-medium text-charcoal">{t.label}</p>
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               )}
@@ -536,11 +525,11 @@ export default function CustomHamperPage() {
 
                   <div className="space-y-3 mb-6">
                     {[
-                      { label: 'Size', value: SIZES.find(s => s.id === config.hamperSize)?.label },
-                      { label: 'Occasion', value: OCCASIONS.find(o => o.id === config.occasion)?.label },
-                      { label: 'Items', value: config.items.map(i => ITEMS.find(it => it.id === i)?.label).join(', ') },
-                      { label: 'Wrapping', value: WRAPPINGS.find(w => w.id === config.wrapping)?.label },
-                      { label: 'Color Theme', value: COLOR_THEMES.find(t => t.id === config.colorTheme)?.label },
+                      { label: 'Size', value: findOpt(sizes, config.hamperSize)?.label },
+                      { label: 'Occasion', value: findOpt(occasions, config.occasion)?.label },
+                      { label: 'Items', value: config.items.map(i => findOpt(items, i)?.label).filter(Boolean).join(', ') },
+                      { label: 'Wrapping', value: findOpt(wrappings, config.wrapping)?.label },
+                      { label: 'Color Theme', value: findOpt(colorThemes, config.colorTheme)?.label },
                       { label: 'Recipient', value: config.recipientName || 'Not specified' },
                       { label: 'Message', value: config.messageCard || 'None' },
                       { label: 'Quantity', value: config.quantity.toString() },
@@ -632,7 +621,7 @@ export default function CustomHamperPage() {
               <div className="bg-soft-white rounded-xl shadow-soft p-6 md:p-8">
                 <h3 className="font-serif text-lg font-medium text-charcoal text-center mb-4">Your Hamper</h3>
 
-                <HamperPreview colorTheme={config.colorTheme} items={config.items} wrapping={config.wrapping} />
+                <HamperPreview themeColors={getThemeColors(config.colorTheme)} itemCount={config.items.length} wrapping={config.wrapping} />
 
                 {config.recipientName && (
                   <p className="text-center text-sm font-serif italic text-rose mt-2">
@@ -644,7 +633,7 @@ export default function CustomHamperPage() {
                 {config.items.length > 0 && (
                   <div className="mt-4 flex flex-wrap gap-1.5 justify-center">
                     {config.items.map(id => {
-                      const item = ITEMS.find(i => i.id === id)
+                      const item = findOpt(items, id)
                       return item ? (
                         <span key={id} className="inline-flex items-center gap-1 px-2 py-1 bg-blush rounded-full text-xs text-charcoal">
                           {item.emoji} {item.label}
@@ -657,11 +646,11 @@ export default function CustomHamperPage() {
                 {/* Price breakdown */}
                 <div className="border-t border-blush mt-6 pt-4 space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-warm-gray">Base ({SIZES.find(s => s.id === config.hamperSize)?.label})</span>
-                    <span className="text-charcoal">{formatPrice(SIZES.find(s => s.id === config.hamperSize)?.basePrice ?? 0)}</span>
+                    <span className="text-warm-gray">Base ({findOpt(sizes, config.hamperSize)?.label})</span>
+                    <span className="text-charcoal">{formatPrice(findOpt(sizes, config.hamperSize)?.basePrice ?? 0)}</span>
                   </div>
                   {config.items.map(id => {
-                    const item = ITEMS.find(i => i.id === id)
+                    const item = findOpt(items, id)
                     return item ? (
                       <div key={id} className="flex justify-between text-sm">
                         <span className="text-warm-gray">{item.label}</span>
@@ -669,10 +658,10 @@ export default function CustomHamperPage() {
                       </div>
                     ) : null
                   })}
-                  {(WRAPPINGS.find(w => w.id === config.wrapping)?.surcharge ?? 0) > 0 && (
+                  {(findOpt(wrappings, config.wrapping)?.surcharge ?? 0) > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-warm-gray">{WRAPPINGS.find(w => w.id === config.wrapping)?.label} wrap</span>
-                      <span className="text-charcoal">+{formatPrice(WRAPPINGS.find(w => w.id === config.wrapping)?.surcharge ?? 0)}</span>
+                      <span className="text-warm-gray">{findOpt(wrappings, config.wrapping)?.label} wrap</span>
+                      <span className="text-charcoal">+{formatPrice(findOpt(wrappings, config.wrapping)?.surcharge ?? 0)}</span>
                     </div>
                   )}
                   {config.messageCard.trim() && (
