@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { ArrowLeft, ArrowRight, Check, Gift, Palette, Package, MessageSquare, Send, Sparkles, Heart, Star } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
@@ -169,18 +169,18 @@ export default function CustomHamperPage() {
     notes: '',
   })
 
-  const [defaultsSet, setDefaultsSet] = useState(false)
-  if (!defaultsSet && sizes.length > 0) {
-    setConfig(prev => ({
-      ...prev,
-      hamperSize: prev.hamperSize || sizes[0]?.optionKey || '',
-      occasion: prev.occasion || occasions[0]?.optionKey || '',
-      items: prev.items.length ? prev.items : [items[0]?.optionKey].filter(Boolean),
-      wrapping: prev.wrapping || wrappings[0]?.optionKey || '',
-      colorTheme: prev.colorTheme || colorThemes[0]?.optionKey || '',
-    }))
-    setDefaultsSet(true)
-  }
+  useEffect(() => {
+    if (sizes.length > 0) {
+      setConfig(prev => ({
+        ...prev,
+        hamperSize: prev.hamperSize || sizes[0]?.optionKey || '',
+        occasion: prev.occasion || occasions[0]?.optionKey || '',
+        items: prev.items.length ? prev.items : [items[0]?.optionKey].filter(Boolean),
+        wrapping: prev.wrapping || wrappings[0]?.optionKey || '',
+        colorTheme: prev.colorTheme || colorThemes[0]?.optionKey || '',
+      }))
+    }
+  }, [sizes, occasions, items, wrappings, colorThemes])
 
   const [contact, setContact] = useState({
     customerName: user?.name || '',

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { ArrowLeft, ArrowRight, Check, Flame, Palette, Droplets, Box, Type, Send, Sparkles } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
@@ -179,19 +179,18 @@ export default function CustomCandlePage() {
     notes: '',
   })
 
-  // Set defaults from API once loaded
-  const [defaultsSet, setDefaultsSet] = useState(false)
-  if (!defaultsSet && sizes.length > 0) {
-    setConfig(prev => ({
-      ...prev,
-      size: prev.size || sizes[0]?.optionKey || '',
-      waxType: prev.waxType || waxTypes[0]?.optionKey || '',
-      scent: prev.scent || scents[0]?.optionKey || '',
-      color: prev.color || colors[0]?.hexColor || colors[0]?.optionKey || '',
-      container: prev.container || containers[0]?.optionKey || '',
-    }))
-    setDefaultsSet(true)
-  }
+  useEffect(() => {
+    if (sizes.length > 0) {
+      setConfig(prev => ({
+        ...prev,
+        size: prev.size || sizes[0]?.optionKey || '',
+        waxType: prev.waxType || waxTypes[0]?.optionKey || '',
+        scent: prev.scent || scents[0]?.optionKey || '',
+        color: prev.color || colors[0]?.hexColor || colors[0]?.optionKey || '',
+        container: prev.container || containers[0]?.optionKey || '',
+      }))
+    }
+  }, [sizes, waxTypes, scents, colors, containers])
 
   const [contact, setContact] = useState({
     customerName: user?.name || '',
