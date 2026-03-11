@@ -11,6 +11,7 @@ import QuickViewModal from '@/components/product/QuickViewModal'
 import Button from '@/components/ui/Button'
 import LazyImage from '@/components/ui/LazyImage'
 import CategoryCarousel from '@/components/ui/CategoryCarousel'
+import Carousel3D from '@/components/ui/Carousel3D'
 import { useCartStore } from '@/stores/cartStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
@@ -330,6 +331,48 @@ export default function HomePage() {
             product={quickViewProduct}
             isOpen={!!quickViewProduct}
             onClose={() => setQuickViewProduct(null)}
+          />
+        </div>
+      </section>
+
+      {/* Lifestyle Showcase */}
+      <section className="py-16 md:py-24 bg-cream overflow-hidden">
+        <div className="container-custom">
+          <div className="text-center mb-12">
+            <h2 className="heading-2 text-charcoal">The Jaai Experience</h2>
+            <p className="mt-4 text-warm-gray max-w-2xl mx-auto">
+              Explore the world of handcrafted luxury and everyday elegance
+            </p>
+          </div>
+        </div>
+        <div className="pb-16">
+          <Carousel3D
+            slides={[
+              {
+                title: 'Warm Glow Collection',
+                button: 'Shop Candles',
+                href: '/shop/candles',
+                src: 'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=800&auto=format&fit=crop',
+              },
+              {
+                title: 'Curated Gift Sets',
+                button: 'Explore Gifts',
+                href: '/shop/gift-sets',
+                src: 'https://images.unsplash.com/photo-1543512214-318c7553f230?w=800&auto=format&fit=crop',
+              },
+              {
+                title: 'Home Fragrances',
+                button: 'Discover More',
+                href: '/shop',
+                src: 'https://images.unsplash.com/photo-1596178060671-7a80dc8059ea?w=800&auto=format&fit=crop',
+              },
+              {
+                title: 'Sale & Offers',
+                button: 'View Deals',
+                href: '/sale',
+                src: 'https://images.unsplash.com/photo-1603006905003-be475563bc59?w=800&auto=format&fit=crop',
+              },
+            ]}
           />
         </div>
       </section>
