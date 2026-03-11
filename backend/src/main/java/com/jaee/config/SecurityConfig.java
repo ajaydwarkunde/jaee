@@ -54,9 +54,11 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/store/settings").permitAll()
                 .requestMatchers("/newsletter/**").permitAll()
                 .requestMatchers("/stock-notifications/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/custom-candles").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers("/swagger-ui/**", "/api-docs/**", "/swagger-ui.html").permitAll()
                 // Admin endpoints
+                .requestMatchers("/custom-candles/admin/**").hasRole("ADMIN")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 // All other requests require authentication
                 .anyRequest().authenticated()

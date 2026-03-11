@@ -151,7 +151,7 @@ export default function Header() {
     { to: '/', label: 'Home' },
     { to: '/shop', label: 'Shop' },
     { to: '/sale', label: 'Sale' },
-    { to: '/shop/candles', label: 'Candles' },
+    { to: '/custom-candle', label: 'Create' },
     { to: '/shop/gift-sets', label: 'Gifts' },
   ]
 
