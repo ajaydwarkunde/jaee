@@ -32,6 +32,7 @@ const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage'))
 const WishlistPage = lazy(() => import('./pages/WishlistPage'))
 const AboutPage = lazy(() => import('./pages/AboutPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
+const LoaderDemoPage = lazy(() => import('./pages/LoaderDemoPage'))
 
 function App() {
   return (
@@ -54,6 +55,7 @@ function App() {
           <Route path="order-success" element={<OrderSuccessPage />} />
           <Route path="order-failure" element={<OrderFailurePage />} />
           <Route path="about" element={<AboutPage />} />
+          <Route path="loader-demo" element={<LoaderDemoPage />} />
 
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
