@@ -20,6 +20,11 @@ const splashes: SplashDef[] = [
   { id: 8, name: 'Bloom', desc: 'Flower petals unfurl one by one in brand colors, reveal site', vibe: 'Organic & Feminine', loader: () => import('@/components/splashes/Splash8Bloom') },
   { id: 9, name: 'Stamp & Reveal', desc: 'Gold foil stamp presses down, surface cracks and shatters', vibe: 'Bold & Luxurious', loader: () => import('@/components/splashes/Splash9Stamp') },
   { id: 10, name: 'Thread & Stitch', desc: 'Gold thread stitches out "Jaai" in cursive, frame draws, fabric folds', vibe: 'Handcrafted & Artisanal', loader: () => import('@/components/splashes/Splash10Thread') },
+  { id: 11, name: 'Lid Lift', desc: '3D gift box lid lifts, golden glow pours out, sparkles rise, Jaai fades in', vibe: 'Luxurious & Gift-like', loader: () => import('@/components/splashes/Splash11LidLift') },
+  { id: 12, name: 'Ribbon Untie', desc: 'Gold ribbon bow unties, tails sweep to corners, rose-gold light expands', vibe: 'Elegant & Gift-like', loader: () => import('@/components/splashes/Splash12RibbonUntie') },
+  { id: 13, name: 'Box Burst', desc: 'Gift box shakes and bursts open, candles, flowers, hearts explode outward', vibe: 'Exciting & Playful', loader: () => import('@/components/splashes/Splash13BoxBurst') },
+  { id: 14, name: 'Tissue Reveal', desc: 'Tissue paper unfolds from gift box, product silhouettes rise with warm glow', vibe: 'Gentle & Unwrapping', loader: () => import('@/components/splashes/Splash14TissueReveal') },
+  { id: 15, name: 'Unbox', desc: 'Hands lift box lid, products bounce up one by one, confetti falls', vibe: 'Real Unboxing Feel', loader: () => import('@/components/splashes/Splash15Unbox') },
 ]
 
 const vibeColors: Record<string, string> = {
@@ -33,6 +38,11 @@ const vibeColors: Record<string, string> = {
   'Organic & Feminine': 'bg-green-100 text-green-700',
   'Bold & Luxurious': 'bg-yellow-100 text-yellow-700',
   'Handcrafted & Artisanal': 'bg-orange-100 text-orange-700',
+  'Luxurious & Gift-like': 'bg-amber-50 text-amber-800',
+  'Elegant & Gift-like': 'bg-rose-50 text-rose-700',
+  'Exciting & Playful': 'bg-pink-100 text-pink-700',
+  'Gentle & Unwrapping': 'bg-rose-50 text-rose-600',
+  'Real Unboxing Feel': 'bg-violet-100 text-violet-700',
 }
 
 export default function SplashDemoPage() {
