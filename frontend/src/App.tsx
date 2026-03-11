@@ -1,8 +1,9 @@
 import { Routes, Route } from 'react-router-dom'
-import { Suspense, lazy } from 'react'
+import { Suspense, lazy, useState, useCallback } from 'react'
 import Layout from './components/layout/Layout'
 import LoadingSpinner from './components/ui/LoadingSpinner'
 import ErrorBoundary from './components/ErrorBoundary'
+import SplashScreen from './components/SplashScreen'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import AdminRoute from './components/auth/AdminRoute'
 
@@ -40,9 +41,23 @@ const CustomHamperPage = lazy(() => import('./pages/CustomHamperPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 const LoaderDemoPage = lazy(() => import('./pages/LoaderDemoPage'))
 
+function shouldShowSplash() {
+  if (typeof window === 'undefined') return false
+  if (sessionStorage.getItem('jaai-splash-shown')) return false
+  return window.location.pathname === '/'
+}
+
 function App() {
+  const [showSplash, setShowSplash] = useState(shouldShowSplash)
+
+  const handleSplashComplete = useCallback(() => {
+    sessionStorage.setItem('jaai-splash-shown', '1')
+    setShowSplash(false)
+  }, [])
+
   return (
     <ErrorBoundary>
+    {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
     <Suspense fallback={<LoadingSpinner fullScreen />}>
       <Routes>
         <Route path="/" element={<Layout />}>
