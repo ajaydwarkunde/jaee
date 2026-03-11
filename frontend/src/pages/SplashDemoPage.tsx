@@ -11,6 +11,12 @@ interface SplashDef {
 
 const splashes: SplashDef[] = [
   {
+    id: 0, name: 'Hamper Unveil',
+    desc: 'Line-art gift box draws itself. Lid lifts with warm glow. Elegant product icons float up gracefully. Brand fades in.',
+    tags: ['Gift', 'Sleek'],
+    loader: () => import('@/components/SplashScreen'),
+  },
+  {
     id: 1, name: 'Slit',
     desc: 'A thin blade of warm light appears horizontally, casting subtle rays. It widens to fill the screen, revealing the brand.',
     tags: ['Cinematic', 'Minimal'],
@@ -53,6 +59,8 @@ const tagColors: Record<string, string> = {
   Theatrical: 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200',
   Typographic: 'bg-slate-50 text-slate-700 border-slate-200',
   Modern: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+  Gift: 'bg-rose-50 text-rose-700 border-rose-200',
+  Sleek: 'bg-stone-50 text-stone-600 border-stone-200',
 }
 
 export default function SplashDemoPage() {
