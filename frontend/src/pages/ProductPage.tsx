@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ShoppingBag, Heart, Minus, Plus, ChevronLeft, Truck, RotateCcw, Shield, Star, MessageSquare, Share2, Copy, Bell } from 'lucide-react'
+import { ShoppingBag, Heart, Minus, Plus, ChevronLeft, ChevronRight, Truck, RotateCcw, Shield, Star, MessageSquare, Share2, Copy, Bell } from 'lucide-react'
 import { productService } from '@/services/productService'
 import { cartService } from '@/services/cartService'
 import { wishlistService } from '@/services/wishlistService'
@@ -193,6 +193,197 @@ function FrequentlyBoughtTogether({ product, onAddToCart }: { product: Product; 
   )
 }
 
+function ImageGallery({
+  images,
+  selectedImage,
+  onSelect,
+  productName,
+}: {
+  images: string[]
+  selectedImage: number
+  onSelect: (idx: number) => void
+  productName: string
+}) {
+  const trackRef = useRef<HTMLDivElement>(null)
+  const touchStart = useRef<{ x: number; y: number; time: number } | null>(null)
+  const [dragOffset, setDragOffset] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const total = images.length
+  const SWIPE_THRESHOLD = 40
+  const VELOCITY_THRESHOLD = 0.3
+
+  const goTo = useCallback(
+    (idx: number) => {
+      if (idx < 0) onSelect(total - 1)
+      else if (idx >= total) onSelect(0)
+      else onSelect(idx)
+    },
+    [onSelect, total],
+  )
+
+  const handlePointerDown = useCallback((clientX: number, clientY: number) => {
+    touchStart.current = { x: clientX, y: clientY, time: Date.now() }
+    setIsDragging(true)
+  }, [])
+
+  const handlePointerMove = useCallback(
+    (clientX: number) => {
+      if (!touchStart.current || !isDragging) return
+      const dx = clientX - touchStart.current.x
+      setDragOffset(dx)
+    },
+    [isDragging],
+  )
+
+  const handlePointerUp = useCallback(() => {
+    if (!touchStart.current) return
+    const elapsed = Date.now() - touchStart.current.time
+    const velocity = Math.abs(dragOffset) / Math.max(elapsed, 1)
+    const isSwipe = Math.abs(dragOffset) > SWIPE_THRESHOLD || velocity > VELOCITY_THRESHOLD
+
+    if (isSwipe) {
+      if (dragOffset < 0) goTo(selectedImage + 1)
+      else goTo(selectedImage - 1)
+    }
+
+    touchStart.current = null
+    setDragOffset(0)
+    setIsDragging(false)
+  }, [dragOffset, goTo, selectedImage])
+
+  useEffect(() => {
+    const el = trackRef.current
+    if (!el) return
+
+    const onTouchStart = (e: TouchEvent) => {
+      handlePointerDown(e.touches[0].clientX, e.touches[0].clientY)
+    }
+    const onTouchMove = (e: TouchEvent) => {
+      handlePointerMove(e.touches[0].clientX)
+      if (Math.abs(dragOffset) > 10) e.preventDefault()
+    }
+    const onTouchEnd = () => handlePointerUp()
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true })
+    el.addEventListener('touchmove', onTouchMove, { passive: false })
+    el.addEventListener('touchend', onTouchEnd)
+
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart)
+      el.removeEventListener('touchmove', onTouchMove)
+      el.removeEventListener('touchend', onTouchEnd)
+    }
+  }, [handlePointerDown, handlePointerMove, handlePointerUp, dragOffset])
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault()
+    handlePointerDown(e.clientX, e.clientY)
+  }
+  const onMouseMove = (e: React.MouseEvent) => handlePointerMove(e.clientX)
+  const onMouseUp = () => handlePointerUp()
+  const onMouseLeave = () => {
+    if (isDragging) handlePointerUp()
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="relative group">
+        {/* Swipeable main image */}
+        <div
+          ref={trackRef}
+          className="aspect-square bg-soft-white rounded-xl overflow-hidden shadow-soft cursor-grab active:cursor-grabbing select-none"
+          onMouseDown={onMouseDown}
+          onMouseMove={onMouseMove}
+          onMouseUp={onMouseUp}
+          onMouseLeave={onMouseLeave}
+        >
+          <div
+            className="flex h-full"
+            style={{
+              width: `${total * 100}%`,
+              transform: `translateX(calc(-${(selectedImage * 100) / total}% + ${dragOffset}px))`,
+              transition: isDragging ? 'none' : 'transform 350ms cubic-bezier(0.4, 0, 0.2, 1)',
+            }}
+          >
+            {images.map((img, idx) => (
+              <div key={idx} className="h-full" style={{ width: `${100 / total}%` }}>
+                <img
+                  src={img}
+                  alt={`${productName} ${idx + 1}`}
+                  className="w-full h-full object-cover pointer-events-none"
+                  draggable={false}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Arrow buttons — visible on hover (desktop) */}
+        {total > 1 && (
+          <>
+            <button
+              onClick={() => goTo(selectedImage - 1)}
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-soft-white/80 backdrop-blur-sm shadow-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-soft-white"
+              aria-label="Previous image"
+            >
+              <ChevronLeft className="w-5 h-5 text-charcoal" />
+            </button>
+            <button
+              onClick={() => goTo(selectedImage + 1)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-soft-white/80 backdrop-blur-sm shadow-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-soft-white"
+              aria-label="Next image"
+            >
+              <ChevronRight className="w-5 h-5 text-charcoal" />
+            </button>
+          </>
+        )}
+
+        {/* Dot indicators */}
+        {total > 1 && (
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-charcoal/30 backdrop-blur-sm rounded-full px-2.5 py-1.5">
+            {images.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => onSelect(idx)}
+                aria-label={`Go to image ${idx + 1}`}
+                className={`rounded-full transition-all duration-300 ${
+                  selectedImage === idx
+                    ? 'w-5 h-1.5 bg-soft-white'
+                    : 'w-1.5 h-1.5 bg-soft-white/50 hover:bg-soft-white/80'
+                }`}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Image counter */}
+        {total > 1 && (
+          <span className="absolute top-3 right-3 bg-charcoal/40 backdrop-blur-sm text-soft-white text-xs font-medium px-2.5 py-1 rounded-full">
+            {selectedImage + 1} / {total}
+          </span>
+        )}
+      </div>
+
+      {/* Thumbnails */}
+      {total > 1 && (
+        <div className="flex gap-3 overflow-x-auto pb-2">
+          {images.map((img, idx) => (
+            <button
+              key={idx}
+              onClick={() => onSelect(idx)}
+              className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${
+                selectedImage === idx ? 'border-rose' : 'border-transparent hover:border-blush'
+              }`}
+            >
+              <img src={img} alt="" className="w-full h-full object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function ProductPage() {
   const { slug } = useParams<{ slug: string }>()
   const [selectedImage, setSelectedImage] = useState(0)
@@ -337,34 +528,13 @@ export default function ProductPage() {
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-          {/* Images */}
-          <div className="space-y-4">
-            {/* Main image */}
-            <div className="aspect-square bg-soft-white rounded-xl overflow-hidden shadow-soft">
-              <img
-                src={images[selectedImage]}
-                alt={product.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            
-            {/* Thumbnails */}
-            {images.length > 1 && (
-              <div className="flex gap-3 overflow-x-auto pb-2">
-                {images.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setSelectedImage(idx)}
-                    className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${
-                      selectedImage === idx ? 'border-rose' : 'border-transparent hover:border-blush'
-                    }`}
-                  >
-                    <img src={img} alt="" className="w-full h-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Images — swipeable */}
+          <ImageGallery
+            images={images}
+            selectedImage={selectedImage}
+            onSelect={setSelectedImage}
+            productName={product.name}
+          />
 
           {/* Product Info */}
           <div className="lg:py-4">
