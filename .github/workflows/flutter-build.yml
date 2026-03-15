@@ -35,7 +35,24 @@ jobs:
       - name: Generate platform boilerplate
         run: |
           flutter create --project-name jaee --org com.jaee .
-          flutter pub get
+
+      - name: Fix Kotlin version for plugin compatibility
+        run: |
+          # Upgrade Kotlin to 1.9.22 to match shared_preferences_android and other plugins
+          if [ -f android/settings.gradle ]; then
+            sed -i 's/org.jetbrains.kotlin.android" version "[^"]*"/org.jetbrains.kotlin.android" version "1.9.22"/' android/settings.gradle
+            echo "Updated Kotlin version in settings.gradle:"
+            grep -i kotlin android/settings.gradle || true
+          fi
+          if [ -f android/build.gradle ]; then
+            sed -i "s/ext.kotlin_version = '[^']*'/ext.kotlin_version = '1.9.22'/" android/build.gradle
+            sed -i 's/org.jetbrains.kotlin:kotlin-gradle-plugin:[^"]*"/org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22"/' android/build.gradle
+            echo "Updated Kotlin version in build.gradle:"
+            grep -i kotlin android/build.gradle || true
+          fi
+
+      - name: Install dependencies
+        run: flutter pub get
 
       - name: Download Google Fonts
         run: |
