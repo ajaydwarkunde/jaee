@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 jobs:
   # ============================================
@@ -34,10 +34,10 @@ jobs:
       
       - name: Run tests
         run: ./gradlew test --no-daemon
-        continue-on-error: true  # Don't fail if no tests yet
+        continue-on-error: true
       
       - name: Build successful
-        run: echo "✅ Backend build successful!"
+        run: echo "Backend build successful!"
 
   # ============================================
   # Frontend: Build and Test
@@ -65,37 +65,52 @@ jobs:
         run: npm run build
       
       - name: Build successful
-        run: echo "✅ Frontend build successful!"
+        run: echo "Frontend build successful!"
 
   # ============================================
-  # Deploy to Render (only on main, after tests pass)
+  # Deploy Production (main branch only)
   # ============================================
-  deploy:
+  deploy-production:
     needs: [backend, frontend]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
     steps:
-      - name: Trigger Render Deploy - Backend
+      - name: Deploy Backend to Production
         run: |
           if [ -n "${{ secrets.RENDER_BACKEND_DEPLOY_HOOK }}" ]; then
             curl -X POST "${{ secrets.RENDER_BACKEND_DEPLOY_HOOK }}"
-            echo "✅ Backend deploy triggered"
+            echo "Production backend deploy triggered"
           else
-            echo "⚠️ RENDER_BACKEND_DEPLOY_HOOK not set - skipping"
+            echo "RENDER_BACKEND_DEPLOY_HOOK not set - skipping"
           fi
-      
-      - name: Trigger Render Deploy - Frontend
+
+      - name: Deployment summary
         run: |
-          if [ -n "${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK }}" ]; then
-            curl -X POST "${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK }}"
-            echo "✅ Frontend deploy triggered"
+          echo "Production deployment triggered!"
+          echo "Backend: Render production service"
+          echo "Frontend: Vercel handles production deploy automatically on main push"
+
+  # ============================================
+  # Deploy Staging (develop branch only)
+  # ============================================
+  deploy-staging:
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    
+    steps:
+      - name: Deploy Backend to Staging
+        run: |
+          if [ -n "${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}" ]; then
+            curl -X POST "${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}"
+            echo "Staging backend deploy triggered"
           else
-            echo "⚠️ RENDER_FRONTEND_DEPLOY_HOOK not set - skipping"
+            echo "RENDER_STAGING_DEPLOY_HOOK not set - skipping"
           fi
-      
-      - name: Wait for deployments
+
+      - name: Deployment summary
         run: |
-          echo "🚀 Deployments triggered!"
-          echo "Check Render dashboard for deployment status"
-          echo "Health checks will validate before traffic is routed"
+          echo "Staging deployment triggered!"
+          echo "Backend: Render staging service"
+          echo "Frontend: Vercel creates preview deployment automatically"
