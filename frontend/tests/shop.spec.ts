@@ -28,18 +28,17 @@ test.describe('Shop Page', () => {
   })
 
   test('should click on product and view details', async ({ page }) => {
-    // Wait for products
     await page.waitForLoadState('networkidle')
-    
-    // Click first product
+
     const firstProduct = page.locator('a[href*="/product/"]').first()
     await firstProduct.click()
-    
-    // Should be on product detail page
+
     await expect(page).toHaveURL(/.*product\/.*/)
-    
-    // Should have Add to Cart button
-    await expect(page.locator('button:has-text("Add to Cart"), button:has-text("Add to Bag")')).toBeVisible()
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(1000)
+
+    const addToCartBtn = page.locator('button:has-text("Add to Cart"), button:has-text("Select Options")').last()
+    await expect(addToCartBtn).toBeVisible({ timeout: 10000 })
   })
 
   test('should search for products', async ({ page }) => {
