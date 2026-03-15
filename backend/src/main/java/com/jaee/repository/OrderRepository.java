@@ -49,13 +49,11 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         JOIN oi.order o
         JOIN oi.product p
         JOIN p.categories c
-        WHERE o.status IN (com.jaee.entity.Order.OrderStatus.PAID, 
-                           com.jaee.entity.Order.OrderStatus.SHIPPED, 
-                           com.jaee.entity.Order.OrderStatus.FULFILLED)
+        WHERE o.status IN :statuses
           AND c.storeType IS NOT NULL
         GROUP BY c.storeType
     """)
-    List<Object[]> getRevenueByStoreType();
+    List<Object[]> getRevenueByStoreType(@Param("statuses") List<Order.OrderStatus> statuses);
 
     // Top products by store type
     @Query("""
@@ -64,12 +62,10 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         JOIN oi.order o
         JOIN oi.product p
         JOIN p.categories c
-        WHERE o.status IN (com.jaee.entity.Order.OrderStatus.PAID, 
-                           com.jaee.entity.Order.OrderStatus.SHIPPED, 
-                           com.jaee.entity.Order.OrderStatus.FULFILLED)
+        WHERE o.status IN :statuses
           AND c.storeType = :storeType
         GROUP BY p.id, p.name
         ORDER BY SUM(oi.qty) DESC
     """)
-    List<Object[]> getTopProductsByStoreType(@Param("storeType") StoreType storeType, Pageable pageable);
+    List<Object[]> getTopProductsByStoreType(@Param("storeType") StoreType storeType, @Param("statuses") List<Order.OrderStatus> statuses, Pageable pageable);
 }
