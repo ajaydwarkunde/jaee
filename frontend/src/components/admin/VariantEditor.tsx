@@ -179,7 +179,7 @@ export default function VariantEditor({ product, onClose }: { product: Product; 
                         value={v.optionValues[opt] || ''}
                         onChange={(e) => updateOptionValue(v.key, opt, e.target.value)}
                         placeholder={opt}
-                        className="w-full px-2 py-1.5 border border-blush rounded text-sm focus:outline-none focus:border-rose"
+                        className="w-full px-2 py-1.5 border border-blush rounded text-sm text-charcoal bg-soft-white focus:outline-none focus:border-rose"
                       />
                     </td>
                   ))}
@@ -189,7 +189,7 @@ export default function VariantEditor({ product, onClose }: { product: Product; 
                       step="0.01"
                       value={v.price}
                       onChange={(e) => updateRow(v.key, 'price', Number(e.target.value))}
-                      className="w-20 px-2 py-1.5 border border-blush rounded text-sm focus:outline-none focus:border-rose"
+                      className="w-20 px-2 py-1.5 border border-blush rounded text-sm text-charcoal bg-soft-white focus:outline-none focus:border-rose"
                     />
                   </td>
                   <td className="py-2 px-2">
@@ -199,7 +199,7 @@ export default function VariantEditor({ product, onClose }: { product: Product; 
                       value={v.compareAtPrice}
                       onChange={(e) => updateRow(v.key, 'compareAtPrice', e.target.value ? Number(e.target.value) : '')}
                       placeholder="—"
-                      className="w-20 px-2 py-1.5 border border-blush rounded text-sm focus:outline-none focus:border-rose"
+                      className="w-20 px-2 py-1.5 border border-blush rounded text-sm text-charcoal bg-soft-white focus:outline-none focus:border-rose"
                     />
                   </td>
                   <td className="py-2 px-2">
@@ -207,7 +207,7 @@ export default function VariantEditor({ product, onClose }: { product: Product; 
                       type="number"
                       value={v.stockQty}
                       onChange={(e) => updateRow(v.key, 'stockQty', Number(e.target.value))}
-                      className="w-16 px-2 py-1.5 border border-blush rounded text-sm focus:outline-none focus:border-rose"
+                      className="w-16 px-2 py-1.5 border border-blush rounded text-sm text-charcoal bg-soft-white focus:outline-none focus:border-rose"
                     />
                   </td>
                   <td className="py-2 px-2">
@@ -216,7 +216,7 @@ export default function VariantEditor({ product, onClose }: { product: Product; 
                       value={v.sku}
                       onChange={(e) => updateRow(v.key, 'sku', e.target.value)}
                       placeholder="Optional"
-                      className="w-24 px-2 py-1.5 border border-blush rounded text-sm focus:outline-none focus:border-rose"
+                      className="w-24 px-2 py-1.5 border border-blush rounded text-sm text-charcoal bg-soft-white focus:outline-none focus:border-rose"
                     />
                   </td>
                   <td className="py-2 px-2">
