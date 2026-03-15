@@ -536,8 +536,8 @@ function VariantSelector({
                       ${isSelected
                         ? 'border-rose bg-rose/10 text-rose'
                         : available
-                          ? 'border-blush bg-soft-white text-charcoal hover:border-rose/50'
-                          : 'border-blush/50 bg-blush/30 text-warm-gray/50 line-through cursor-not-allowed'
+                          ? 'border-charcoal/20 bg-soft-white text-charcoal hover:border-rose/60 hover:bg-rose/5'
+                          : 'border-warm-gray/20 bg-blush/30 text-warm-gray/40 line-through cursor-not-allowed'
                       }
                     `}
                   >
