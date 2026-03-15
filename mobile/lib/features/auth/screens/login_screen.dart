@@ -124,8 +124,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   Future<void> _loginWithGoogle() async {
     setState(() { _isLoading = true; _error = null; });
     try {
-      // TODO: Implement Firebase Google sign-in and pass idToken
-      setState(() => _error = 'Google sign-in requires Firebase setup');
+      final authService = ref.read(authServiceProvider);
+      final response = await authService.loginWithGoogle();
+      await _handleLogin(response);
     } catch (e) {
       setState(() => _error = ApiException.getErrorMessage(e));
     } finally {
