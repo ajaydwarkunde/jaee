@@ -7,7 +7,7 @@ Flutter mobile application for the Jaee e-commerce store. Targets both Android a
 - Flutter SDK >= 3.2.0
 - Dart SDK >= 3.2.0
 - Android Studio / Xcode (for platform-specific builds)
-- Firebase project (for phone and Google sign-in)
+- Google Cloud project with OAuth client ID (for Google sign-in)
 - Razorpay account (for payments)
 
 ## Getting Started
@@ -19,11 +19,13 @@ cd mobile
 flutter pub get
 ```
 
-### 2. Firebase setup
+### 2. Google Sign-In setup (optional)
 
-- **Android:** Place `google-services.json` in `android/app/`
-- **iOS:** Place `GoogleService-Info.plist` in `ios/Runner/`
-- Enable Phone and Google sign-in providers in your Firebase console
+Google sign-in uses the `google_sign_in` package directly (no Firebase required).
+
+- **Android:** Add your OAuth client ID in `android/app/src/main/res/values/strings.xml`
+- **iOS:** Add your reversed client ID to `ios/Runner/Info.plist`
+- See [google_sign_in docs](https://pub.dev/packages/google_sign_in) for full setup
 
 ### 3. Configure environment
 
@@ -95,7 +97,7 @@ lib/
 ## Key Features
 
 - Email/password and email OTP login
-- Google sign-in and phone login via Firebase
+- Google sign-in (standalone, no Firebase needed)
 - Product browsing with filters, search, and sort
 - Guest cart (localStorage) and authenticated cart (server)
 - Cart merge on login

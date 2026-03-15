@@ -448,7 +448,7 @@ export default function ProductForm({
               }
             }}
             placeholder="Type option name and press Enter"
-            className="flex-1 px-3 py-2 border border-blush rounded-lg text-sm focus:outline-none focus:border-rose"
+            className="flex-1 px-3 py-2 border border-blush rounded-lg text-sm text-charcoal bg-soft-white focus:outline-none focus:border-rose"
           />
           <button
             type="button"

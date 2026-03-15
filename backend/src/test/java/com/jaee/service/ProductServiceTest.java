@@ -70,7 +70,7 @@ class ProductServiceTest {
     @Test
     void getProductBySlug_returnsProduct() {
         Product product = createProduct(1L, "Test Product", "test-product", BigDecimal.TEN);
-        when(productRepository.findBySlug("test-product")).thenReturn(Optional.of(product));
+        when(productRepository.findBySlugWithDetails("test-product")).thenReturn(Optional.of(product));
 
         ProductDto result = productService.getProductBySlug("test-product");
 
@@ -80,7 +80,7 @@ class ProductServiceTest {
 
     @Test
     void getProductBySlug_throwsWhenNotFound() {
-        when(productRepository.findBySlug("missing")).thenReturn(Optional.empty());
+        when(productRepository.findBySlugWithDetails("missing")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> productService.getProductBySlug("missing"))
                 .isInstanceOf(NotFoundException.class)
@@ -90,7 +90,7 @@ class ProductServiceTest {
     @Test
     void getProductById_returnsProduct() {
         Product product = createProduct(1L, "Product", "product", BigDecimal.valueOf(99));
-        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(productRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(product));
 
         ProductDto result = productService.getProductById(1L);
 
@@ -100,7 +100,7 @@ class ProductServiceTest {
 
     @Test
     void getProductById_throwsWhenNotFound() {
-        when(productRepository.findById(999L)).thenReturn(Optional.empty());
+        when(productRepository.findByIdWithDetails(999L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> productService.getProductById(999L))
                 .isInstanceOf(NotFoundException.class)

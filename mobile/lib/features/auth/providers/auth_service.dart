@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../../core/config/api_endpoints.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/utils/password_encoder.dart';
@@ -69,6 +70,20 @@ class AuthService {
       'provider': provider,
     });
     return AuthResponse.fromJson(response.data['data']);
+  }
+
+  Future<AuthResponse> loginWithGoogle() async {
+    final googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
+    final account = await googleSignIn.signIn();
+    if (account == null) {
+      throw Exception('Google sign-in was cancelled');
+    }
+    final auth = await account.authentication;
+    final idToken = auth.idToken;
+    if (idToken == null) {
+      throw Exception('Failed to get Google ID token');
+    }
+    return socialLogin(idToken: idToken, provider: 'GOOGLE');
   }
 
   Future<void> requestEmailOtp({required String email}) async {
