@@ -95,3 +95,9 @@ temp/
 coverage/
 *.lcov
 sample-images/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
