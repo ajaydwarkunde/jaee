@@ -37,6 +37,22 @@ jobs:
           flutter create --project-name jaee --org com.jaee .
           flutter pub get
 
+      - name: Download Google Fonts
+        run: |
+          mkdir -p assets/fonts assets/images
+          cd assets/fonts
+          # Cormorant Garamond
+          curl -sL "https://github.com/google/fonts/raw/main/ofl/cormorantgaramond/CormorantGaramond-Regular.ttf" -o CormorantGaramond-Regular.ttf
+          curl -sL "https://github.com/google/fonts/raw/main/ofl/cormorantgaramond/CormorantGaramond-Medium.ttf" -o CormorantGaramond-Medium.ttf
+          curl -sL "https://github.com/google/fonts/raw/main/ofl/cormorantgaramond/CormorantGaramond-SemiBold.ttf" -o CormorantGaramond-SemiBold.ttf
+          curl -sL "https://github.com/google/fonts/raw/main/ofl/cormorantgaramond/CormorantGaramond-Bold.ttf" -o CormorantGaramond-Bold.ttf
+          # DM Sans
+          curl -sL "https://github.com/google/fonts/raw/main/ofl/dmsans/DMSans%5Bopsz%2Cwght%5D.ttf" -o DMSans-Regular.ttf
+          cp DMSans-Regular.ttf DMSans-Medium.ttf
+          cp DMSans-Regular.ttf DMSans-SemiBold.ttf
+          cp DMSans-Regular.ttf DMSans-Bold.ttf
+          ls -la
+
       - name: Verify project
         run: flutter doctor -v
 
