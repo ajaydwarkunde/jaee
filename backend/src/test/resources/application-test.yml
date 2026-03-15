@@ -14,16 +14,19 @@ spring:
     enabled: false
 
 app:
+  cors:
+    allowed-origins: http://localhost:5173
   jwt:
     secret: dGVzdC1zZWNyZXQta2V5LWZvci1qd3QtdGVzdGluZy1vbmx5LW1ha2UtaXQtbG9uZw==
     access-expiration-ms: 900000
     refresh-expiration-ms: 604800000
 
-  stripe:
-    secret-key: sk_test_placeholder
-    webhook-secret: whsec_placeholder
-    success-url: http://localhost:5173/order-success?session_id={CHECKOUT_SESSION_ID}
-    cancel-url: http://localhost:5173/cart
+  razorpay:
+    key-id: rzp_test_placeholder
+    key-secret: secret_test_placeholder
+    webhook-secret: webhook_secret_test_placeholder
+    callback-url: http://localhost:5173/order-success
+    test-mode: true
 
   email:
     from: test@jaee.com
