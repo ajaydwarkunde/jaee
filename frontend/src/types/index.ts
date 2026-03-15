@@ -44,6 +44,7 @@ export interface Product {
   categoryId: number | null
   categoryName: string | null
   images: string[]
+  videos: string[]
   stockQty: number
   active: boolean
   inStock: boolean
@@ -185,6 +186,7 @@ export interface ProductFormData {
   currency: string
   categoryId?: number
   images: string[]
+  videos: string[]
   stockQty: number
   active: boolean
 }

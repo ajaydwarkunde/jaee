@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ShoppingBag, Heart, Minus, Plus, ChevronLeft, ChevronRight, Truck, RotateCcw, Shield, Star, MessageSquare, Share2, Copy, Bell } from 'lucide-react'
+import { ShoppingBag, Heart, Minus, Plus, ChevronLeft, ChevronRight, Truck, RotateCcw, Shield, Star, MessageSquare, Share2, Copy, Bell, Play, Volume2, VolumeX } from 'lucide-react'
 import { productService } from '@/services/productService'
 import { cartService } from '@/services/cartService'
 import { wishlistService } from '@/services/wishlistService'
@@ -193,13 +193,20 @@ function FrequentlyBoughtTogether({ product, onAddToCart }: { product: Product; 
   )
 }
 
+interface MediaItem {
+  url: string
+  type: 'image' | 'video'
+}
+
 function ImageGallery({
   images,
+  videos,
   selectedImage,
   onSelect,
   productName,
 }: {
   images: string[]
+  videos: string[]
   selectedImage: number
   onSelect: (idx: number) => void
   productName: string
@@ -208,17 +215,30 @@ function ImageGallery({
   const touchStart = useRef<{ x: number; y: number; time: number } | null>(null)
   const [dragOffset, setDragOffset] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
-  const total = images.length
+  const [playingVideo, setPlayingVideo] = useState<number | null>(null)
+  const [mutedVideo, setMutedVideo] = useState(true)
+  const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map())
+
+  const media: MediaItem[] = useMemo(() => {
+    const items: MediaItem[] = images.map(url => ({ url, type: 'image' as const }))
+    videos.forEach(url => items.push({ url, type: 'video' as const }))
+    return items
+  }, [images, videos])
+
+  const total = media.length
   const SWIPE_THRESHOLD = 40
   const VELOCITY_THRESHOLD = 0.3
 
   const goTo = useCallback(
     (idx: number) => {
+      const prev = videoRefs.current.get(selectedImage)
+      if (prev) { prev.pause(); setPlayingVideo(null) }
+
       if (idx < 0) onSelect(total - 1)
       else if (idx >= total) onSelect(0)
       else onSelect(idx)
     },
-    [onSelect, total],
+    [onSelect, total, selectedImage],
   )
 
   const handlePointerDown = useCallback((clientX: number, clientY: number) => {
@@ -305,14 +325,56 @@ function ImageGallery({
               transition: isDragging ? 'none' : 'transform 350ms cubic-bezier(0.4, 0, 0.2, 1)',
             }}
           >
-            {images.map((img, idx) => (
-              <div key={idx} className="h-full" style={{ width: `${100 / total}%` }}>
-                <img
-                  src={img}
-                  alt={`${productName} ${idx + 1}`}
-                  className="w-full h-full object-cover pointer-events-none"
-                  draggable={false}
-                />
+            {media.map((item, idx) => (
+              <div key={idx} className="h-full relative" style={{ width: `${100 / total}%` }}>
+                {item.type === 'video' ? (
+                  <>
+                    <video
+                      ref={(el) => { if (el) videoRefs.current.set(idx, el); else videoRefs.current.delete(idx) }}
+                      src={item.url}
+                      className="w-full h-full object-cover pointer-events-none"
+                      muted={mutedVideo}
+                      playsInline
+                      loop
+                      preload="metadata"
+                      draggable={false}
+                      onEnded={() => setPlayingVideo(null)}
+                    />
+                    {selectedImage === idx && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-auto">
+                        {playingVideo !== idx ? (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              const vid = videoRefs.current.get(idx)
+                              if (vid) { vid.play(); setPlayingVideo(idx) }
+                            }}
+                            className="w-14 h-14 rounded-full bg-charcoal/60 backdrop-blur-sm flex items-center justify-center hover:bg-charcoal/80 transition-colors"
+                          >
+                            <Play className="w-6 h-6 text-soft-white ml-0.5" fill="currentColor" />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setMutedVideo(!mutedVideo)
+                            }}
+                            className="absolute bottom-4 right-4 w-9 h-9 rounded-full bg-charcoal/60 backdrop-blur-sm flex items-center justify-center hover:bg-charcoal/80 transition-colors"
+                          >
+                            {mutedVideo ? <VolumeX className="w-4 h-4 text-soft-white" /> : <Volume2 className="w-4 h-4 text-soft-white" />}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <img
+                    src={item.url}
+                    alt={`${productName} ${idx + 1}`}
+                    className="w-full h-full object-cover pointer-events-none"
+                    draggable={false}
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -367,15 +429,24 @@ function ImageGallery({
       {/* Thumbnails */}
       {total > 1 && (
         <div className="flex gap-3 overflow-x-auto pb-2">
-          {images.map((img, idx) => (
+          {media.map((item, idx) => (
             <button
               key={idx}
-              onClick={() => onSelect(idx)}
-              className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${
+              onClick={() => { goTo(idx); onSelect(idx) }}
+              className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors relative ${
                 selectedImage === idx ? 'border-rose' : 'border-transparent hover:border-blush'
               }`}
             >
-              <img src={img} alt="" className="w-full h-full object-cover" />
+              {item.type === 'video' ? (
+                <>
+                  <video src={item.url} className="w-full h-full object-cover" muted preload="metadata" />
+                  <div className="absolute inset-0 flex items-center justify-center bg-charcoal/30">
+                    <Play className="w-4 h-4 text-soft-white" fill="currentColor" />
+                  </div>
+                </>
+              ) : (
+                <img src={item.url} alt="" className="w-full h-full object-cover" />
+              )}
             </button>
           ))}
         </div>
@@ -531,6 +602,7 @@ export default function ProductPage() {
           {/* Images — swipeable */}
           <ImageGallery
             images={images}
+            videos={product.videos || []}
             selectedImage={selectedImage}
             onSelect={setSelectedImage}
             productName={product.name}

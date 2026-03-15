@@ -130,6 +130,7 @@ public class ProductService {
                 .currency(request.getCurrency())
                 .category(category)
                 .images(request.getImages() != null ? request.getImages() : List.of())
+                .videos(request.getVideos() != null ? request.getVideos() : List.of())
                 .stockQty(request.getStockQty())
                 .active(request.getActive())
                 .build();
@@ -170,6 +171,9 @@ public class ProductService {
         product.setCurrency(request.getCurrency());
         if (request.getImages() != null) {
             product.setImages(request.getImages());
+        }
+        if (request.getVideos() != null) {
+            product.setVideos(request.getVideos());
         }
         boolean wasOutOfStock = product.getStockQty() <= 0;
         product.setStockQty(request.getStockQty());

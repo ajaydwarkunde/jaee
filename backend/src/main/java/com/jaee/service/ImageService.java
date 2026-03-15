@@ -21,7 +21,7 @@ public class ImageService {
     private final OkHttpClient okHttpClient;
     private final SupabaseConfig supabaseConfig;
 
-    private static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(
+    private static final List<String> ALLOWED_IMAGE_TYPES = Arrays.asList(
             "image/jpeg",
             "image/png",
             "image/gif",
@@ -29,7 +29,15 @@ public class ImageService {
             "image/svg+xml"
     );
 
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    private static final List<String> ALLOWED_VIDEO_TYPES = Arrays.asList(
+            "video/mp4",
+            "video/webm",
+            "video/quicktime",
+            "video/x-msvideo"
+    );
+
+    private static final long MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+    private static final long MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
 
     /**
      * Upload an image to Supabase Storage
@@ -94,18 +102,68 @@ public class ImageService {
         }
     }
 
-    /**
-     * Upload a product image
-     */
+    public String uploadVideo(MultipartFile file, String folder) {
+        validateVideoFile(file);
+
+        if (!supabaseConfig.isConfigured()) {
+            log.warn("Supabase not configured. Using placeholder video URL.");
+            return "https://placehold.co/800x450/F5E6E0/2D2D2D?text=Video";
+        }
+
+        String fileName = generateFileName(file.getOriginalFilename());
+        String filePath = folder + "/" + fileName;
+
+        try {
+            String uploadUrl = String.format("%s/storage/v1/object/%s/%s",
+                    supabaseConfig.getSupabaseUrl(),
+                    supabaseConfig.getStorageBucket(),
+                    filePath);
+
+            RequestBody requestBody = RequestBody.create(
+                    file.getBytes(),
+                    MediaType.parse(file.getContentType())
+            );
+
+            Request request = new Request.Builder()
+                    .url(uploadUrl)
+                    .addHeader("Authorization", "Bearer " + supabaseConfig.getSupabaseKey())
+                    .addHeader("Content-Type", file.getContentType())
+                    .addHeader("x-upsert", "true")
+                    .post(requestBody)
+                    .build();
+
+            try (Response response = okHttpClient.newCall(request).execute()) {
+                if (!response.isSuccessful()) {
+                    String errorBody = response.body() != null ? response.body().string() : "Unknown error";
+                    log.error("Failed to upload video to Supabase: {} - {}", response.code(), errorBody);
+                    throw new BadRequestException("Failed to upload video: " + response.message());
+                }
+
+                String publicUrl = String.format("%s/storage/v1/object/public/%s/%s",
+                        supabaseConfig.getSupabaseUrl(),
+                        supabaseConfig.getStorageBucket(),
+                        filePath);
+
+                log.info("Video uploaded successfully: {}", publicUrl);
+                return publicUrl;
+            }
+
+        } catch (IOException e) {
+            log.error("Failed to upload video to Supabase", e);
+            throw new BadRequestException("Failed to upload video: " + e.getMessage());
+        }
+    }
+
     public String uploadProductImage(MultipartFile file) {
         return uploadImage(file, "products");
     }
 
-    /**
-     * Upload a category image
-     */
     public String uploadCategoryImage(MultipartFile file) {
         return uploadImage(file, "categories");
+    }
+
+    public String uploadProductVideo(MultipartFile file) {
+        return uploadVideo(file, "products/videos");
     }
 
     /**
@@ -154,13 +212,28 @@ public class ImageService {
             throw new BadRequestException("No file provided");
         }
 
-        if (file.getSize() > MAX_FILE_SIZE) {
+        if (file.getSize() > MAX_IMAGE_SIZE) {
             throw new BadRequestException("File size exceeds maximum limit of 5MB");
         }
 
         String contentType = file.getContentType();
-        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
+        if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType)) {
             throw new BadRequestException("Invalid file type. Allowed types: JPEG, PNG, GIF, WebP, SVG");
+        }
+    }
+
+    private void validateVideoFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new BadRequestException("No file provided");
+        }
+
+        if (file.getSize() > MAX_VIDEO_SIZE) {
+            throw new BadRequestException("File size exceeds maximum limit of 50MB");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_VIDEO_TYPES.contains(contentType)) {
+            throw new BadRequestException("Invalid file type. Allowed types: MP4, WebM, MOV, AVI");
         }
     }
 

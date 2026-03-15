@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Upload, X, Loader2 } from 'lucide-react'
+import { Upload, X, Loader2, Film } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Textarea from '@/components/ui/Textarea'
@@ -41,9 +41,13 @@ export default function ProductForm({
   loading,
 }: ProductFormProps) {
   const [uploadedImages, setUploadedImages] = useState<string[]>(product?.images || [])
+  const [uploadedVideos, setUploadedVideos] = useState<string[]>(product?.videos || [])
   const [isUploading, setIsUploading] = useState(false)
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
+  const [isDraggingVideo, setIsDraggingVideo] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const videoInputRef = useRef<HTMLInputElement>(null)
 
   const {
     register,
@@ -115,8 +119,45 @@ export default function ProductForm({
     setValue('images', newImages.join('\n'))
   }
 
+  const handleVideoUpload = async (files: FileList | File[]) => {
+    const validFiles = Array.from(files).filter((file) => {
+      if (!file.type.startsWith('video/')) {
+        toast.error(`${file.name} is not a video`)
+        return false
+      }
+      if (file.size > 50 * 1024 * 1024) {
+        toast.error(`${file.name} is too large (max 50MB)`)
+        return false
+      }
+      return true
+    })
+
+    if (validFiles.length === 0) return
+
+    setIsUploadingVideo(true)
+    try {
+      const urls = await imageService.uploadMultipleVideos(validFiles)
+      const newVideos = [...uploadedVideos, ...urls]
+      setUploadedVideos(newVideos)
+      toast.success(`${urls.length} video(s) uploaded`)
+    } catch {
+      toast.error('Failed to upload videos')
+    } finally {
+      setIsUploadingVideo(false)
+    }
+  }
+
+  const handleVideoDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDraggingVideo(false)
+    handleVideoUpload(e.dataTransfer.files)
+  }
+
+  const removeVideo = (index: number) => {
+    setUploadedVideos(uploadedVideos.filter((_, i) => i !== index))
+  }
+
   const handleFormSubmit = (data: ProductFormSchema) => {
-    // Use uploadedImages state which is always up-to-date
     const images = uploadedImages.length > 0
       ? uploadedImages
       : data.images
@@ -131,6 +172,7 @@ export default function ProductForm({
       currency: data.currency,
       categoryId: data.categoryId,
       images,
+      videos: uploadedVideos,
       stockQty: data.stockQty,
       active: data.active,
     })
@@ -275,6 +317,73 @@ export default function ProductForm({
             }}
           />
         </details>
+      </div>
+
+      {/* Video Upload Section */}
+      <div className="space-y-3">
+        <label className="block text-sm font-medium text-charcoal">Product Videos</label>
+
+        <div
+          onDrop={handleVideoDrop}
+          onDragOver={(e) => { e.preventDefault(); setIsDraggingVideo(true) }}
+          onDragLeave={() => setIsDraggingVideo(false)}
+          onClick={() => videoInputRef.current?.click()}
+          className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+            isDraggingVideo
+              ? 'border-rose bg-rose/5'
+              : 'border-blush hover:border-rose/50 hover:bg-blush/30'
+          }`}
+        >
+          <input
+            ref={videoInputRef}
+            type="file"
+            accept="video/mp4,video/webm,video/quicktime,video/x-msvideo"
+            multiple
+            onChange={(e) => e.target.files && handleVideoUpload(e.target.files)}
+            className="hidden"
+          />
+          {isUploadingVideo ? (
+            <div className="flex flex-col items-center gap-2">
+              <Loader2 className="w-8 h-8 text-rose animate-spin" />
+              <p className="text-sm text-warm-gray">Uploading video...</p>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-2">
+              <Film className="w-8 h-8 text-warm-gray" />
+              <p className="text-sm text-charcoal font-medium">
+                Drop videos here or click to upload
+              </p>
+              <p className="text-xs text-warm-gray">MP4, WebM, MOV, AVI (max 50MB)</p>
+            </div>
+          )}
+        </div>
+
+        {uploadedVideos.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {uploadedVideos.map((url, index) => (
+              <div key={index} className="relative group aspect-video">
+                <video
+                  src={url}
+                  className="w-full h-full object-cover rounded-lg border border-blush"
+                  muted
+                  preload="metadata"
+                />
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-8 h-8 rounded-full bg-charcoal/60 flex items-center justify-center">
+                    <Film className="w-4 h-4 text-soft-white" />
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeVideo(index)}
+                  className="absolute -top-2 -right-2 p-1 bg-error text-soft-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
