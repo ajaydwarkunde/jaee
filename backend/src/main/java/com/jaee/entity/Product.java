@@ -6,7 +6,9 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "products")
@@ -39,9 +41,14 @@ public class Product {
     @Builder.Default
     private String currency = "INR";
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    private Category category;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "product_categories",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id")
+    )
+    @Builder.Default
+    private Set<Category> categories = new HashSet<>();
 
     @ElementCollection
     @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
@@ -54,6 +61,16 @@ public class Product {
     @Column(name = "video_url")
     @Builder.Default
     private List<String> videos = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "product_option_names", joinColumns = @JoinColumn(name = "product_id"))
+    @Column(name = "option_name")
+    @Builder.Default
+    private List<String> options = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ProductVariant> variants = new ArrayList<>();
 
     @Builder.Default
     private Integer stockQty = 0;

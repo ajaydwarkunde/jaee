@@ -103,8 +103,8 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
 
         {/* Info */}
         <div>
-          {product.categoryName && (
-            <p className="text-xs text-warm-gray uppercase tracking-wide mb-1">{product.categoryName}</p>
+          {product.categoryNames?.length > 0 && (
+            <p className="text-xs text-warm-gray uppercase tracking-wide mb-1">{product.categoryNames.join(' · ')}</p>
           )}
           <h2 className="font-serif text-2xl font-medium text-charcoal mb-2">{product.name}</h2>
 

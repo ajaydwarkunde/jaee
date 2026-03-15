@@ -48,7 +48,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         FROM OrderItem oi
         JOIN oi.order o
         JOIN oi.product p
-        JOIN p.category c
+        JOIN p.categories c
         WHERE o.status IN (com.jaee.entity.Order.OrderStatus.PAID, 
                            com.jaee.entity.Order.OrderStatus.SHIPPED, 
                            com.jaee.entity.Order.OrderStatus.FULFILLED)
@@ -63,7 +63,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         FROM OrderItem oi
         JOIN oi.order o
         JOIN oi.product p
-        JOIN p.category c
+        JOIN p.categories c
         WHERE o.status IN (com.jaee.entity.Order.OrderStatus.PAID, 
                            com.jaee.entity.Order.OrderStatus.SHIPPED, 
                            com.jaee.entity.Order.OrderStatus.FULFILLED)

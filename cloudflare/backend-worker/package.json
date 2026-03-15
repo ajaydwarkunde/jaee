@@ -1,0 +1,20 @@
+{
+  "name": "jaee-backend-worker",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "logs": "wrangler tail",
+    "containers:list": "wrangler containers list",
+    "containers:images": "wrangler containers images list"
+  },
+  "dependencies": {
+    "@cloudflare/containers": "^0.1.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240620.0",
+    "typescript": "^5.5.0",
+    "wrangler": "^4.0.0"
+  }
+}

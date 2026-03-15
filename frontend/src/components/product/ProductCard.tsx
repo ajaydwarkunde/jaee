@@ -127,9 +127,9 @@ export default function ProductCard({ product, onAddToCart, onQuickView }: Produ
 
       {/* Info */}
       <Link to={`/product/${product.slug}`} className="block p-4">
-        {product.categoryName && (
+        {product.categoryNames?.length > 0 && (
           <p className="text-xs text-warm-gray uppercase tracking-wide mb-1">
-            {product.categoryName}
+            {product.categoryNames.join(' · ')}
           </p>
         )}
         <h3 className="font-serif text-lg font-medium text-charcoal line-clamp-1 group-hover:text-rose transition-colors">

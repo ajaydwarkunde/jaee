@@ -21,8 +21,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.text.Normalizer;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -88,13 +90,17 @@ public class ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Product not found"));
         
-        if (product.getCategory() == null) {
+        Set<Long> categoryIds = product.getCategories().stream()
+                .map(Category::getId)
+                .collect(Collectors.toSet());
+        
+        if (categoryIds.isEmpty()) {
             return List.of();
         }
         
         Pageable pageable = PageRequest.of(0, limit);
         List<Product> related = productRepository.findRelatedProducts(
-                product.getCategory().getId(), 
+                categoryIds, 
                 productId, 
                 pageable
         );
@@ -115,11 +121,7 @@ public class ProductService {
             slug = baseSlug + "-" + counter++;
         }
 
-        Category category = null;
-        if (request.getCategoryId() != null) {
-            category = categoryRepository.findById(request.getCategoryId())
-                    .orElseThrow(() -> new BadRequestException("Category not found"));
-        }
+        Set<Category> categories = resolveCategories(request.getCategoryIds());
 
         Product product = Product.builder()
                 .name(request.getName())
@@ -128,9 +130,10 @@ public class ProductService {
                 .price(request.getPrice())
                 .compareAtPrice(request.getCompareAtPrice())
                 .currency(request.getCurrency())
-                .category(category)
+                .categories(categories)
                 .images(request.getImages() != null ? request.getImages() : List.of())
                 .videos(request.getVideos() != null ? request.getVideos() : List.of())
+                .options(request.getOptions() != null ? request.getOptions() : List.of())
                 .stockQty(request.getStockQty())
                 .active(request.getActive())
                 .build();
@@ -156,13 +159,8 @@ public class ProductService {
             product.setSlug(newSlug);
         }
 
-        if (request.getCategoryId() != null) {
-            Category category = categoryRepository.findById(request.getCategoryId())
-                    .orElseThrow(() -> new BadRequestException("Category not found"));
-            product.setCategory(category);
-        } else {
-            product.setCategory(null);
-        }
+        product.getCategories().clear();
+        product.getCategories().addAll(resolveCategories(request.getCategoryIds()));
 
         product.setName(request.getName());
         product.setDescription(request.getDescription());
@@ -174,6 +172,9 @@ public class ProductService {
         }
         if (request.getVideos() != null) {
             product.setVideos(request.getVideos());
+        }
+        if (request.getOptions() != null) {
+            product.setOptions(request.getOptions());
         }
         boolean wasOutOfStock = product.getStockQty() <= 0;
         product.setStockQty(request.getStockQty());
@@ -196,6 +197,17 @@ public class ProductService {
         
         productRepository.delete(product);
         log.info("Product deleted: {}", product.getName());
+    }
+
+    private Set<Category> resolveCategories(List<Long> categoryIds) {
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            return new HashSet<>();
+        }
+        List<Category> found = categoryRepository.findAllById(categoryIds);
+        if (found.size() != categoryIds.size()) {
+            throw new BadRequestException("One or more categories not found");
+        }
+        return new HashSet<>(found);
     }
 
     private String getSortField(String sortBy) {

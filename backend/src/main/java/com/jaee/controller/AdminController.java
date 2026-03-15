@@ -5,6 +5,8 @@ import com.jaee.dto.category.CategoryCreateRequest;
 import com.jaee.dto.category.CategoryDto;
 import com.jaee.dto.common.ApiResponse;
 import com.jaee.dto.common.PageResponse;
+import com.jaee.dto.variant.VariantCreateRequest;
+import com.jaee.dto.variant.VariantDto;
 import com.jaee.dto.coupon.CouponCreateRequest;
 import com.jaee.dto.coupon.CouponDto;
 import com.jaee.dto.order.OrderDto;
@@ -14,6 +16,7 @@ import com.jaee.service.CategoryService;
 import com.jaee.service.CouponService;
 import com.jaee.service.OrderService;
 import com.jaee.service.ProductService;
+import com.jaee.service.VariantService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,6 +41,7 @@ public class AdminController {
     private final ProductService productService;
     private final OrderService orderService;
     private final CouponService couponService;
+    private final VariantService variantService;
 
     // Category endpoints
     @PostMapping("/categories")
@@ -88,7 +92,55 @@ public class AdminController {
         productService.deleteProduct(id);
         return ResponseEntity.ok(ApiResponse.success("Product deleted", null));
     }
-    
+
+    // ============================================
+    // Product Variants
+    // ============================================
+
+    @GetMapping("/products/{productId}/variants")
+    @Operation(summary = "Get all variants for a product")
+    public ResponseEntity<ApiResponse<List<VariantDto>>> getVariants(@PathVariable Long productId) {
+        List<VariantDto> variants = variantService.getVariantsByProductId(productId);
+        return ResponseEntity.ok(ApiResponse.success(variants));
+    }
+
+    @PostMapping("/products/{productId}/variants")
+    @Operation(summary = "Add a variant to a product")
+    public ResponseEntity<ApiResponse<VariantDto>> createVariant(
+            @PathVariable Long productId,
+            @Valid @RequestBody VariantCreateRequest request
+    ) {
+        VariantDto variant = variantService.createVariant(productId, request);
+        return ResponseEntity.ok(ApiResponse.success("Variant created", variant));
+    }
+
+    @PutMapping("/products/{productId}/variants/bulk")
+    @Operation(summary = "Replace all variants for a product")
+    public ResponseEntity<ApiResponse<List<VariantDto>>> bulkSaveVariants(
+            @PathVariable Long productId,
+            @RequestBody List<@Valid VariantCreateRequest> requests
+    ) {
+        List<VariantDto> variants = variantService.bulkSaveVariants(productId, requests);
+        return ResponseEntity.ok(ApiResponse.success("Variants saved", variants));
+    }
+
+    @PutMapping("/variants/{variantId}")
+    @Operation(summary = "Update a variant")
+    public ResponseEntity<ApiResponse<VariantDto>> updateVariant(
+            @PathVariable Long variantId,
+            @Valid @RequestBody VariantCreateRequest request
+    ) {
+        VariantDto variant = variantService.updateVariant(variantId, request);
+        return ResponseEntity.ok(ApiResponse.success("Variant updated", variant));
+    }
+
+    @DeleteMapping("/variants/{variantId}")
+    @Operation(summary = "Delete a variant")
+    public ResponseEntity<ApiResponse<Void>> deleteVariant(@PathVariable Long variantId) {
+        variantService.deleteVariant(variantId);
+        return ResponseEntity.ok(ApiResponse.success("Variant deleted", null));
+    }
+
     // ============================================
     // Order Management
     // ============================================

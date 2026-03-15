@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Pencil, Trash2, Search } from 'lucide-react'
+import { Plus, Pencil, Trash2, Search, Layers } from 'lucide-react'
 import { productService } from '@/services/productService'
 import { categoryService } from '@/services/categoryService'
 import { formatPrice } from '@/lib/utils'
@@ -10,6 +10,7 @@ import Modal from '@/components/ui/Modal'
 import Badge from '@/components/ui/Badge'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import ProductForm from '@/components/admin/ProductForm'
+import VariantEditor from '@/components/admin/VariantEditor'
 import toast from 'react-hot-toast'
 import type { Product, ProductFormData } from '@/types'
 
@@ -20,6 +21,7 @@ export default function AdminProducts() {
   const [editProduct, setEditProduct] = useState<Product | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null)
+  const [variantProduct, setVariantProduct] = useState<Product | null>(null)
 
   const { data: productsData, isLoading } = useQuery({
     queryKey: ['admin-products', { search, page }],
@@ -146,12 +148,19 @@ export default function AdminProducts() {
                           className="w-12 h-12 rounded-lg object-cover"
                         />
                         <div>
-                          <p className="font-medium text-charcoal">{product.name}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-charcoal">{product.name}</p>
+                            {product.variants && product.variants.length > 0 && (
+                              <span className="text-xs px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded-full font-medium">
+                                {product.variants.length} variant{product.variants.length > 1 ? 's' : ''}
+                              </span>
+                            )}
+                          </div>
                           <p className="text-sm text-warm-gray">{product.slug}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="p-4 text-warm-gray">{product.categoryName || '—'}</td>
+                    <td className="p-4 text-warm-gray">{product.categoryNames?.length > 0 ? product.categoryNames.join(', ') : '—'}</td>
                     <td className="p-4 font-bold tabular-nums">{formatPrice(product.price)}</td>
                     <td className="p-4">{product.stockQty}</td>
                     <td className="p-4">
@@ -163,6 +172,15 @@ export default function AdminProducts() {
                     </td>
                     <td className="p-4">
                       <div className="flex items-center justify-end gap-2">
+                        {product.options && product.options.length > 0 && (
+                          <button
+                            onClick={() => setVariantProduct(product)}
+                            className="p-2 text-warm-gray hover:text-amber-600 transition-colors"
+                            title="Manage Variants"
+                          >
+                            <Layers className="w-4 h-4" />
+                          </button>
+                        )}
                         <button
                           onClick={() => handleEdit(product)}
                           className="p-2 text-warm-gray hover:text-rose transition-colors"
@@ -223,6 +241,21 @@ export default function AdminProducts() {
             onCancel={handleCloseForm}
             loading={createMutation.isPending || updateMutation.isPending}
           />
+        </Modal>
+
+        {/* Variant Editor Modal */}
+        <Modal
+          isOpen={!!variantProduct}
+          onClose={() => setVariantProduct(null)}
+          title="Manage Variants"
+          size="xl"
+        >
+          {variantProduct && (
+            <VariantEditor
+              product={variantProduct}
+              onClose={() => setVariantProduct(null)}
+            />
+          )}
         </Modal>
 
         {/* Delete Confirmation */}

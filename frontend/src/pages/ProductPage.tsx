@@ -20,7 +20,7 @@ import ReviewForm from '@/components/review/ReviewForm'
 import RecentlyViewed from '@/components/product/RecentlyViewed'
 import { stockNotificationService } from '@/services/stockNotificationService'
 import { getErrorMessage } from '@/lib/api'
-import type { Product } from '@/types'
+import type { Product, ProductVariant } from '@/types'
 import toast from 'react-hot-toast'
 import { showCartToast } from '@/components/ui/CartToast'
 
@@ -455,11 +455,122 @@ function ImageGallery({
   )
 }
 
+function VariantSelector({
+  product,
+  selectedVariant,
+  onSelect,
+}: {
+  product: Product
+  selectedVariant: ProductVariant | null
+  onSelect: (variant: ProductVariant | null) => void
+}) {
+  const options = product.options || []
+  const variants = product.variants || []
+  const [selected, setSelected] = useState<Record<string, string>>(() => {
+    if (selectedVariant) return { ...selectedVariant.optionValues }
+    const init: Record<string, string> = {}
+    options.forEach(opt => { init[opt] = '' })
+    return init
+  })
+
+  const getAvailableValues = (optionName: string): string[] => {
+    const values = new Set<string>()
+    variants.forEach(v => {
+      const val = v.optionValues[optionName]
+      if (val) values.add(val)
+    })
+    return Array.from(values)
+  }
+
+  const isValueAvailable = (optionName: string, value: string): boolean => {
+    return variants.some(v => {
+      if (v.optionValues[optionName] !== value) return false
+      return Object.entries(selected).every(([key, sel]) => {
+        if (key === optionName) return true
+        if (!sel) return true
+        return v.optionValues[key] === sel
+      })
+    })
+  }
+
+  const handleSelect = (optionName: string, value: string) => {
+    const next = { ...selected, [optionName]: selected[optionName] === value ? '' : value }
+    setSelected(next)
+
+    const allFilled = options.every(opt => next[opt])
+    if (allFilled) {
+      const match = variants.find(v =>
+        options.every(opt => v.optionValues[opt] === next[opt])
+      )
+      onSelect(match || null)
+    } else {
+      onSelect(null)
+    }
+  }
+
+  if (options.length === 0 || variants.length === 0) return null
+
+  return (
+    <div className="space-y-4 mb-6">
+      {options.map(optionName => {
+        const values = getAvailableValues(optionName)
+        return (
+          <div key={optionName}>
+            <p className="text-sm font-medium text-charcoal mb-2">
+              {optionName}
+              {selected[optionName] && (
+                <span className="text-rose ml-2">: {selected[optionName]}</span>
+              )}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {values.map(val => {
+                const isSelected = selected[optionName] === val
+                const available = isValueAvailable(optionName, val)
+                return (
+                  <button
+                    key={val}
+                    onClick={() => available && handleSelect(optionName, val)}
+                    disabled={!available}
+                    className={`
+                      px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all
+                      ${isSelected
+                        ? 'border-rose bg-rose/10 text-rose'
+                        : available
+                          ? 'border-blush bg-soft-white text-charcoal hover:border-rose/50'
+                          : 'border-blush/50 bg-blush/30 text-warm-gray/50 line-through cursor-not-allowed'
+                      }
+                    `}
+                  >
+                    {val}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })}
+
+      {selectedVariant && (
+        <div className="flex items-center gap-3 p-3 bg-blush/30 rounded-lg text-sm">
+          <span className="text-charcoal font-medium">Selected:</span>
+          <span className="text-warm-gray">
+            {options.map(o => selectedVariant.optionValues[o]).join(' / ')}
+          </span>
+          {selectedVariant.sku && (
+            <span className="text-xs text-warm-gray/70 ml-auto">SKU: {selectedVariant.sku}</span>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function ProductPage() {
   const { slug } = useParams<{ slug: string }>()
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [showReviewForm, setShowReviewForm] = useState(false)
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null)
 
   const { isAuthenticated } = useAuthStore()
   const addToGuestCart = useCartStore((state) => state.addToGuestCart)
@@ -548,7 +659,8 @@ export default function ProductPage() {
     setQuantity((prev) => {
       const newQty = prev + delta
       if (newQty < 1) return 1
-      if (product && newQty > product.stockQty) return product.stockQty
+      const maxStock = selectedVariant?.stockQty ?? product?.stockQty ?? 1
+      if (newQty > maxStock) return maxStock
       return newQty
     })
   }
@@ -573,8 +685,20 @@ export default function ProductPage() {
     )
   }
 
-  const images = product.images.length > 0 
-    ? product.images 
+  const hasVariants = (product.variants?.length ?? 0) > 0
+
+  const effectivePrice = selectedVariant?.price ?? product.price
+  const effectiveComparePrice = selectedVariant?.compareAtPrice ?? product.compareAtPrice
+  const effectiveDiscount = selectedVariant?.discountPercent ?? product.discountPercent
+  const effectiveStock = selectedVariant?.stockQty ?? product.stockQty
+  const effectiveInStock = selectedVariant ? selectedVariant.inStock : product.inStock
+
+  const displayImages = selectedVariant && selectedVariant.images.length > 0
+    ? selectedVariant.images
+    : product.images
+
+  const images = displayImages.length > 0 
+    ? displayImages 
     : ['https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=800']
 
   return (
@@ -587,10 +711,10 @@ export default function ProductPage() {
             Back to Shop
           </Link>
           <span className="text-warm-gray">/</span>
-          {product.categoryName && (
+          {product.categoryNames.length > 0 && (
             <>
               <Link to={`/shop`} className="text-warm-gray hover:text-rose transition-colors">
-                {product.categoryName}
+                {product.categoryNames.join(', ')}
               </Link>
               <span className="text-warm-gray">/</span>
             </>
@@ -610,9 +734,9 @@ export default function ProductPage() {
 
           {/* Product Info */}
           <div className="lg:py-4">
-            {product.categoryName && (
+            {product.categoryNames.length > 0 && (
               <p className="text-sm text-warm-gray uppercase tracking-wide mb-2">
-                {product.categoryName}
+                {product.categoryNames.join(' · ')}
               </p>
             )}
             
@@ -630,24 +754,40 @@ export default function ProductPage() {
 
             <div className="flex items-center gap-4 mb-6 flex-wrap">
               <span className="text-3xl font-bold text-rose tabular-nums">
-                {formatPrice(product.price, product.currency)}
+                {formatPrice(effectivePrice, product.currency)}
               </span>
-              {product.compareAtPrice && product.compareAtPrice > product.price && (
+              {effectiveComparePrice && effectiveComparePrice > effectivePrice && (
                 <>
                   <span className="text-xl text-warm-gray line-through tabular-nums">
-                    {formatPrice(product.compareAtPrice, product.currency)}
+                    {formatPrice(effectiveComparePrice, product.currency)}
                   </span>
-                  <Badge variant="success" size="md">{product.discountPercent}% OFF</Badge>
+                  <Badge variant="success" size="md">{effectiveDiscount}% OFF</Badge>
                 </>
               )}
-              {!product.inStock ? (
+              {!effectiveInStock ? (
                 <Badge variant="error" size="md">Out of Stock</Badge>
-              ) : product.stockQty <= 5 ? (
-                <Badge variant="warning" size="md">Only {product.stockQty} left</Badge>
+              ) : effectiveStock <= 5 ? (
+                <Badge variant="warning" size="md">Only {effectiveStock} left</Badge>
               ) : (
                 <Badge variant="success" size="md">In Stock</Badge>
               )}
+              {hasVariants && !selectedVariant && (
+                <span className="text-sm text-warm-gray italic">Select options for exact price</span>
+              )}
             </div>
+
+            {/* Variant Selector */}
+            {hasVariants && (
+              <VariantSelector
+                product={product}
+                selectedVariant={selectedVariant}
+                onSelect={(v) => {
+                  setSelectedVariant(v)
+                  setQuantity(1)
+                  if (v && v.images.length > 0) setSelectedImage(0)
+                }}
+              />
+            )}
 
             {product.description && (
               <div className="prose prose-warm-gray mb-8">
@@ -656,7 +796,7 @@ export default function ProductPage() {
             )}
 
             {/* Quantity & Add to Cart */}
-            {product.inStock && (
+            {effectiveInStock && (
               <div className="space-y-4 mb-8">
                 <div className="flex items-center gap-4">
                   <span className="text-sm font-medium text-charcoal">Quantity:</span>
@@ -673,7 +813,7 @@ export default function ProductPage() {
                     </span>
                     <button
                       onClick={() => handleQuantityChange(1)}
-                      disabled={quantity >= product.stockQty}
+                      disabled={quantity >= effectiveStock}
                       className="p-2 hover:bg-blush rounded-r-full transition-colors disabled:opacity-50"
                     >
                       <Plus className="w-4 h-4" />
@@ -688,8 +828,9 @@ export default function ProductPage() {
                     icon={<ShoppingBag className="w-5 h-5" />}
                     className="flex-1"
                     size="lg"
+                    disabled={hasVariants && !selectedVariant}
                   >
-                    Add to Cart
+                    {hasVariants && !selectedVariant ? 'Select Options' : 'Add to Cart'}
                   </Button>
                   <Button
                     variant={isWishlisted ? 'primary' : 'outline'}
@@ -705,7 +846,7 @@ export default function ProductPage() {
             )}
 
             {/* Notify Me (Out of Stock) */}
-            {!product.inStock && (
+            {!effectiveInStock && (
               <NotifyMeForm productId={product.id} productName={product.name} />
             )}
 
