@@ -49,6 +49,12 @@ public class Product {
     @Builder.Default
     private List<String> images = new ArrayList<>();
 
+    @ElementCollection
+    @CollectionTable(name = "product_videos", joinColumns = @JoinColumn(name = "product_id"))
+    @Column(name = "video_url")
+    @Builder.Default
+    private List<String> videos = new ArrayList<>();
+
     @Builder.Default
     private Integer stockQty = 0;
 

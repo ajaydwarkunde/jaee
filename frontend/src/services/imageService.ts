@@ -28,4 +28,22 @@ export const imageService = {
     const response = await api.post<{ data: MultipleImageUploadResponse }>('/images/upload/multiple', formData)
     return response.data.data.urls
   },
+
+  uploadVideo: async (file: File): Promise<string> => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await api.post<{ data: ImageUploadResponse }>('/images/upload/video', formData)
+    return response.data.data.url
+  },
+
+  uploadMultipleVideos: async (files: File[]): Promise<string[]> => {
+    const formData = new FormData()
+    files.forEach((file) => {
+      formData.append('files', file)
+    })
+
+    const response = await api.post<{ data: MultipleImageUploadResponse }>('/images/upload/videos', formData)
+    return response.data.data.urls
+  },
 }

@@ -26,6 +26,7 @@ public class ProductDto {
     private Long categoryId;
     private String categoryName;
     private List<String> images;
+    private List<String> videos;
     private Integer stockQty;
     private Boolean active;
     private Boolean inStock;
@@ -54,6 +55,7 @@ public class ProductDto {
                 .categoryId(product.getCategory() != null ? product.getCategory().getId() : null)
                 .categoryName(product.getCategory() != null ? product.getCategory().getName() : null)
                 .images(product.getImages())
+                .videos(product.getVideos())
                 .stockQty(product.getStockQty())
                 .active(product.getActive())
                 .inStock(product.isInStock())

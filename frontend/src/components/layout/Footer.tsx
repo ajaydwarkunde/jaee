@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Instagram, Mail } from 'lucide-react'
+import { Instagram, Mail, Flame, Gift } from 'lucide-react'
 import Logo from '../ui/Logo'
 
 export default function Footer() {
@@ -8,13 +8,13 @@ export default function Footer() {
   return (
     <footer className="theme-invert bg-charcoal text-cream">
       <div className="container-custom py-12 md:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 md:gap-10">
           {/* Brand */}
-          <div className="md:col-span-2">
+          <div className="lg:col-span-2">
             <Logo size="lg" variant="light" />
             <p className="mt-4 text-cream/70 max-w-md leading-relaxed">
               Bringing warmth and beauty into your home with handcrafted candles and carefully 
-              curated home décor. Each piece is designed to create moments of calm and joy.
+              curated gift hampers. Two stores, one destination for thoughtful living.
             </p>
             <div className="flex gap-4 mt-6">
               <a 
@@ -34,24 +34,48 @@ export default function Footer() {
                 <Mail className="w-5 h-5" />
               </a>
             </div>
-            {/* Contact details */}
             <div className="mt-4 space-y-1 text-sm text-cream/60">
-              <p>📧 jaeestudio12@gmail.com</p>
-              <p>📷 @jaai.studio</p>
-              <p>📍 Mumbai, Maharashtra, India</p>
+              <p>jaeestudio12@gmail.com</p>
+              <p>@jaai.studio</p>
+              <p>Mumbai, Maharashtra, India</p>
             </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Candle Store */}
           <div>
-            <h4 className="font-serif text-lg font-medium mb-4">Quick Links</h4>
+            <h4 className="font-serif text-lg font-medium mb-4 flex items-center gap-2">
+              <Flame className="w-4 h-4 text-rose" />
+              Candle Store
+            </h4>
             <ul className="space-y-3">
               {[
-                { to: '/shop', label: 'Shop All' },
-                { to: '/sale', label: 'Sale' },
-                { to: '/shop/candles', label: 'Candles' },
-                { to: '/shop/gift-sets', label: 'Gift Sets' },
-                { to: '/about', label: 'About Us' },
+                { to: '/shop/candles', label: 'Shop Candles' },
+                { to: '/custom-candle', label: 'Custom Candle' },
+                { to: '/sale', label: 'Candle Offers' },
+              ].map((link) => (
+                <li key={link.to}>
+                  <Link 
+                    to={link.to}
+                    className="text-cream/70 hover:text-rose transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Hamper Store */}
+          <div>
+            <h4 className="font-serif text-lg font-medium mb-4 flex items-center gap-2">
+              <Gift className="w-4 h-4 text-rose" />
+              Hamper Store
+            </h4>
+            <ul className="space-y-3">
+              {[
+                { to: '/shop/gift-sets', label: 'Shop Hampers' },
+                { to: '/custom-hamper', label: 'Build a Hamper' },
+                { to: '/shop', label: 'All Products' },
               ].map((link) => (
                 <li key={link.to}>
                   <Link 
@@ -72,7 +96,7 @@ export default function Footer() {
               {[
                 { to: '/orders', label: 'Track Order' },
                 { to: '/account', label: 'My Account' },
-                { to: '/addresses', label: 'My Addresses' },
+                { to: '/about', label: 'About Us' },
               ].map((link) => (
                 <li key={link.to}>
                   <Link 
@@ -99,7 +123,7 @@ export default function Footer() {
         <div className="mt-12 pt-8 border-t border-cream/20">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-cream/50">
-              © {currentYear} Jaai. All rights reserved.
+              &copy; {currentYear} Jaai. All rights reserved.
             </p>
             <div className="flex items-center gap-4 text-sm text-cream/50">
               <a 
@@ -110,7 +134,7 @@ export default function Footer() {
               >
                 @jaai.studio
               </a>
-              <span className="text-cream/30">•</span>
+              <span className="text-cream/30">&middot;</span>
               <a 
                 href="mailto:jaeestudio12@gmail.com"
                 className="hover:text-cream transition-colors"

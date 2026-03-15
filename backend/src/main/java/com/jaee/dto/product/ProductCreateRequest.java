@@ -28,6 +28,8 @@ public class ProductCreateRequest {
     private Long categoryId;
     
     private List<String> images;
+
+    private List<String> videos;
     
     @Min(value = 0, message = "Stock quantity cannot be negative")
     private Integer stockQty = 0;

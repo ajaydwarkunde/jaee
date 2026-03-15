@@ -75,6 +75,29 @@ public class ImageController {
         return ResponseEntity.ok(ApiResponse.success("Images uploaded successfully", response));
     }
 
+    @PostMapping(value = "/upload/video", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload a product video")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<ImageUploadResponse>> uploadVideo(
+            @RequestParam("file") MultipartFile file
+    ) {
+        String videoUrl = imageService.uploadProductVideo(file);
+        return ResponseEntity.ok(ApiResponse.success("Video uploaded successfully", new ImageUploadResponse(videoUrl)));
+    }
+
+    @PostMapping(value = "/upload/videos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload multiple product videos")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<MultipleImageUploadResponse>> uploadMultipleVideos(
+            @RequestParam("files") MultipartFile[] files
+    ) {
+        List<String> urls = new ArrayList<>();
+        for (MultipartFile file : files) {
+            urls.add(imageService.uploadProductVideo(file));
+        }
+        return ResponseEntity.ok(ApiResponse.success("Videos uploaded successfully", new MultipleImageUploadResponse(urls)));
+    }
+
     @DeleteMapping
     @Operation(summary = "Delete an image")
     @PreAuthorize("hasRole('ADMIN')")

@@ -11,7 +11,6 @@ import QuickViewModal from '@/components/product/QuickViewModal'
 import Button from '@/components/ui/Button'
 import LazyImage from '@/components/ui/LazyImage'
 import CategoryCarousel from '@/components/ui/CategoryCarousel'
-import Carousel3D from '@/components/ui/Carousel3D'
 import { useCartStore } from '@/stores/cartStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
@@ -21,6 +20,225 @@ import toast from 'react-hot-toast'
 import { showCartToast } from '@/components/ui/CartToast'
 import type { Product } from '@/types'
 
+/* ─── Split Hero ─── */
+function SplitHero() {
+  const [hovered, setHovered] = useState<'candles' | 'hampers' | null>(null)
+
+  return (
+    <section className="relative min-h-[85vh] flex items-stretch overflow-hidden">
+      {/* Candles Side */}
+      <Link
+        to="/shop/candles"
+        className={cn(
+          'relative flex-1 flex items-center justify-center transition-all duration-700 ease-out group cursor-pointer overflow-hidden',
+          hovered === 'hampers' ? 'flex-[0.4]' : hovered === 'candles' ? 'flex-[0.6]' : 'flex-[0.5]'
+        )}
+        onMouseEnter={() => setHovered('candles')}
+        onMouseLeave={() => setHovered(null)}
+      >
+        {/* Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blush via-cream to-champagne" />
+        <div className="absolute inset-0">
+          <LazyImage
+            src="https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=1200&auto=format&fit=crop"
+            alt="Candle collection"
+            className="w-full h-full object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-charcoal/70 via-charcoal/30 to-charcoal/10" />
+        </div>
+
+        {/* Content */}
+        <div className="relative z-10 text-center px-8 max-w-lg">
+          <div className={cn(
+            'transition-all duration-500',
+            hovered === 'candles' ? 'scale-105' : 'scale-100'
+          )}>
+            <div className="w-16 h-16 bg-soft-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-rose/30 transition-colors duration-500">
+              <Flame className="w-8 h-8 text-soft-white" />
+            </div>
+            <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold text-soft-white mb-4 tracking-tight">
+              Candle Store
+            </h2>
+            <p className="text-soft-white/80 text-base md:text-lg leading-relaxed mb-8 max-w-sm mx-auto">
+              Hand-poured premium candles crafted with love. Illuminate your space with warmth and fragrance.
+            </p>
+            <span className="inline-flex items-center gap-2 px-6 py-3 bg-soft-white/20 backdrop-blur-sm text-soft-white font-medium rounded-full group-hover:bg-rose group-hover:text-soft-white transition-all duration-500">
+              Explore Candles
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </span>
+          </div>
+        </div>
+      </Link>
+
+      {/* Divider */}
+      <div className="relative z-20 w-px bg-soft-white/30 hidden md:block">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-soft-white rounded-full shadow-lg flex items-center justify-center">
+          <Sparkles className="w-5 h-5 text-rose" />
+        </div>
+      </div>
+
+      {/* Hampers Side */}
+      <Link
+        to="/shop/gift-sets"
+        className={cn(
+          'relative flex-1 flex items-center justify-center transition-all duration-700 ease-out group cursor-pointer overflow-hidden',
+          hovered === 'candles' ? 'flex-[0.4]' : hovered === 'hampers' ? 'flex-[0.6]' : 'flex-[0.5]'
+        )}
+        onMouseEnter={() => setHovered('hampers')}
+        onMouseLeave={() => setHovered(null)}
+      >
+        {/* Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-champagne via-cream to-blush" />
+        <div className="absolute inset-0">
+          <LazyImage
+            src="https://images.unsplash.com/photo-1543512214-318c7553f230?w=1200&auto=format&fit=crop"
+            alt="Gift hamper collection"
+            className="w-full h-full object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-charcoal/70 via-charcoal/30 to-charcoal/10" />
+        </div>
+
+        {/* Content */}
+        <div className="relative z-10 text-center px-8 max-w-lg">
+          <div className={cn(
+            'transition-all duration-500',
+            hovered === 'hampers' ? 'scale-105' : 'scale-100'
+          )}>
+            <div className="w-16 h-16 bg-soft-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-rose/30 transition-colors duration-500">
+              <Gift className="w-8 h-8 text-soft-white" />
+            </div>
+            <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold text-soft-white mb-4 tracking-tight">
+              Hamper Store
+            </h2>
+            <p className="text-soft-white/80 text-base md:text-lg leading-relaxed mb-8 max-w-sm mx-auto">
+              Curated gift hampers for every occasion. Thoughtfully assembled, beautifully wrapped.
+            </p>
+            <span className="inline-flex items-center gap-2 px-6 py-3 bg-soft-white/20 backdrop-blur-sm text-soft-white font-medium rounded-full group-hover:bg-rose group-hover:text-soft-white transition-all duration-500">
+              Explore Hampers
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </span>
+          </div>
+        </div>
+      </Link>
+
+      {/* Mobile: stacked overlay text at bottom */}
+      <div className="absolute bottom-0 left-0 right-0 md:hidden z-20 bg-gradient-to-t from-charcoal/80 to-transparent p-6">
+        <div className="flex gap-3">
+          <Link
+            to="/shop/candles"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-soft-white/20 backdrop-blur-sm text-soft-white font-medium rounded-xl text-sm hover:bg-rose transition-colors"
+          >
+            <Flame className="w-4 h-4" />
+            Candles
+          </Link>
+          <Link
+            to="/shop/gift-sets"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-soft-white/20 backdrop-blur-sm text-soft-white font-medium rounded-xl text-sm hover:bg-rose transition-colors"
+          >
+            <Gift className="w-4 h-4" />
+            Hampers
+          </Link>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ─── Store Showcase Cards ─── */
+function StoreShowcase() {
+  return (
+    <section className="py-16 md:py-24 bg-soft-white">
+      <div className="container-custom">
+        <div className="text-center mb-12">
+          <h2 className="heading-2 text-charcoal">Two Stores, One Destination</h2>
+          <p className="mt-4 text-warm-gray max-w-2xl mx-auto">
+            Whether you're looking for the perfect candle or a thoughtful gift, we've got you covered
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Candle Store Card */}
+          <div className="group relative bg-gradient-to-br from-blush/40 to-champagne/40 rounded-2xl p-8 md:p-10 overflow-hidden hover:shadow-soft-lg transition-shadow duration-500">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-rose/10 rounded-full blur-3xl -translate-y-1/4 translate-x-1/4" />
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-rose/10 rounded-xl flex items-center justify-center">
+                  <Flame className="w-6 h-6 text-rose" />
+                </div>
+                <div>
+                  <h3 className="font-serif text-2xl font-semibold text-charcoal">Candle Store</h3>
+                  <p className="text-sm text-warm-gray">Handcrafted with premium ingredients</p>
+                </div>
+              </div>
+              <p className="text-warm-gray leading-relaxed mb-6">
+                Explore our collection of hand-poured soy candles, from calming lavender to rich vanilla. 
+                Each candle is crafted to bring warmth and serenity to your space.
+              </p>
+              <div className="flex flex-wrap gap-2 mb-8">
+                {['Scented Candles', 'Custom Candles', 'Gift Sets', 'Home Fragrance'].map((tag) => (
+                  <span key={tag} className="px-3 py-1 bg-soft-white/80 text-xs font-medium text-charcoal rounded-full">{tag}</span>
+                ))}
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link to="/shop/candles">
+                  <Button icon={<ArrowRight className="w-4 h-4" />}>
+                    Shop Candles
+                  </Button>
+                </Link>
+                <Link to="/custom-candle">
+                  <Button variant="outline" icon={<Palette className="w-4 h-4" />}>
+                    Design Your Own
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Hamper Store Card */}
+          <div className="group relative bg-gradient-to-br from-champagne/40 to-blush/40 rounded-2xl p-8 md:p-10 overflow-hidden hover:shadow-soft-lg transition-shadow duration-500">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-champagne/30 rounded-full blur-3xl -translate-y-1/4 translate-x-1/4" />
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-rose/10 rounded-xl flex items-center justify-center">
+                  <Gift className="w-6 h-6 text-rose" />
+                </div>
+                <div>
+                  <h3 className="font-serif text-2xl font-semibold text-charcoal">Hamper Store</h3>
+                  <p className="text-sm text-warm-gray">Curated gifts for every occasion</p>
+                </div>
+              </div>
+              <p className="text-warm-gray leading-relaxed mb-6">
+                Discover beautifully curated gift hampers packed with candles, snacks, scents, and more. 
+                Perfect for birthdays, weddings, festivals, or just to make someone's day.
+              </p>
+              <div className="flex flex-wrap gap-2 mb-8">
+                {['Gift Hampers', 'Custom Hampers', 'Festival Specials', 'Corporate Gifts'].map((tag) => (
+                  <span key={tag} className="px-3 py-1 bg-soft-white/80 text-xs font-medium text-charcoal rounded-full">{tag}</span>
+                ))}
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link to="/shop/gift-sets">
+                  <Button icon={<ArrowRight className="w-4 h-4" />}>
+                    Shop Hampers
+                  </Button>
+                </Link>
+                <Link to="/custom-hamper">
+                  <Button variant="outline" icon={<Package className="w-4 h-4" />}>
+                    Build a Hamper
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ─── Testimonials ─── */
 const testimonials = [
   { name: 'Priya M.', location: 'Mumbai', rating: 5, text: 'The candles from Jaai are absolutely divine! The fragrance fills the entire room and lasts for hours. My go-to gift for every occasion now.', product: 'Lavender Bliss Candle' },
   { name: 'Ananya S.', location: 'Bangalore', rating: 5, text: 'I ordered the gift set for my mom\'s birthday and she loved it! The packaging was beautiful and the candles smell amazing. Will definitely order again.', product: 'Gift Set Collection' },
@@ -87,7 +305,7 @@ function TestimonialsSection() {
   )
 }
 
-// Newsletter Section Component
+/* ─── Newsletter ─── */
 function NewsletterSection() {
   const [email, setEmail] = useState('')
   const [isSubscribed, setIsSubscribed] = useState(false)
@@ -161,6 +379,7 @@ function NewsletterSection() {
   )
 }
 
+/* ─── Custom Builder CTA ─── */
 function CustomBuilderSection() {
   const [mode, setMode] = useState<'candle' | 'hamper'>('candle')
   const isCandle = mode === 'candle'
@@ -168,7 +387,6 @@ function CustomBuilderSection() {
   return (
     <section className="py-16 md:py-24 bg-gradient-to-br from-rose/5 via-blush to-champagne/50 overflow-hidden">
       <div className="container-custom">
-        {/* Section header + toggle */}
         <div className="text-center mb-10">
           <h2 className="heading-2 text-charcoal mb-4">Create Something Unique</h2>
           <p className="text-warm-gray max-w-lg mx-auto mb-8">
@@ -202,7 +420,6 @@ function CustomBuilderSection() {
           </div>
         </div>
 
-        {/* Card */}
         <div className="relative bg-soft-white rounded-2xl md:rounded-3xl shadow-soft-lg overflow-hidden">
           <div
             className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 transition-colors duration-500"
@@ -214,12 +431,8 @@ function CustomBuilderSection() {
           />
 
           <div className="relative grid md:grid-cols-2 gap-8 items-center p-8 md:p-12 lg:p-16">
-            {/* Text side */}
             <div className={cn(!isCandle && 'md:order-2')}>
-              <div
-                key={mode}
-                className="animate-fade-in"
-              >
+              <div key={mode} className="animate-fade-in">
                 <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-rose/10 text-rose text-sm font-medium rounded-full mb-6">
                   {isCandle ? <Flame className="w-4 h-4" /> : <Gift className="w-4 h-4" />}
                   {isCandle ? 'Custom Builder' : 'Gift Hampers'}
@@ -237,7 +450,6 @@ function CustomBuilderSection() {
                     : 'Birthdays, weddings, festivals, or just because — pick the items, wrapping, and message. We\'ll assemble a beautiful hamper they\'ll love.'}
                 </p>
 
-                {/* Feature chips */}
                 <div className="flex flex-wrap gap-3 mb-8">
                   {(isCandle
                     ? [
@@ -266,7 +478,6 @@ function CustomBuilderSection() {
               </div>
             </div>
 
-            {/* SVG side */}
             <div className={cn('hidden md:flex justify-center', !isCandle && 'md:order-1')}>
               <div key={mode} className="animate-fade-in">
                 {isCandle ? <CandleSVG /> : <HamperSVG />}
@@ -359,6 +570,7 @@ function HamperSVG() {
   )
 }
 
+/* ─── Main Page ─── */
 export default function HomePage() {
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null)
   const { isAuthenticated } = useAuthStore()
@@ -398,70 +610,10 @@ export default function HomePage() {
 
   return (
     <div className="animate-fade-in">
-      {/* Hero Section */}
-      <section className="relative min-h-[80vh] flex items-center bg-gradient-to-br from-blush via-cream to-champagne overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-rose/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-champagne/50 rounded-full blur-3xl" />
-        </div>
+      {/* Split Hero */}
+      <SplitHero />
 
-        <div className="container-custom relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="text-center lg:text-left">
-              <span className="inline-block px-4 py-1.5 bg-rose/10 text-rose text-sm font-medium rounded-full mb-6">
-                ✨ Handcrafted with Love
-              </span>
-              <h1 className="heading-1 text-charcoal mb-6">
-                Illuminate Your Space with{' '}
-                <span className="text-gradient">Jaai</span>
-              </h1>
-              <p className="body-large text-warm-gray mb-8 max-w-lg mx-auto lg:mx-0">
-                Discover our collection of premium, hand-poured candles and home décor. 
-                Each piece is designed to bring warmth, beauty, and moments of calm to your everyday life.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Link to="/shop">
-                  <Button size="lg" icon={<ArrowRight className="w-5 h-5" />}>
-                    Shop Collection
-                  </Button>
-                </Link>
-                <Link to="/shop/gift-sets">
-                  <Button size="lg" variant="outline">
-                    Gift Sets
-                  </Button>
-                </Link>
-              </div>
-            </div>
-
-            {/* Hero image */}
-            <div className="relative hidden lg:block">
-              <div className="relative aspect-square max-w-lg mx-auto">
-                <LazyImage
-                  src="https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=800"
-                  alt="Beautiful candle arrangement"
-                  className="w-full h-full object-cover rounded-[32px] shadow-soft-xl"
-                  priority // Above the fold - load immediately
-                />
-                {/* Floating card */}
-                <div className="absolute -bottom-6 -left-6 bg-soft-white p-4 rounded-xl shadow-soft-lg animate-slide-up">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-rose/10 rounded-full flex items-center justify-center">
-                      <Heart className="w-6 h-6 text-rose" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-charcoal">5000+</p>
-                      <p className="text-xs text-warm-gray">Happy Customers</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features */}
+      {/* Features strip */}
       <section className="py-12 bg-soft-white border-y border-blush">
         <div className="container-custom">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -483,7 +635,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Categories Carousel */}
+      {/* Store Showcase */}
+      <StoreShowcase />
+
+      {/* Categories */}
       {categories && categories.length > 0 && (
         <section className="py-16 md:py-24 bg-cream overflow-hidden">
           <div className="container-custom">
@@ -493,7 +648,6 @@ export default function HomePage() {
                 Explore our curated collections designed to transform your space
               </p>
             </div>
-
             <div className="px-6">
               <CategoryCarousel 
                 categories={categories} 
@@ -538,48 +692,6 @@ export default function HomePage() {
       {/* Custom Builder CTA */}
       <CustomBuilderSection />
 
-      {/* Lifestyle Showcase */}
-      <section className="py-16 md:py-24 bg-cream overflow-hidden">
-        <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="heading-2 text-charcoal">The Jaai Experience</h2>
-            <p className="mt-4 text-warm-gray max-w-2xl mx-auto">
-              Explore the world of handcrafted luxury and everyday elegance
-            </p>
-          </div>
-        </div>
-        <div className="pb-16">
-          <Carousel3D
-            slides={[
-              {
-                title: 'Warm Glow Collection',
-                button: 'Shop Candles',
-                href: '/shop/candles',
-                src: 'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=800&auto=format&fit=crop',
-              },
-              {
-                title: 'Curated Gift Sets',
-                button: 'Explore Gifts',
-                href: '/shop/gift-sets',
-                src: 'https://images.unsplash.com/photo-1543512214-318c7553f230?w=800&auto=format&fit=crop',
-              },
-              {
-                title: 'Home Fragrances',
-                button: 'Discover More',
-                href: '/shop',
-                src: 'https://images.unsplash.com/photo-1596178060671-7a80dc8059ea?w=800&auto=format&fit=crop',
-              },
-              {
-                title: 'Sale & Offers',
-                button: 'View Deals',
-                href: '/sale',
-                src: 'https://images.unsplash.com/photo-1603006905003-be475563bc59?w=800&auto=format&fit=crop',
-              },
-            ]}
-          />
-        </div>
-      </section>
-
       {/* Brand Story */}
       <section className="py-16 md:py-24 bg-gradient-to-br from-blush to-champagne">
         <div className="container-custom">
@@ -595,9 +707,8 @@ export default function HomePage() {
                 sustainable products that bring warmth and joy to homes across India.
               </p>
               <p className="text-warm-gray leading-relaxed mb-8">
-                Every candle we make is hand-poured with premium soy wax and carefully selected fragrances. 
-                We believe in quality over quantity, ensuring each piece meets our exacting standards 
-                before reaching your home.
+                From hand-poured candles to beautifully curated gift hampers, every product we make reflects 
+                our commitment to quality, sustainability, and the art of thoughtful giving.
               </p>
               <Link to="/about">
                 <Button variant="secondary">Learn More About Us</Button>
