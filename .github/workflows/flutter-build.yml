@@ -76,28 +76,19 @@ jobs:
       - name: Run analysis
         run: flutter analyze --no-fatal-infos || true
 
-      - name: Build debug APK
-        if: ${{ github.event.inputs.build_mode != 'release' }}
-        run: |
-          flutter build apk --debug \
-            --dart-define=API_BASE_URL=${{ vars.API_BASE_URL || 'https://api.jaee.com' }}
-
       - name: Build release APK
-        if: ${{ github.event.inputs.build_mode == 'release' }}
         run: |
-          flutter build apk --release \
+          flutter build apk --release --shrink \
             --dart-define=API_BASE_URL=${{ vars.API_BASE_URL || 'https://api.jaee.com' }}
 
-      - name: Upload debug APK
-        if: ${{ github.event.inputs.build_mode != 'release' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: jaee-debug-apk
-          path: mobile/build/app/outputs/flutter-apk/app-debug.apk
-          retention-days: 14
+      - name: Show APK size
+        run: |
+          ls -lh build/app/outputs/flutter-apk/app-release.apk
+          echo "---"
+          echo "If over 50MB, split APKs are also available:"
+          ls -lh build/app/outputs/flutter-apk/app-*.apk 2>/dev/null || true
 
       - name: Upload release APK
-        if: ${{ github.event.inputs.build_mode == 'release' }}
         uses: actions/upload-artifact@v4
         with:
           name: jaee-release-apk
