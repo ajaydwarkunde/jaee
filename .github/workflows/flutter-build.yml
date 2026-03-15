@@ -1,0 +1,72 @@
+name: Flutter Build
+
+on:
+  push:
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/flutter-build.yml'
+  workflow_dispatch:
+    inputs:
+      build_mode:
+        description: 'Build mode'
+        required: false
+        default: 'debug'
+        type: choice
+        options:
+          - debug
+          - release
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: stable
+          cache: true
+
+      - name: Generate platform boilerplate
+        run: |
+          flutter create --project-name jaee --org com.jaee .
+          flutter pub get
+
+      - name: Verify project
+        run: flutter doctor -v
+
+      - name: Run analysis
+        run: flutter analyze --no-fatal-infos || true
+
+      - name: Build debug APK
+        if: ${{ github.event.inputs.build_mode != 'release' }}
+        run: |
+          flutter build apk --debug \
+            --dart-define=API_BASE_URL=${{ vars.API_BASE_URL || 'https://api.jaee.com' }}
+
+      - name: Build release APK
+        if: ${{ github.event.inputs.build_mode == 'release' }}
+        run: |
+          flutter build apk --release \
+            --dart-define=API_BASE_URL=${{ vars.API_BASE_URL || 'https://api.jaee.com' }}
+
+      - name: Upload debug APK
+        if: ${{ github.event.inputs.build_mode != 'release' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: jaee-debug-apk
+          path: mobile/build/app/outputs/flutter-apk/app-debug.apk
+          retention-days: 14
+
+      - name: Upload release APK
+        if: ${{ github.event.inputs.build_mode == 'release' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: jaee-release-apk
+          path: mobile/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
