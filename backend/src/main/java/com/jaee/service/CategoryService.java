@@ -3,6 +3,7 @@ package com.jaee.service;
 import com.jaee.dto.category.CategoryCreateRequest;
 import com.jaee.dto.category.CategoryDto;
 import com.jaee.entity.Category;
+import com.jaee.entity.StoreType;
 import com.jaee.exception.BadRequestException;
 import com.jaee.exception.NotFoundException;
 import com.jaee.repository.CategoryRepository;
@@ -51,6 +52,7 @@ public class CategoryService {
                 .slug(slug)
                 .description(request.getDescription())
                 .imageUrl(request.getImageUrl())
+                .storeType(parseStoreType(request.getStoreType()))
                 .build();
 
         categoryRepository.save(category);
@@ -73,6 +75,7 @@ public class CategoryService {
         category.setSlug(newSlug);
         category.setDescription(request.getDescription());
         category.setImageUrl(request.getImageUrl());
+        category.setStoreType(parseStoreType(request.getStoreType()));
 
         categoryRepository.save(category);
         log.info("Category updated: {}", category.getName());
@@ -91,6 +94,15 @@ public class CategoryService {
         
         categoryRepository.delete(category);
         log.info("Category deleted: {}", category.getName());
+    }
+
+    private StoreType parseStoreType(String value) {
+        if (value == null || value.isBlank()) return null;
+        try {
+            return StoreType.valueOf(value.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     private String toSlug(String input) {

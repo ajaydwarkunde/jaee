@@ -1,11 +1,87 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Package, Tag, ShoppingBag, ShoppingCart, Settings, Percent, Flame, Gift, Sliders } from 'lucide-react'
+import { Package, Tag, ShoppingBag, ShoppingCart, Settings, Percent, Flame, Gift, Sliders, TrendingUp, Award } from 'lucide-react'
 import { productService } from '@/services/productService'
 import { categoryService } from '@/services/categoryService'
 import { orderService } from '@/services/orderService'
+import type { StoreSales } from '@/services/orderService'
 import { api } from '@/lib/api'
+import { formatPrice } from '@/lib/utils'
 import Card, { CardContent, CardTitle } from '@/components/ui/Card'
+
+function StoreSalesCard({ data, icon: Icon, color, label }: {
+  data: StoreSales | undefined
+  icon: React.ElementType
+  color: string
+  label: string
+}) {
+  const revenue = data?.revenue ?? 0
+  const orderCount = data?.orderCount ?? 0
+  const itemsSold = data?.itemsSold ?? 0
+  const topProducts = data?.topProducts ?? []
+
+  return (
+    <div className={`bg-soft-white rounded-xl shadow-soft overflow-hidden border-t-4 ${color}`}>
+      <div className="p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${color.replace('border-', 'bg-').replace('rose', 'rose/10').replace('success', 'success/10')}`}>
+            <Icon className={`w-5 h-5 ${color.replace('border-', 'text-')}`} />
+          </div>
+          <div>
+            <h3 className="font-serif text-lg font-semibold text-charcoal">{label}</h3>
+            <p className="text-xs text-warm-gray">Sales Overview</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="text-center p-3 bg-cream rounded-lg">
+            <p className="text-xl font-serif font-bold text-charcoal">{formatPrice(revenue)}</p>
+            <p className="text-xs text-warm-gray mt-1">Revenue</p>
+          </div>
+          <div className="text-center p-3 bg-cream rounded-lg">
+            <p className="text-xl font-serif font-bold text-charcoal">{orderCount}</p>
+            <p className="text-xs text-warm-gray mt-1">Orders</p>
+          </div>
+          <div className="text-center p-3 bg-cream rounded-lg">
+            <p className="text-xl font-serif font-bold text-charcoal">{itemsSold}</p>
+            <p className="text-xs text-warm-gray mt-1">Items Sold</p>
+          </div>
+        </div>
+
+        {topProducts.length > 0 && (
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Award className="w-4 h-4 text-warning" />
+              <p className="text-sm font-medium text-charcoal">Top Products</p>
+            </div>
+            <div className="space-y-2">
+              {topProducts.map((product, idx) => (
+                <div key={product.name} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="w-5 h-5 rounded-full bg-blush flex items-center justify-center text-xs font-bold text-charcoal flex-shrink-0">
+                      {idx + 1}
+                    </span>
+                    <span className="text-charcoal truncate">{product.name}</span>
+                  </div>
+                  <div className="flex items-center gap-3 flex-shrink-0 ml-2">
+                    <span className="text-warm-gray">{product.qtySold} sold</span>
+                    <span className="font-medium text-charcoal">{formatPrice(product.revenue)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {topProducts.length === 0 && (
+          <p className="text-sm text-warm-gray text-center py-4">
+            No sales data yet. Assign categories to this store to start tracking.
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
 
 export default function AdminDashboard() {
   const { data: products } = useQuery({
@@ -23,6 +99,11 @@ export default function AdminDashboard() {
     queryFn: orderService.getOrderStats,
   })
 
+  const { data: storeSales } = useQuery({
+    queryKey: ['admin-store-sales'],
+    queryFn: orderService.getStoreSales,
+  })
+
   const { data: customCandles } = useQuery({
     queryKey: ['admin-custom-candles-count'],
     queryFn: () => api.get('/custom-candles/admin/all').then(res => res.data.data as unknown[]),
@@ -35,6 +116,9 @@ export default function AdminDashboard() {
 
   const pendingCandles = (customCandles || []).filter((c: any) => c.status === 'PENDING').length
   const pendingHampers = (giftHampers || []).filter((h: any) => h.status === 'PENDING').length
+
+  const candleSales = storeSales?.find(s => s.storeType === 'CANDLE')
+  const hamperSales = storeSales?.find(s => s.storeType === 'HAMPER')
 
   const stats = [
     {
@@ -108,6 +192,28 @@ export default function AdminDashboard() {
           ))}
         </div>
 
+        {/* Store Sales Analytics */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-6">
+            <TrendingUp className="w-5 h-5 text-rose" />
+            <h2 className="heading-3 text-charcoal">Sales by Store</h2>
+          </div>
+          <div className="grid md:grid-cols-2 gap-6">
+            <StoreSalesCard
+              data={candleSales}
+              icon={Flame}
+              color="border-rose"
+              label="Candle Store"
+            />
+            <StoreSalesCard
+              data={hamperSales}
+              icon={Gift}
+              color="border-success"
+              label="Hamper Store"
+            />
+          </div>
+        </div>
+
         {/* Quick Actions */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
@@ -115,7 +221,7 @@ export default function AdminDashboard() {
             <CardContent>
               <p className="mb-4">Manage your product catalog</p>
               <Link to="/admin/products" className="text-rose hover:underline font-medium">
-                View All Products →
+                View All Products &rarr;
               </Link>
             </CardContent>
           </Card>
@@ -125,7 +231,7 @@ export default function AdminDashboard() {
             <CardContent>
               <p className="mb-4">Organize products into categories</p>
               <Link to="/admin/categories" className="text-rose hover:underline font-medium">
-                Manage Categories →
+                Manage Categories &rarr;
               </Link>
             </CardContent>
           </Card>
@@ -138,7 +244,7 @@ export default function AdminDashboard() {
             <CardContent>
               <p className="mb-4">View and manage customer orders</p>
               <Link to="/admin/orders" className="text-rose hover:underline font-medium">
-                Manage Orders →
+                Manage Orders &rarr;
               </Link>
             </CardContent>
           </Card>
@@ -151,7 +257,7 @@ export default function AdminDashboard() {
             <CardContent>
               <p className="mb-4">Manage discount coupons</p>
               <Link to="/admin/coupons" className="text-rose hover:underline font-medium">
-                Manage Coupons →
+                Manage Coupons &rarr;
               </Link>
             </CardContent>
           </Card>
@@ -169,7 +275,7 @@ export default function AdminDashboard() {
             <CardContent>
               <p className="mb-4">View custom candle requests</p>
               <Link to="/admin/custom-candles" className="text-rose hover:underline font-medium">
-                Manage Requests →
+                Manage Requests &rarr;
               </Link>
             </CardContent>
           </Card>
@@ -187,7 +293,7 @@ export default function AdminDashboard() {
             <CardContent>
               <p className="mb-4">View gift hamper requests</p>
               <Link to="/admin/gift-hampers" className="text-rose hover:underline font-medium">
-                Manage Requests →
+                Manage Requests &rarr;
               </Link>
             </CardContent>
           </Card>
@@ -200,7 +306,7 @@ export default function AdminDashboard() {
             <CardContent>
               <p className="mb-4">Manage candle & hamper choices</p>
               <Link to="/admin/builder-options" className="text-rose hover:underline font-medium">
-                Manage Options →
+                Manage Options &rarr;
               </Link>
             </CardContent>
           </Card>
@@ -213,7 +319,7 @@ export default function AdminDashboard() {
             <CardContent>
               <p className="mb-4">Shipping, returns, and more</p>
               <Link to="/admin/settings" className="text-rose hover:underline font-medium">
-                Configure Settings →
+                Configure Settings &rarr;
               </Link>
             </CardContent>
           </Card>

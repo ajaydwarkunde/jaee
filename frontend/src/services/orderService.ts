@@ -10,6 +10,14 @@ export interface OrderStats {
   cancelled: number
 }
 
+export interface StoreSales {
+  storeType: string
+  revenue: number
+  itemsSold: number
+  orderCount: number
+  topProducts: { name: string; qtySold: number; revenue: number }[]
+}
+
 export const orderService = {
   getOrders: async (page: number = 0, size: number = 10): Promise<PageResponse<Order>> => {
     const response = await api.get<ApiResponse<PageResponse<Order>>>(`/orders?page=${page}&size=${size}`)
@@ -55,6 +63,11 @@ export const orderService = {
 
   updateOrderTracking: async (orderId: number, tracking: { trackingNumber: string; trackingUrl: string; carrier: string }): Promise<Order> => {
     const response = await api.patch<ApiResponse<Order>>(`/admin/orders/${orderId}/tracking`, tracking)
+    return response.data.data
+  },
+
+  getStoreSales: async (): Promise<StoreSales[]> => {
+    const response = await api.get<ApiResponse<StoreSales[]>>('/admin/analytics/store-sales')
     return response.data.data
   },
 }
