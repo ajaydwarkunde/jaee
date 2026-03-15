@@ -210,35 +210,6 @@ stripe listen --forward-to localhost:8080/webhooks/stripe
 
 ---
 
-## 📚 API Documentation
-
-See [docs/openapi.yaml](docs/openapi.yaml) for the full API specification.
-
-### Key Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | /auth/register | Register with email+password |
-| POST | /auth/login | Login with email+password |
-| POST | /auth/otp/request | Request OTP for mobile |
-| POST | /auth/otp/verify | Verify OTP and login |
-| GET | /products | List products with filters |
-| GET | /products/{slug} | Get product details |
-| GET | /cart | Get current cart |
-| POST | /cart/items | Add item to cart |
-| POST | /checkout/create-session | Create Stripe checkout |
-| GET | /orders | Get user's orders |
-| PUT | /me/profile | Update user profile |
-| POST | /me/change-password | Change password |
-| POST | /me/mobile/request-otp | Request OTP for mobile change |
-| POST | /me/mobile/verify | Verify OTP and update mobile |
-| POST | /me/2fa/setup | Setup two-factor auth |
-| POST | /me/2fa/enable | Enable 2FA |
-| POST | /me/2fa/disable | Disable 2FA |
-| POST | /images/upload | Upload image (Admin) |
-
----
-
 ## 🧪 Testing
 
 ### Backend
