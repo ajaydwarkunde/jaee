@@ -40,6 +40,7 @@ public class ProductService {
     private static final Pattern NONLATIN = Pattern.compile("[^\\w-]");
     private static final Pattern WHITESPACE = Pattern.compile("[\\s]");
 
+    @Transactional(readOnly = true)
     public PageResponse<ProductDto> getProducts(
             Long categoryId,
             BigDecimal minPrice,
@@ -60,18 +61,21 @@ public class ProductService {
         return PageResponse.from(productPage, ProductDto::fromEntity);
     }
 
+    @Transactional(readOnly = true)
     public ProductDto getProductBySlug(String slug) {
-        Product product = productRepository.findBySlug(slug)
+        Product product = productRepository.findBySlugWithDetails(slug)
                 .orElseThrow(() -> new NotFoundException("Product not found"));
         return ProductDto.fromEntity(product);
     }
 
+    @Transactional(readOnly = true)
     public ProductDto getProductById(Long id) {
-        Product product = productRepository.findById(id)
+        Product product = productRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new NotFoundException("Product not found"));
         return ProductDto.fromEntity(product);
     }
 
+    @Transactional(readOnly = true)
     public List<ProductDto> getFeaturedProducts(int limit) {
         return productRepository.findFeaturedProducts(PageRequest.of(0, limit))
                 .stream()
@@ -79,6 +83,7 @@ public class ProductService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public PageResponse<ProductDto> getOnSaleProducts(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Product> productPage = productRepository.findOnSaleProducts(pageable);
