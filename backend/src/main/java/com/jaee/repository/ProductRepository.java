@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
@@ -21,7 +22,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT p FROM Product p WHERE p.active = true")
     Page<Product> findAllActive(Pageable pageable);
     
-    @Query("SELECT p FROM Product p WHERE p.active = true AND p.category.id = :categoryId")
+    @Query("SELECT DISTINCT p FROM Product p JOIN p.categories c WHERE p.active = true AND c.id = :categoryId")
     Page<Product> findAllActiveByCategoryId(@Param("categoryId") Long categoryId, Pageable pageable);
     
     @Query("SELECT p FROM Product p WHERE p.active = true AND " +
@@ -29,8 +30,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
            "LOWER(p.description) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Product> searchProducts(@Param("search") String search, Pageable pageable);
     
-    @Query("SELECT p FROM Product p WHERE p.active = true AND " +
-           "(:categoryId IS NULL OR p.category.id = :categoryId) AND " +
+    @Query("SELECT DISTINCT p FROM Product p LEFT JOIN p.categories c WHERE p.active = true AND " +
+           "(:categoryId IS NULL OR c.id = :categoryId) AND " +
            "(:minPrice IS NULL OR p.price >= :minPrice) AND " +
            "(:maxPrice IS NULL OR p.price <= :maxPrice) AND " +
            "(:search IS NULL OR :search = '' OR LOWER(COALESCE(p.name, '')) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
@@ -49,7 +50,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT p FROM Product p WHERE p.active = true AND p.compareAtPrice IS NOT NULL AND p.compareAtPrice > p.price")
     Page<Product> findOnSaleProducts(Pageable pageable);
     
-    // Related products - same category, excluding current product
-    @Query("SELECT p FROM Product p WHERE p.active = true AND p.category.id = :categoryId AND p.id != :productId ORDER BY RANDOM()")
-    List<Product> findRelatedProducts(@Param("categoryId") Long categoryId, @Param("productId") Long productId, Pageable pageable);
+    @Query("SELECT DISTINCT p FROM Product p JOIN p.categories c WHERE p.active = true AND c.id IN :categoryIds AND p.id != :productId ORDER BY RANDOM()")
+    List<Product> findRelatedProducts(@Param("categoryIds") Set<Long> categoryIds, @Param("productId") Long productId, Pageable pageable);
 }

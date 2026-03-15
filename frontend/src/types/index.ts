@@ -41,10 +41,12 @@ export interface Product {
   compareAtPrice: number | null
   discountPercent: number | null
   currency: string
-  categoryId: number | null
-  categoryName: string | null
+  categoryIds: number[]
+  categoryNames: string[]
   images: string[]
   videos: string[]
+  options: string[]
+  variants: ProductVariant[]
   stockQty: number
   active: boolean
   inStock: boolean
@@ -53,8 +55,22 @@ export interface Product {
   reviewCount: number | null
 }
 
+export interface ProductVariant {
+  id: number
+  productId: number
+  sku: string | null
+  price: number
+  compareAtPrice: number | null
+  discountPercent: number | null
+  stockQty: number
+  active: boolean
+  inStock: boolean
+  optionValues: Record<string, string>
+  images: string[]
+}
+
 export interface ProductFilters {
-  categoryId?: number
+  categoryId?: number  // kept as single filter for shop page
   minPrice?: number
   maxPrice?: number
   search?: string
@@ -185,9 +201,10 @@ export interface ProductFormData {
   price: number
   compareAtPrice?: number
   currency: string
-  categoryId?: number
+  categoryIds: number[]
   images: string[]
   videos: string[]
+  options: string[]
   stockQty: number
   active: boolean
 }

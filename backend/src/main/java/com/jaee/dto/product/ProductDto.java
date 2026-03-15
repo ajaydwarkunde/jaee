@@ -1,5 +1,7 @@
 package com.jaee.dto.product;
 
+import com.jaee.dto.variant.VariantDto;
+import com.jaee.entity.Category;
 import com.jaee.entity.Product;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +11,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @Builder
@@ -23,10 +26,12 @@ public class ProductDto {
     private BigDecimal compareAtPrice;
     private Integer discountPercent;
     private String currency;
-    private Long categoryId;
-    private String categoryName;
+    private List<Long> categoryIds;
+    private List<String> categoryNames;
     private List<String> images;
     private List<String> videos;
+    private List<String> options;
+    private List<VariantDto> variants;
     private Integer stockQty;
     private Boolean active;
     private Boolean inStock;
@@ -52,10 +57,18 @@ public class ProductDto {
                 .compareAtPrice(product.getCompareAtPrice())
                 .discountPercent(calculateDiscount(product.getPrice(), product.getCompareAtPrice()))
                 .currency(product.getCurrency())
-                .categoryId(product.getCategory() != null ? product.getCategory().getId() : null)
-                .categoryName(product.getCategory() != null ? product.getCategory().getName() : null)
+                .categoryIds(product.getCategories() != null
+                        ? product.getCategories().stream().map(Category::getId).collect(Collectors.toList())
+                        : List.of())
+                .categoryNames(product.getCategories() != null
+                        ? product.getCategories().stream().map(Category::getName).collect(Collectors.toList())
+                        : List.of())
                 .images(product.getImages())
                 .videos(product.getVideos())
+                .options(product.getOptions())
+                .variants(product.getVariants() != null
+                        ? product.getVariants().stream().map(VariantDto::fromEntity).collect(Collectors.toList())
+                        : List.of())
                 .stockQty(product.getStockQty())
                 .active(product.getActive())
                 .inStock(product.isInStock())

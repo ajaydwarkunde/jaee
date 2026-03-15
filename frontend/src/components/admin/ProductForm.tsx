@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Upload, X, Loader2, Film } from 'lucide-react'
+import { Upload, X, Loader2, Film, Plus, Layers } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Textarea from '@/components/ui/Textarea'
@@ -17,7 +17,6 @@ const productSchema = z.object({
   price: z.coerce.number().positive('Price must be greater than 0'),
   compareAtPrice: z.coerce.number().min(0).optional().or(z.literal('')),
   currency: z.string().default('INR'),
-  categoryId: z.coerce.number().optional(),
   images: z.string().optional(),
   stockQty: z.coerce.number().int().min(0, 'Stock cannot be negative'),
   active: z.boolean().default(true),
@@ -42,6 +41,9 @@ export default function ProductForm({
 }: ProductFormProps) {
   const [uploadedImages, setUploadedImages] = useState<string[]>(product?.images || [])
   const [uploadedVideos, setUploadedVideos] = useState<string[]>(product?.videos || [])
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>(product?.categoryIds || [])
+  const [productOptions, setProductOptions] = useState<string[]>(product?.options || [])
+  const [newOption, setNewOption] = useState('')
   const [isUploading, setIsUploading] = useState(false)
   const [isUploadingVideo, setIsUploadingVideo] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
@@ -62,7 +64,6 @@ export default function ProductForm({
       price: product?.price || 0,
       compareAtPrice: product?.compareAtPrice || '',
       currency: product?.currency || 'INR',
-      categoryId: product?.categoryId || undefined,
       images: product?.images.join('\n') || '',
       stockQty: product?.stockQty || 0,
       active: product?.active ?? true,
@@ -170,18 +171,22 @@ export default function ProductForm({
       price: data.price,
       compareAtPrice: data.compareAtPrice ? Number(data.compareAtPrice) : undefined,
       currency: data.currency,
-      categoryId: data.categoryId,
+      categoryIds: selectedCategoryIds,
       images,
       videos: uploadedVideos,
+      options: productOptions,
       stockQty: data.stockQty,
       active: data.active,
     })
   }
 
-  const categoryOptions = [
-    { value: '', label: 'No category' },
-    ...categories.map((cat) => ({ value: cat.id, label: cat.name })),
-  ]
+  const toggleCategory = (catId: number) => {
+    setSelectedCategoryIds(prev =>
+      prev.includes(catId)
+        ? prev.filter(id => id !== catId)
+        : [...prev, catId]
+    )
+  }
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
@@ -228,11 +233,41 @@ export default function ProductForm({
         />
       </div>
 
-      <Select
-        label="Category"
-        options={categoryOptions}
-        {...register('categoryId')}
-      />
+      {/* Categories (multi-select) */}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-charcoal">Categories</label>
+        <p className="text-xs text-warm-gray">
+          Select one or more categories this product belongs to.
+        </p>
+        <div className="flex flex-wrap gap-2 p-3 border border-blush rounded-lg bg-soft-white max-h-40 overflow-y-auto">
+          {categories.length === 0 ? (
+            <p className="text-sm text-warm-gray">No categories available</p>
+          ) : (
+            categories.map((cat) => {
+              const isSelected = selectedCategoryIds.includes(cat.id)
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => toggleCategory(cat.id)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all border ${
+                    isSelected
+                      ? 'border-rose bg-rose/10 text-rose'
+                      : 'border-blush bg-blush/30 text-warm-gray hover:border-rose/50'
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              )
+            })
+          )}
+        </div>
+        {selectedCategoryIds.length > 0 && (
+          <p className="text-xs text-warm-gray">
+            {selectedCategoryIds.length} categor{selectedCategoryIds.length === 1 ? 'y' : 'ies'} selected
+          </p>
+        )}
+      </div>
 
       {/* Image Upload Section */}
       <div className="space-y-3">
@@ -381,6 +416,67 @@ export default function ProductForm({
                   <X className="w-4 h-4" />
                 </button>
               </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Variant Options */}
+      <div className="space-y-3">
+        <label className="block text-sm font-medium text-charcoal">
+          <span className="flex items-center gap-2">
+            <Layers className="w-4 h-4" />
+            Variant Options
+          </span>
+        </label>
+        <p className="text-xs text-warm-gray">
+          Define option types (e.g., Size, Color, Scent). After saving, manage variant values from the product list.
+        </p>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newOption}
+            onChange={(e) => setNewOption(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                const val = newOption.trim()
+                if (val && !productOptions.includes(val)) {
+                  setProductOptions([...productOptions, val])
+                  setNewOption('')
+                }
+              }
+            }}
+            placeholder="Type option name and press Enter"
+            className="flex-1 px-3 py-2 border border-blush rounded-lg text-sm focus:outline-none focus:border-rose"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              const val = newOption.trim()
+              if (val && !productOptions.includes(val)) {
+                setProductOptions([...productOptions, val])
+                setNewOption('')
+              }
+            }}
+            className="px-3 py-2 bg-rose/10 text-rose rounded-lg hover:bg-rose/20 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
+        {productOptions.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {productOptions.map((opt) => (
+              <span key={opt} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blush/60 text-charcoal text-sm font-medium rounded-full">
+                {opt}
+                <button
+                  type="button"
+                  onClick={() => setProductOptions(productOptions.filter(o => o !== opt))}
+                  className="hover:text-error transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </span>
             ))}
           </div>
         )}

@@ -1,20 +1,16 @@
-package com.jaee.dto.product;
+package com.jaee.dto.variant;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @Data
-public class ProductCreateRequest {
+public class VariantCreateRequest {
     
-    @NotBlank(message = "Name is required")
-    @Size(max = 200, message = "Name must not exceed 200 characters")
-    private String name;
-    
-    @Size(max = 5000, message = "Description must not exceed 5000 characters")
-    private String description;
+    private String sku;
     
     @NotNull(message = "Price is required")
     @DecimalMin(value = "0.01", message = "Price must be greater than 0")
@@ -23,18 +19,13 @@ public class ProductCreateRequest {
     @DecimalMin(value = "0.01", message = "Compare at price must be greater than 0")
     private BigDecimal compareAtPrice;
     
-    private String currency = "INR";
-    
-    private List<Long> categoryIds;
-    
-    private List<String> images;
-
-    private List<String> videos;
-
-    private List<String> options;
-    
     @Min(value = 0, message = "Stock quantity cannot be negative")
     private Integer stockQty = 0;
     
     private Boolean active = true;
+
+    @NotNull(message = "Option values are required")
+    private Map<String, String> optionValues;
+
+    private List<String> images;
 }
