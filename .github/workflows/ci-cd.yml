@@ -157,7 +157,7 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Promote develop to main
+      - name: Merge develop into main
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -165,3 +165,12 @@ jobs:
           git checkout main
           git merge origin/develop --no-edit -m "Auto-promote: develop to main [staging healthy]"
           git push origin main
+
+      - name: Deploy Backend to Production
+        run: |
+          if [ -n "${{ secrets.RENDER_BACKEND_DEPLOY_HOOK }}" ]; then
+            curl -X POST "${{ secrets.RENDER_BACKEND_DEPLOY_HOOK }}"
+            echo "Production backend deploy triggered"
+          else
+            echo "RENDER_BACKEND_DEPLOY_HOOK not set - skipping"
+          fi
