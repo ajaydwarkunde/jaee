@@ -1,6 +1,7 @@
 package com.jaee.repository;
 
 import com.jaee.entity.Order;
+import com.jaee.entity.StoreType;
 import com.jaee.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,6 +10,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -35,4 +38,38 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     
     // Count by status for dashboard
     long countByStatus(Order.OrderStatus status);
+
+    // Store-level analytics: revenue and item count by store type for paid/shipped/fulfilled orders
+    @Query("""
+        SELECT c.storeType, 
+               COALESCE(SUM(oi.priceSnapshot * oi.qty), 0), 
+               COALESCE(SUM(oi.qty), 0),
+               COUNT(DISTINCT o.id)
+        FROM OrderItem oi
+        JOIN oi.order o
+        JOIN oi.product p
+        JOIN p.category c
+        WHERE o.status IN (com.jaee.entity.Order.OrderStatus.PAID, 
+                           com.jaee.entity.Order.OrderStatus.SHIPPED, 
+                           com.jaee.entity.Order.OrderStatus.FULFILLED)
+          AND c.storeType IS NOT NULL
+        GROUP BY c.storeType
+    """)
+    List<Object[]> getRevenueByStoreType();
+
+    // Top products by store type
+    @Query("""
+        SELECT p.name, COALESCE(SUM(oi.qty), 0), COALESCE(SUM(oi.priceSnapshot * oi.qty), 0)
+        FROM OrderItem oi
+        JOIN oi.order o
+        JOIN oi.product p
+        JOIN p.category c
+        WHERE o.status IN (com.jaee.entity.Order.OrderStatus.PAID, 
+                           com.jaee.entity.Order.OrderStatus.SHIPPED, 
+                           com.jaee.entity.Order.OrderStatus.FULFILLED)
+          AND c.storeType = :storeType
+        GROUP BY p.id, p.name
+        ORDER BY SUM(oi.qty) DESC
+    """)
+    List<Object[]> getTopProductsByStoreType(@Param("storeType") StoreType storeType, Pageable pageable);
 }

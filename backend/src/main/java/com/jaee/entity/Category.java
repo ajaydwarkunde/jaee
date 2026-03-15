@@ -30,6 +30,9 @@ public class Category {
 
     private String imageUrl;
 
+    @Enumerated(EnumType.STRING)
+    private StoreType storeType;
+
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     @Builder.Default
     private List<Product> products = new ArrayList<>();

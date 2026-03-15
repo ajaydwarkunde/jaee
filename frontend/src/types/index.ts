@@ -71,6 +71,7 @@ export interface Category {
   slug: string
   description: string | null
   imageUrl: string | null
+  storeType: 'CANDLE' | 'HAMPER' | null
   productCount: number
 }
 
@@ -195,6 +196,7 @@ export interface CategoryFormData {
   name: string
   description?: string
   imageUrl?: string
+  storeType?: string
 }
 
 // Profile update types

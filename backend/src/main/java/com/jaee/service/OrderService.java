@@ -1,9 +1,11 @@
 package com.jaee.service;
 
+import com.jaee.dto.analytics.StoreSalesDto;
 import com.jaee.dto.common.PageResponse;
 import com.jaee.dto.order.OrderDto;
 import com.jaee.entity.Order;
 import com.jaee.entity.Order.OrderStatus;
+import com.jaee.entity.StoreType;
 import com.jaee.entity.User;
 import com.jaee.exception.NotFoundException;
 import com.jaee.repository.OrderRepository;
@@ -15,8 +17,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -111,5 +114,44 @@ public class OrderService {
         stats.put("fulfilled", orderRepository.countByStatus(OrderStatus.FULFILLED));
         stats.put("cancelled", orderRepository.countByStatus(OrderStatus.CANCELLED));
         return stats;
+    }
+
+    @Transactional(readOnly = true)
+    public List<StoreSalesDto> getStoreSales() {
+        List<Object[]> revenueRows = orderRepository.getRevenueByStoreType();
+
+        Map<StoreType, StoreSalesDto> map = new EnumMap<>(StoreType.class);
+        for (StoreType st : StoreType.values()) {
+            map.put(st, StoreSalesDto.builder()
+                    .storeType(st.name())
+                    .revenue(BigDecimal.ZERO)
+                    .itemsSold(0L)
+                    .orderCount(0L)
+                    .topProducts(List.of())
+                    .build());
+        }
+
+        for (Object[] row : revenueRows) {
+            StoreType st = (StoreType) row[0];
+            StoreSalesDto dto = map.get(st);
+            dto.setRevenue((BigDecimal) row[1]);
+            dto.setItemsSold(((Number) row[2]).longValue());
+            dto.setOrderCount(((Number) row[3]).longValue());
+        }
+
+        Pageable top5 = PageRequest.of(0, 5);
+        for (StoreType st : StoreType.values()) {
+            List<Object[]> topRows = orderRepository.getTopProductsByStoreType(st, top5);
+            List<StoreSalesDto.TopProduct> topProducts = topRows.stream()
+                    .map(r -> StoreSalesDto.TopProduct.builder()
+                            .name((String) r[0])
+                            .qtySold(((Number) r[1]).longValue())
+                            .revenue((BigDecimal) r[2])
+                            .build())
+                    .collect(Collectors.toList());
+            map.get(st).setTopProducts(topProducts);
+        }
+
+        return new ArrayList<>(map.values());
     }
 }

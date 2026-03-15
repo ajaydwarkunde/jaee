@@ -16,6 +16,7 @@ public class CategoryDto {
     private String slug;
     private String description;
     private String imageUrl;
+    private String storeType;
     private Integer productCount;
     
     public static CategoryDto fromEntity(Category category) {
@@ -25,6 +26,7 @@ public class CategoryDto {
                 .slug(category.getSlug())
                 .description(category.getDescription())
                 .imageUrl(category.getImageUrl())
+                .storeType(category.getStoreType() != null ? category.getStoreType().name() : null)
                 .productCount(category.getProducts() != null ? category.getProducts().size() : 0)
                 .build();
     }

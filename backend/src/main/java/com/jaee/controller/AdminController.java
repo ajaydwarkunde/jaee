@@ -1,5 +1,6 @@
 package com.jaee.controller;
 
+import com.jaee.dto.analytics.StoreSalesDto;
 import com.jaee.dto.category.CategoryCreateRequest;
 import com.jaee.dto.category.CategoryDto;
 import com.jaee.dto.common.ApiResponse;
@@ -22,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -140,6 +142,13 @@ public class AdminController {
                 request.get("carrier")
         );
         return ResponseEntity.ok(ApiResponse.success("Tracking info updated", order));
+    }
+
+    @GetMapping("/analytics/store-sales")
+    @Operation(summary = "Get sales analytics by store type (Candle vs Hamper)")
+    public ResponseEntity<ApiResponse<List<StoreSalesDto>>> getStoreSales() {
+        List<StoreSalesDto> sales = orderService.getStoreSales();
+        return ResponseEntity.ok(ApiResponse.success(sales));
     }
     
     // ============================================

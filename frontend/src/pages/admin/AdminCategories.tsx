@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Flame, Gift } from 'lucide-react'
 import { categoryService } from '@/services/categoryService'
 import Button from '@/components/ui/Button'
 import Modal from '@/components/ui/Modal'
 import Input from '@/components/ui/Input'
 import Textarea from '@/components/ui/Textarea'
+import Select from '@/components/ui/Select'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import toast from 'react-hot-toast'
 import type { Category, CategoryFormData } from '@/types'
@@ -19,6 +20,7 @@ export default function AdminCategories() {
     name: '',
     description: '',
     imageUrl: '',
+    storeType: '',
   })
 
   const { data: categories, isLoading } = useQuery({
@@ -78,13 +80,14 @@ export default function AdminCategories() {
       name: category.name,
       description: category.description || '',
       imageUrl: category.imageUrl || '',
+      storeType: category.storeType || '',
     })
     setIsFormOpen(true)
   }
 
   const handleCloseForm = () => {
     setEditCategory(null)
-    setFormData({ name: '', description: '', imageUrl: '' })
+    setFormData({ name: '', description: '', imageUrl: '', storeType: '' })
     setIsFormOpen(false)
   }
 
@@ -120,7 +123,19 @@ export default function AdminCategories() {
                 className="w-16 h-16 rounded-lg object-cover"
               />
               <div className="flex-1">
-                <h3 className="font-medium text-charcoal">{category.name}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-medium text-charcoal">{category.name}</h3>
+                  {category.storeType === 'CANDLE' && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-rose/10 text-rose text-xs font-medium rounded-full">
+                      <Flame className="w-3 h-3" /> Candle
+                    </span>
+                  )}
+                  {category.storeType === 'HAMPER' && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-success/10 text-success text-xs font-medium rounded-full">
+                      <Gift className="w-3 h-3" /> Hamper
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm text-warm-gray">{category.slug}</p>
                 {category.description && (
                   <p className="text-sm text-warm-gray mt-1 line-clamp-1">
@@ -171,6 +186,16 @@ export default function AdminCategories() {
               value={formData.imageUrl}
               onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
               placeholder="https://..."
+            />
+            <Select
+              label="Store"
+              value={formData.storeType || ''}
+              onChange={(e) => setFormData({ ...formData, storeType: e.target.value })}
+              options={[
+                { value: '', label: 'No store assigned' },
+                { value: 'CANDLE', label: 'Candle Store' },
+                { value: 'HAMPER', label: 'Hamper Store' },
+              ]}
             />
             <div className="flex gap-3 pt-4">
               <Button type="button" variant="outline" onClick={handleCloseForm} className="flex-1">
