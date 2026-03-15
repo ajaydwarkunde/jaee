@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 jobs:
   # ============================================
@@ -34,10 +34,6 @@ jobs:
       
       - name: Run tests
         run: ./gradlew test --no-daemon
-        continue-on-error: true  # Don't fail if no tests yet
-      
-      - name: Build successful
-        run: echo "✅ Backend build successful!"
 
   # ============================================
   # Frontend: Build and Test
@@ -61,41 +57,122 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
-      - name: Type check
+      - name: Lint
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Unit tests
+        run: npx vitest run
+        continue-on-error: true
+
+      - name: Type check and build
         run: npm run build
-      
-      - name: Build successful
-        run: echo "✅ Frontend build successful!"
 
   # ============================================
-  # Deploy to Render (only on main, after tests pass)
+  # Deploy Production (main branch only)
   # ============================================
-  deploy:
+  deploy-production:
     needs: [backend, frontend]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
     steps:
-      - name: Trigger Render Deploy - Backend
+      - name: Deploy Backend to Production
         run: |
           if [ -n "${{ secrets.RENDER_BACKEND_DEPLOY_HOOK }}" ]; then
             curl -X POST "${{ secrets.RENDER_BACKEND_DEPLOY_HOOK }}"
-            echo "✅ Backend deploy triggered"
+            echo "Production backend deploy triggered"
           else
-            echo "⚠️ RENDER_BACKEND_DEPLOY_HOOK not set - skipping"
+            echo "RENDER_BACKEND_DEPLOY_HOOK not set - skipping"
           fi
-      
-      - name: Trigger Render Deploy - Frontend
+
+      - name: Deployment summary
         run: |
-          if [ -n "${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK }}" ]; then
-            curl -X POST "${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK }}"
-            echo "✅ Frontend deploy triggered"
+          echo "Production deployment triggered!"
+          echo "Backend: Render production service"
+          echo "Frontend: Vercel handles production deploy automatically on main push"
+
+  # ============================================
+  # Deploy Staging (develop branch only)
+  # ============================================
+  deploy-staging:
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    
+    steps:
+      - name: Deploy Backend to Staging
+        run: |
+          if [ -n "${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}" ]; then
+            curl -X POST "${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}"
+            echo "Staging backend deploy triggered"
           else
-            echo "⚠️ RENDER_FRONTEND_DEPLOY_HOOK not set - skipping"
+            echo "RENDER_STAGING_DEPLOY_HOOK not set - skipping"
           fi
-      
-      - name: Wait for deployments
+
+      - name: Deployment summary
         run: |
-          echo "🚀 Deployments triggered!"
-          echo "Check Render dashboard for deployment status"
-          echo "Health checks will validate before traffic is routed"
+          echo "Staging deployment triggered!"
+          echo "Backend: Render staging service"
+          echo "Frontend: Vercel creates preview deployment automatically"
+
+  # ============================================
+  # Auto-promote: staging -> production
+  # After staging deploys, health-check it and
+  # auto-merge develop into main if healthy.
+  # ============================================
+  promote-to-production:
+    needs: [deploy-staging]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Wait for Render to deploy
+        run: |
+          echo "Waiting 2 minutes for Render to build and start the staging service..."
+          sleep 120
+
+      - name: Health check staging backend
+        run: |
+          MAX_ATTEMPTS=10
+          WAIT_SECONDS=30
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 \
+              "${{ secrets.STAGING_BACKEND_URL }}/actuator/health") || true
+            if [ "$status" = "200" ]; then
+              echo "Staging is healthy (attempt $i)"
+              exit 0
+            fi
+            echo "Attempt $i/$MAX_ATTEMPTS: HTTP $status — retrying in ${WAIT_SECONDS}s..."
+            sleep $WAIT_SECONDS
+          done
+          echo "Staging health check failed after $MAX_ATTEMPTS attempts"
+          exit 1
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Promote develop to main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          existing_pr=$(gh pr list --base main --head develop --state open --json number --jq '.[0].number')
+
+          if [ -n "$existing_pr" ]; then
+            echo "Merging existing PR #$existing_pr"
+            gh pr merge "$existing_pr" --merge --delete-branch=false
+          else
+            echo "Creating PR from develop to main"
+            pr_url=$(gh pr create \
+              --base main \
+              --head develop \
+              --title "Auto-promote: develop to main" \
+              --body "Automated promotion — staging health check passed.")
+            pr_number=$(echo "$pr_url" | grep -oE '[0-9]+$')
+            echo "Merging PR #$pr_number"
+            gh pr merge "$pr_number" --merge --delete-branch=false
+          fi

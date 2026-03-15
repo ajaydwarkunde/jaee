@@ -40,11 +40,13 @@ frontend/.vite/
 # Environment & Secrets
 # ========================
 .env
+.env.*
 .env.local
 .env.*.local
 *.env
 backend/.env
 frontend/.env
+frontend/.env.*
 
 # ========================
 # OS Files
@@ -55,6 +57,11 @@ frontend/.env
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# ========================
+# Cursor
+# ========================
+.cursor/mcp.json
 
 # ========================
 # Editor & IDE

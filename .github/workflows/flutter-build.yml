@@ -35,7 +35,24 @@ jobs:
       - name: Generate platform boilerplate
         run: |
           flutter create --project-name jaee --org com.jaee .
-          flutter pub get
+
+      - name: Fix Kotlin version for plugin compatibility
+        run: |
+          # Upgrade Kotlin to 1.9.22 to match shared_preferences_android and other plugins
+          if [ -f android/settings.gradle ]; then
+            sed -i 's/org.jetbrains.kotlin.android" version "[^"]*"/org.jetbrains.kotlin.android" version "1.9.22"/' android/settings.gradle
+            echo "Updated Kotlin version in settings.gradle:"
+            grep -i kotlin android/settings.gradle || true
+          fi
+          if [ -f android/build.gradle ]; then
+            sed -i "s/ext.kotlin_version = '[^']*'/ext.kotlin_version = '1.9.22'/" android/build.gradle
+            sed -i 's/org.jetbrains.kotlin:kotlin-gradle-plugin:[^"]*"/org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22"/' android/build.gradle
+            echo "Updated Kotlin version in build.gradle:"
+            grep -i kotlin android/build.gradle || true
+          fi
+
+      - name: Install dependencies
+        run: flutter pub get
 
       - name: Download Google Fonts
         run: |
@@ -57,30 +74,24 @@ jobs:
         run: flutter doctor -v
 
       - name: Run analysis
-        run: flutter analyze --no-fatal-infos || true
+        run: flutter analyze --no-fatal-infos
 
-      - name: Build debug APK
-        if: ${{ github.event.inputs.build_mode != 'release' }}
-        run: |
-          flutter build apk --debug \
-            --dart-define=API_BASE_URL=${{ vars.API_BASE_URL || 'https://api.jaee.com' }}
+      - name: Run tests
+        run: flutter test
 
       - name: Build release APK
-        if: ${{ github.event.inputs.build_mode == 'release' }}
         run: |
-          flutter build apk --release \
+          flutter build apk --release --shrink \
             --dart-define=API_BASE_URL=${{ vars.API_BASE_URL || 'https://api.jaee.com' }}
 
-      - name: Upload debug APK
-        if: ${{ github.event.inputs.build_mode != 'release' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: jaee-debug-apk
-          path: mobile/build/app/outputs/flutter-apk/app-debug.apk
-          retention-days: 14
+      - name: Show APK size
+        run: |
+          ls -lh build/app/outputs/flutter-apk/app-release.apk
+          echo "---"
+          echo "If over 50MB, split APKs are also available:"
+          ls -lh build/app/outputs/flutter-apk/app-*.apk 2>/dev/null || true
 
       - name: Upload release APK
-        if: ${{ github.event.inputs.build_mode == 'release' }}
         uses: actions/upload-artifact@v4
         with:
           name: jaee-release-apk

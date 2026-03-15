@@ -118,7 +118,8 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public List<StoreSalesDto> getStoreSales() {
-        List<Object[]> revenueRows = orderRepository.getRevenueByStoreType();
+        List<OrderStatus> paidStatuses = List.of(OrderStatus.PAID, OrderStatus.SHIPPED, OrderStatus.FULFILLED);
+        List<Object[]> revenueRows = orderRepository.getRevenueByStoreType(paidStatuses);
 
         Map<StoreType, StoreSalesDto> map = new EnumMap<>(StoreType.class);
         for (StoreType st : StoreType.values()) {
@@ -141,7 +142,7 @@ public class OrderService {
 
         Pageable top5 = PageRequest.of(0, 5);
         for (StoreType st : StoreType.values()) {
-            List<Object[]> topRows = orderRepository.getTopProductsByStoreType(st, top5);
+            List<Object[]> topRows = orderRepository.getTopProductsByStoreType(st, paidStatuses, top5);
             List<StoreSalesDto.TopProduct> topProducts = topRows.stream()
                     .map(r -> StoreSalesDto.TopProduct.builder()
                             .name((String) r[0])

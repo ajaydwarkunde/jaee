@@ -33,7 +33,7 @@ public class Category {
     @Enumerated(EnumType.STRING)
     private StoreType storeType;
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    @ManyToMany(mappedBy = "categories")
     @Builder.Default
     private List<Product> products = new ArrayList<>();
 
