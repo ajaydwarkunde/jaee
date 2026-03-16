@@ -121,19 +121,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     }
   }
 
-  Future<void> _loginWithGoogle() async {
-    setState(() { _isLoading = true; _error = null; });
-    try {
-      final authService = ref.read(authServiceProvider);
-      final response = await authService.loginWithGoogle();
-      await _handleLogin(response);
-    } catch (e) {
-      setState(() => _error = ApiException.getErrorMessage(e));
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -293,25 +280,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                 ),
               ),
 
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  const Expanded(child: Divider()),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text('or', style: AppTypography.bodySmall.copyWith(color: AppColors.warmGray)),
-                  ),
-                  const Expanded(child: Divider()),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              AppButton(
-                label: 'Continue with Google',
-                variant: AppButtonVariant.outlined,
-                icon: Icons.g_mobiledata,
-                onPressed: _loginWithGoogle,
-              ),
               const SizedBox(height: 24),
 
               Row(
