@@ -15,7 +15,7 @@ import Input from '@/components/ui/Input'
 import { getErrorMessage } from '@/lib/api'
 import toast from 'react-hot-toast'
 import { showCartToast } from '@/components/ui/CartToast'
-import type { Product, ProductFilters, FilterOptions } from '@/types'
+import type { FilterOptions, Product, ProductFilters } from '@/types'
 
 export default function ShopPage() {
   const { categorySlug } = useParams()
@@ -48,7 +48,7 @@ export default function ShopPage() {
   })
 
   // Get available filter options (colors, sizes)
-  const { data: filterOptions } = useQuery({
+  const { data: filterOptions } = useQuery<FilterOptions>({
     queryKey: ['filterOptions'],
     queryFn: productService.getFilterOptions,
   })

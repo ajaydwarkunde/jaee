@@ -55,16 +55,18 @@ class ProductServiceTest {
         Product product = createProduct(1L, "Product", "product", BigDecimal.TEN);
         Page<Product> productPage = new PageImpl<>(List.of(product), pageable, 1);
 
-        when(productRepository.findWithFilters(isNull(), isNull(), isNull(), eq(""), any(Pageable.class)))
+        when(productRepository.findWithFilters(
+                isNull(), isNull(), isNull(), eq(""), isNull(), isNull(), any(Pageable.class)))
                 .thenReturn(productPage);
 
         PageResponse<ProductDto> result = productService.getProducts(
-                null, null, null, "", "createdAt", "ASC", 0, 10
+                null, null, null, "", null, null, "createdAt", "ASC", 0, 10
         );
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getName()).isEqualTo("Product");
-        verify(productRepository).findWithFilters(isNull(), isNull(), isNull(), eq(""), any(Pageable.class));
+        verify(productRepository).findWithFilters(
+                isNull(), isNull(), isNull(), eq(""), isNull(), isNull(), any(Pageable.class));
     }
 
     @Test

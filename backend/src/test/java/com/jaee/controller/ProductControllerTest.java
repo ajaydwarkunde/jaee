@@ -58,7 +58,7 @@ class ProductControllerTest {
                 .last(true)
                 .build();
 
-        when(productService.getProducts(any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
+        when(productService.getProducts(any(), any(), any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
                 .thenReturn(pageResponse);
 
         mockMvc.perform(get("/products")
@@ -69,7 +69,7 @@ class ProductControllerTest {
                         .param("sortBy", "price")
                         .param("sortDir", "asc")
                         .param("page", "0")
-                        .param("size", "12"))
+                        .param("pageSize", "12"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.content[0].id").value(1))
@@ -79,7 +79,7 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$.data.size").value(12));
 
         verify(productService).getProducts(1L, BigDecimal.valueOf(10), BigDecimal.valueOf(50),
-                "candle", "price", "asc", 0, 12);
+                "candle", null, null, "price", "asc", 0, 12);
     }
 
     @Test
