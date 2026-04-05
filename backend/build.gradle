@@ -23,6 +23,11 @@ repositories {
     mavenCentral()
 }
 
+// Spring uses spring-jcl; transitive commons-logging breaks native-image (LogFactory init at build time).
+configurations.configureEach {
+    exclude group: 'commons-logging', module: 'commons-logging'
+}
+
 ext {
     jjwtVersion = '0.12.3'
     razorpayVersion = '1.4.6'
@@ -102,6 +107,7 @@ graalvmNative {
         main {
             imageName = 'jaee-backend'
             buildArgs.add('-H:+ReportExceptionStackTraces')
+            buildArgs.add('--initialize-at-run-time=org.apache.commons.logging')
         }
     }
     metadataRepository {
