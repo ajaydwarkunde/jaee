@@ -1,0 +1,52 @@
+# Experimental: GraalVM native image compile (evaluates smaller Docker images vs JRE+JAR).
+# Does not block merges; fix failures before switching Render to Dockerfile.native.
+name: Backend native image (experimental)
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/native-image.yml'
+  push:
+    branches:
+      - 'feature/**'
+    paths:
+      - 'backend/**'
+
+jobs:
+  native-compile:
+    name: nativeCompile (GraalVM)
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up GraalVM JDK 21 + native-image
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '21'
+          distribution: 'graalvm-community'
+          components: 'native-image'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          native-image-job-reports: 'false'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Native compile
+        env:
+          GRADLE_OPTS: '-Xmx6g -XX:MaxMetaspaceSize=512m'
+        run: ./gradlew nativeCompile --no-daemon -x test
+
+      - name: Upload native binary (artifact)
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: jaee-backend-native-linux-amd64
+          path: backend/build/native/nativeCompile/jaee-backend
+          if-no-files-found: warn
