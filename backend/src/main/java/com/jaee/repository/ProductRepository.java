@@ -72,7 +72,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT p FROM Product p WHERE p.active = true AND p.compareAtPrice IS NOT NULL AND p.compareAtPrice > p.price")
     Page<Product> findOnSaleProducts(Pageable pageable);
     
-    @Query("SELECT DISTINCT p FROM Product p JOIN p.categories c WHERE p.active = true AND c.id IN :categoryIds AND p.id != :productId ORDER BY RANDOM()")
+    // DISTINCT + ORDER BY RANDOM() is invalid in PostgreSQL; de-dupe ids in a subquery, then shuffle outer rows.
+    @Query("SELECT p FROM Product p WHERE p.active = true AND p.id IN " +
+           "(SELECT DISTINCT p2.id FROM Product p2 JOIN p2.categories c " +
+           "WHERE p2.active = true AND c.id IN :categoryIds AND p2.id <> :productId) " +
+           "ORDER BY function('random')")
     List<Product> findRelatedProducts(@Param("categoryIds") Set<Long> categoryIds, @Param("productId") Long productId, Pageable pageable);
 
     @Query("SELECT DISTINCT ov FROM Product p JOIN p.variants v JOIN v.optionValues ov " +
