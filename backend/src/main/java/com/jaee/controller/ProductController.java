@@ -2,6 +2,7 @@ package com.jaee.controller;
 
 import com.jaee.dto.common.ApiResponse;
 import com.jaee.dto.common.PageResponse;
+import com.jaee.dto.product.FilterOptionsDto;
 import com.jaee.dto.product.ProductDto;
 import com.jaee.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,15 +29,24 @@ public class ProductController {
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) String color,
+            @RequestParam(required = false) String size,
             @RequestParam(defaultValue = "newest") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "12") int size
+            @RequestParam(defaultValue = "12") int pageSize
     ) {
         PageResponse<ProductDto> products = productService.getProducts(
-                categoryId, minPrice, maxPrice, search, sortBy, sortDir, page, size
+                categoryId, minPrice, maxPrice, search, color, size, sortBy, sortDir, page, pageSize
         );
         return ResponseEntity.ok(ApiResponse.success(products));
+    }
+
+    @GetMapping("/filter-options")
+    @Operation(summary = "Get available filter options (colors, sizes)")
+    public ResponseEntity<ApiResponse<FilterOptionsDto>> getFilterOptions() {
+        FilterOptionsDto options = productService.getFilterOptions();
+        return ResponseEntity.ok(ApiResponse.success(options));
     }
 
     @GetMapping("/{slug}")

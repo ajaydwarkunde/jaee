@@ -1,6 +1,7 @@
 package com.jaee.service;
 
 import com.jaee.dto.common.PageResponse;
+import com.jaee.dto.product.FilterOptionsDto;
 import com.jaee.dto.product.ProductCreateRequest;
 import com.jaee.dto.product.ProductDto;
 import com.jaee.entity.Category;
@@ -46,19 +47,29 @@ public class ProductService {
             BigDecimal minPrice,
             BigDecimal maxPrice,
             String search,
+            String color,
+            String size,
             String sortBy,
             String sortDir,
             int page,
-            int size
+            int pageSize
     ) {
         Sort sort = Sort.by(Sort.Direction.fromString(sortDir), getSortField(sortBy));
-        Pageable pageable = PageRequest.of(page, size, sort);
+        Pageable pageable = PageRequest.of(page, pageSize, sort);
 
         Page<Product> productPage = productRepository.findWithFilters(
-                categoryId, minPrice, maxPrice, search, pageable
+                categoryId, minPrice, maxPrice, search, color, size, pageable
         );
 
         return PageResponse.from(productPage, ProductDto::fromEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public FilterOptionsDto getFilterOptions() {
+        return FilterOptionsDto.builder()
+                .colors(productRepository.findDistinctColors())
+                .sizes(productRepository.findDistinctSizes())
+                .build();
     }
 
     @Transactional(readOnly = true)

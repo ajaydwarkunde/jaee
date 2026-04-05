@@ -25,7 +25,7 @@ export default function AdminProducts() {
 
   const { data: productsData, isLoading } = useQuery({
     queryKey: ['admin-products', { search, page }],
-    queryFn: () => productService.getProducts({ search: search || undefined, page, size: 10 }),
+    queryFn: () => productService.getProducts({ search: search || undefined, page, pageSize: 10 }),
   })
 
   const { data: categories } = useQuery({

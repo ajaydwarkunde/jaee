@@ -36,17 +36,33 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
            "LOWER(p.description) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Product> searchProducts(@Param("search") String search, Pageable pageable);
     
-    @Query("SELECT DISTINCT p FROM Product p LEFT JOIN p.categories c WHERE p.active = true AND " +
+    @Query("SELECT DISTINCT p FROM Product p " +
+           "LEFT JOIN p.categories c " +
+           "WHERE p.active = true AND " +
            "(:categoryId IS NULL OR c.id = :categoryId) AND " +
            "(:minPrice IS NULL OR p.price >= :minPrice) AND " +
            "(:maxPrice IS NULL OR p.price <= :maxPrice) AND " +
-           "(:search IS NULL OR :search = '' OR LOWER(COALESCE(p.name, '')) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-           "LOWER(COALESCE(p.description, '')) LIKE LOWER(CONCAT('%', :search, '%')))")
+           "(:color IS NULL OR :color = '' OR EXISTS (" +
+           "  SELECT 1 FROM ProductVariant pv JOIN pv.optionValues pov " +
+           "  WHERE pv.product = p AND KEY(pov) = 'Color' AND LOWER(pov) = LOWER(:color))) AND " +
+           "(:size IS NULL OR :size = '' OR EXISTS (" +
+           "  SELECT 1 FROM ProductVariant pv2 JOIN pv2.optionValues pov2 " +
+           "  WHERE pv2.product = p AND KEY(pov2) = 'Size' AND LOWER(pov2) = LOWER(:size))) AND " +
+           "(:search IS NULL OR :search = '' OR " +
+           "LOWER(COALESCE(p.name, '')) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(COALESCE(p.description, '')) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(COALESCE(c.name, '')) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "EXISTS (SELECT 1 FROM ProductVariant sv JOIN sv.optionValues sov " +
+           "  WHERE sv.product = p AND LOWER(sov) LIKE LOWER(CONCAT('%', :search, '%'))) OR " +
+           "EXISTS (SELECT 1 FROM ProductVariant skv " +
+           "  WHERE skv.product = p AND LOWER(COALESCE(skv.sku, '')) LIKE LOWER(CONCAT('%', :search, '%'))))")
     Page<Product> findWithFilters(
         @Param("categoryId") Long categoryId,
         @Param("minPrice") BigDecimal minPrice,
         @Param("maxPrice") BigDecimal maxPrice,
         @Param("search") String search,
+        @Param("color") String color,
+        @Param("size") String size,
         Pageable pageable
     );
     
@@ -58,4 +74,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     
     @Query("SELECT DISTINCT p FROM Product p JOIN p.categories c WHERE p.active = true AND c.id IN :categoryIds AND p.id != :productId ORDER BY RANDOM()")
     List<Product> findRelatedProducts(@Param("categoryIds") Set<Long> categoryIds, @Param("productId") Long productId, Pageable pageable);
+
+    @Query("SELECT DISTINCT ov FROM Product p JOIN p.variants v JOIN v.optionValues ov " +
+           "WHERE p.active = true AND KEY(ov) = 'Color' ORDER BY ov")
+    List<String> findDistinctColors();
+
+    @Query("SELECT DISTINCT ov FROM Product p JOIN p.variants v JOIN v.optionValues ov " +
+           "WHERE p.active = true AND KEY(ov) = 'Size' ORDER BY ov")
+    List<String> findDistinctSizes();
 }

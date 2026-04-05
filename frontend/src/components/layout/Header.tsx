@@ -36,7 +36,7 @@ function SearchWithSuggestions({ query, onQueryChange, onSearch, onClose }: {
 
   const { data: suggestions } = useQuery({
     queryKey: ['searchSuggestions', debouncedQuery],
-    queryFn: () => productService.getProducts({ search: debouncedQuery, size: 5 }),
+    queryFn: () => productService.getProducts({ search: debouncedQuery, pageSize: 5 }),
     enabled: debouncedQuery.length >= 2,
   })
 
@@ -74,7 +74,12 @@ function SearchWithSuggestions({ query, onQueryChange, onSearch, onClose }: {
                   />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-charcoal truncate">{product.name}</p>
-                    <p className="text-xs text-rose font-bold">{formatPrice(product.price, product.currency)}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <p className="text-xs text-rose font-bold">{formatPrice(product.price, product.currency)}</p>
+                      {product.categoryNames?.length > 0 && (
+                        <span className="text-[10px] text-warm-gray">in {product.categoryNames[0]}</span>
+                      )}
+                    </div>
                   </div>
                 </button>
               ))}

@@ -1,5 +1,5 @@
 import { api } from '@/lib/api'
-import type { ApiResponse, PageResponse, Product, ProductFilters, ProductFormData } from '@/types'
+import type { ApiResponse, FilterOptions, PageResponse, Product, ProductFilters, ProductFormData } from '@/types'
 
 export const productService = {
   getProducts: async (filters: ProductFilters = {}): Promise<PageResponse<Product>> => {
@@ -9,12 +9,19 @@ export const productService = {
     if (filters.minPrice) params.append('minPrice', filters.minPrice.toString())
     if (filters.maxPrice) params.append('maxPrice', filters.maxPrice.toString())
     if (filters.search) params.append('search', filters.search)
+    if (filters.color) params.append('color', filters.color)
+    if (filters.size) params.append('size', filters.size)
     if (filters.sortBy) params.append('sortBy', filters.sortBy)
     if (filters.sortDir) params.append('sortDir', filters.sortDir)
     params.append('page', (filters.page ?? 0).toString())
-    params.append('size', (filters.size ?? 12).toString())
+    params.append('pageSize', (filters.pageSize ?? 12).toString())
 
     const response = await api.get<ApiResponse<PageResponse<Product>>>(`/products?${params}`)
+    return response.data.data
+  },
+
+  getFilterOptions: async (): Promise<FilterOptions> => {
+    const response = await api.get<ApiResponse<FilterOptions>>('/products/filter-options')
     return response.data.data
   },
 
