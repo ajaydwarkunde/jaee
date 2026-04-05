@@ -70,14 +70,21 @@ export interface ProductVariant {
 }
 
 export interface ProductFilters {
-  categoryId?: number  // kept as single filter for shop page
+  categoryId?: number
   minPrice?: number
   maxPrice?: number
   search?: string
+  color?: string
+  size?: string
   sortBy?: 'newest' | 'price' | 'name'
   sortDir?: 'asc' | 'desc'
   page?: number
-  size?: number
+  pageSize?: number
+}
+
+export interface FilterOptions {
+  colors: string[]
+  sizes: string[]
 }
 
 // Category types

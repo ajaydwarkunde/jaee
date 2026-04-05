@@ -85,8 +85,8 @@ function StoreSalesCard({ data, icon: Icon, color, label }: {
 
 export default function AdminDashboard() {
   const { data: products } = useQuery({
-    queryKey: ['products', { size: 1 }],
-    queryFn: () => productService.getProducts({ size: 1 }),
+    queryKey: ['products', { pageSize: 1 }],
+    queryFn: () => productService.getProducts({ pageSize: 1 }),
   })
 
   const { data: categories } = useQuery({

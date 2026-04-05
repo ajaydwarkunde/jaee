@@ -15,7 +15,7 @@ import Input from '@/components/ui/Input'
 import { getErrorMessage } from '@/lib/api'
 import toast from 'react-hot-toast'
 import { showCartToast } from '@/components/ui/CartToast'
-import type { Product, ProductFilters } from '@/types'
+import type { FilterOptions, Product, ProductFilters } from '@/types'
 
 export default function ShopPage() {
   const { categorySlug } = useParams()
@@ -33,16 +33,24 @@ export default function ShopPage() {
     minPrice: undefined,
     maxPrice: undefined,
     search: searchParams.get('search') || undefined,
+    color: searchParams.get('color') || undefined,
+    size: searchParams.get('size') || undefined,
     sortBy: 'newest',
     sortDir: 'desc',
     page: 0,
-    size: 12,
+    pageSize: 12,
   })
 
   // Get categories
   const { data: categories } = useQuery({
     queryKey: ['categories'],
     queryFn: categoryService.getCategories,
+  })
+
+  // Get available filter options (colors, sizes)
+  const { data: filterOptions } = useQuery<FilterOptions>({
+    queryKey: ['filterOptions'],
+    queryFn: productService.getFilterOptions,
   })
 
   // Get category by slug
@@ -106,7 +114,7 @@ export default function ShopPage() {
       sortBy: 'newest',
       sortDir: 'desc',
       page: 0,
-      size: 12,
+      pageSize: 12,
     })
     setSearchParams({})
   }
@@ -128,7 +136,7 @@ export default function ShopPage() {
     setFilters((prev) => ({ ...prev, sortBy, sortDir, page: 0 }))
   }
 
-  const hasActiveFilters = filters.minPrice || filters.maxPrice || filters.search
+  const hasActiveFilters = filters.minPrice || filters.maxPrice || filters.search || filters.color || filters.size
 
   return (
     <div className="min-h-screen bg-cream">
@@ -209,6 +217,50 @@ export default function ShopPage() {
                   />
                 </div>
               </div>
+
+              {/* Colors */}
+              {filterOptions?.colors && filterOptions.colors.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-sm font-medium text-charcoal mb-3">Color</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {filterOptions.colors.map((color) => (
+                      <button
+                        key={color}
+                        onClick={() => handleFilterChange('color', filters.color === color ? undefined : color)}
+                        className={`px-3 py-1.5 text-xs rounded-full border transition-colors ${
+                          filters.color === color
+                            ? 'bg-rose text-soft-white border-rose'
+                            : 'bg-cream text-warm-gray border-blush hover:border-rose hover:text-charcoal'
+                        }`}
+                      >
+                        {color}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Sizes */}
+              {filterOptions?.sizes && filterOptions.sizes.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-sm font-medium text-charcoal mb-3">Size</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {filterOptions.sizes.map((sz) => (
+                      <button
+                        key={sz}
+                        onClick={() => handleFilterChange('size', filters.size === sz ? undefined : sz)}
+                        className={`px-3 py-1.5 text-xs rounded-full border transition-colors ${
+                          filters.size === sz
+                            ? 'bg-rose text-soft-white border-rose'
+                            : 'bg-cream text-warm-gray border-blush hover:border-rose hover:text-charcoal'
+                        }`}
+                      >
+                        {sz}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </aside>
 
@@ -265,6 +317,22 @@ export default function ShopPage() {
                   <span className="inline-flex items-center gap-1 px-3 py-1 bg-rose/10 text-rose text-sm rounded-full">
                     Max: ₹{filters.maxPrice}
                     <button onClick={() => handleFilterChange('maxPrice', undefined)}>
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                )}
+                {filters.color && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-rose/10 text-rose text-sm rounded-full">
+                    Color: {filters.color}
+                    <button onClick={() => handleFilterChange('color', undefined)}>
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                )}
+                {filters.size && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-rose/10 text-rose text-sm rounded-full">
+                    Size: {filters.size}
+                    <button onClick={() => handleFilterChange('size', undefined)}>
                       <X className="w-3 h-3" />
                     </button>
                   </span>
@@ -366,6 +434,50 @@ export default function ShopPage() {
                 />
               </div>
             </div>
+
+            {/* Colors - Mobile */}
+            {filterOptions?.colors && filterOptions.colors.length > 0 && (
+              <div className="mb-6">
+                <h4 className="text-sm font-medium text-charcoal mb-3">Color</h4>
+                <div className="flex flex-wrap gap-2">
+                  {filterOptions.colors.map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => handleFilterChange('color', filters.color === color ? undefined : color)}
+                      className={`px-3 py-1.5 text-xs rounded-full border transition-colors ${
+                        filters.color === color
+                          ? 'bg-rose text-soft-white border-rose'
+                          : 'bg-cream text-warm-gray border-blush hover:border-rose hover:text-charcoal'
+                      }`}
+                    >
+                      {color}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Sizes - Mobile */}
+            {filterOptions?.sizes && filterOptions.sizes.length > 0 && (
+              <div className="mb-6">
+                <h4 className="text-sm font-medium text-charcoal mb-3">Size</h4>
+                <div className="flex flex-wrap gap-2">
+                  {filterOptions.sizes.map((sz) => (
+                    <button
+                      key={sz}
+                      onClick={() => handleFilterChange('size', filters.size === sz ? undefined : sz)}
+                      className={`px-3 py-1.5 text-xs rounded-full border transition-colors ${
+                        filters.size === sz
+                          ? 'bg-rose text-soft-white border-rose'
+                          : 'bg-cream text-warm-gray border-blush hover:border-rose hover:text-charcoal'
+                      }`}
+                    >
+                      {sz}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="flex gap-2">
               <Button variant="outline" onClick={handleClearFilters} className="flex-1">
