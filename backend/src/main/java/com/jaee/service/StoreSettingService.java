@@ -11,10 +11,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
 
 @Service
 public class StoreSettingService {
+
+    private static final String CANONICAL_SUPPORT_EMAIL = "jaaistore1212@gmail.com";
+    private static final String CANONICAL_INSTAGRAM_HANDLE = "@jaai_candle_studio";
+
+    /** Former defaults still stored in many databases — map to current public contact. */
+    private static final Set<String> LEGACY_SUPPORT_EMAILS = Set.of(
+        "jaeestudio12@gmail.com",
+        "jaaistudio12@gmail.com"
+    );
+
+    private static final Set<String> LEGACY_INSTAGRAM_HANDLES = Set.of(
+        "@jaai.studio",
+        "@jaee.studio"
+    );
 
     private final StoreSettingRepository settingRepository;
 
@@ -82,7 +97,22 @@ public class StoreSettingService {
         for (var e : OPTIONAL_SETTINGS.entrySet()) {
             settings.putIfAbsent(e.getKey(), e.getValue().defaultValue());
         }
+        normalizeLegacyPublicContact(settings);
         return settings;
+    }
+
+    /**
+     * Ensure public API returns current contact info even when DB still holds retired values.
+     */
+    private static void normalizeLegacyPublicContact(Map<String, String> settings) {
+        String email = settings.get("support_email");
+        if (email != null && LEGACY_SUPPORT_EMAILS.contains(email.trim())) {
+            settings.put("support_email", CANONICAL_SUPPORT_EMAIL);
+        }
+        String ig = settings.get("instagram_handle");
+        if (ig != null && LEGACY_INSTAGRAM_HANDLES.contains(ig.trim())) {
+            settings.put("instagram_handle", CANONICAL_INSTAGRAM_HANDLE);
+        }
     }
 
     /**
