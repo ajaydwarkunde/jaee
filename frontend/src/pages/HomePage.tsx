@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ArrowRight, Sparkles, Heart, Truck, Gift, CheckCircle, Star, ChevronLeft, ChevronRight, Quote, Flame, Palette, Droplets, Package } from 'lucide-react'
+import { ArrowRight, Sparkles, Heart, Truck, Gift, CheckCircle, Flame, Palette, Droplets, Package, MessageSquare } from 'lucide-react'
 import { productService } from '@/services/productService'
 import { categoryService } from '@/services/categoryService'
 import { cartService } from '@/services/cartService'
@@ -18,7 +18,35 @@ import { getErrorMessage } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import { showCartToast } from '@/components/ui/CartToast'
+import Logo from '@/components/ui/Logo'
 import type { Product } from '@/types'
+
+const COMMUNITY_STORAGE_KEY = 'jaai-community-experiences'
+
+type CommunityStory = {
+  id: string
+  name: string
+  location: string
+  text: string
+  at: string
+}
+
+const SEED_COMMUNITY_STORIES: CommunityStory[] = [
+  {
+    id: 'seed-1',
+    name: 'Priya M.',
+    location: 'Mumbai',
+    text: 'The candles from Jaai are absolutely divine — the fragrance fills the room and lasts for hours.',
+    at: new Date().toISOString(),
+  },
+  {
+    id: 'seed-2',
+    name: 'Rahul K.',
+    location: 'Delhi',
+    text: 'Best quality I’ve found in India. Clean burn, subtle scents, and beautiful packaging every time.',
+    at: new Date().toISOString(),
+  },
+]
 
 /* ─── Split Hero ─── */
 function SplitHero({ hamperEnabled }: { hamperEnabled: boolean }) {
@@ -308,67 +336,131 @@ function StoreShowcase({
   )
 }
 
-/* ─── Testimonials ─── */
-const testimonials = [
-  { name: 'Priya M.', location: 'Mumbai', rating: 5, text: 'The candles from Jaai are absolutely divine! The fragrance fills the entire room and lasts for hours. My go-to gift for every occasion now.', product: 'Lavender Bliss Candle' },
-  { name: 'Ananya S.', location: 'Bangalore', rating: 5, text: 'I ordered the gift set for my mom\'s birthday and she loved it! The packaging was beautiful and the candles smell amazing. Will definitely order again.', product: 'Gift Set Collection' },
-  { name: 'Rahul K.', location: 'Delhi', rating: 5, text: 'Best quality candles I\'ve found in India. The soy wax burns so cleanly and the scents are subtle yet luxurious. Highly recommend!', product: 'Vanilla Bean Candle' },
-  { name: 'Meera D.', location: 'Pune', rating: 5, text: 'The attention to detail is incredible. From the hand-poured wax to the eco-friendly packaging, everything speaks quality. Jaai has a customer for life!', product: 'Rose Garden Candle' },
-  { name: 'Sneha T.', location: 'Hyderabad', rating: 5, text: 'I\'ve been ordering from Jaai for months now. Every single candle has been perfect. The customer service is also top-notch!', product: 'Sandalwood Serenity' },
-]
-
-function TestimonialsSection() {
-  const [current, setCurrent] = useState(0)
-
-  const next = useCallback(() => {
-    setCurrent(prev => (prev + 1) % testimonials.length)
-  }, [])
-
-  const prev = useCallback(() => {
-    setCurrent(prev => (prev - 1 + testimonials.length) % testimonials.length)
-  }, [])
+/* ─── Community experiences (local shares + highlights) ─── */
+function CommunityExperienceSection() {
+  const [items, setItems] = useState<CommunityStory[]>(SEED_COMMUNITY_STORIES)
+  const [name, setName] = useState('')
+  const [location, setLocation] = useState('')
+  const [text, setText] = useState('')
 
   useEffect(() => {
-    const timer = setInterval(next, 5000)
-    return () => clearInterval(timer)
-  }, [next])
+    try {
+      const raw = localStorage.getItem(COMMUNITY_STORAGE_KEY)
+      const parsed: CommunityStory[] = raw ? JSON.parse(raw) : []
+      setItems([...SEED_COMMUNITY_STORIES, ...parsed])
+    } catch {
+      setItems(SEED_COMMUNITY_STORIES)
+    }
+  }, [])
 
-  const t = testimonials[current]
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault()
+    const body = text.trim()
+    if (body.length < 10) {
+      toast.error('Please write at least a few sentences about your experience.')
+      return
+    }
+    if (body.length > 2000) {
+      toast.error('Please keep your story under 2000 characters.')
+      return
+    }
+    const entry: CommunityStory = {
+      id: crypto.randomUUID(),
+      name: name.trim() || 'Community member',
+      location: location.trim(),
+      text: body,
+      at: new Date().toISOString(),
+    }
+    let stored: CommunityStory[] = []
+    try {
+      stored = JSON.parse(localStorage.getItem(COMMUNITY_STORAGE_KEY) || '[]')
+    } catch {
+      stored = []
+    }
+    const nextStored = [...stored, entry]
+    localStorage.setItem(COMMUNITY_STORAGE_KEY, JSON.stringify(nextStored))
+    setItems([...SEED_COMMUNITY_STORIES, ...nextStored])
+    setName('')
+    setLocation('')
+    setText('')
+    toast.success('Thanks for sharing — your note appears below.')
+  }
 
   return (
     <section className="py-16 md:py-24 bg-cream">
       <div className="container-custom">
-        <div className="text-center mb-12">
-          <h2 className="heading-2 text-charcoal">What Our Customers Say</h2>
-          <p className="mt-4 text-warm-gray">Real stories from the Jaai community</p>
+        <div className="text-center mb-10 md:mb-12">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-rose/10 mb-4">
+            <MessageSquare className="w-6 h-6 text-rose" />
+          </div>
+          <h2 className="heading-2 text-charcoal">Share Your Experience</h2>
+          <p className="mt-4 text-warm-gray max-w-2xl mx-auto">
+            Loved your order? Tell others what stood out — fragrance, packaging, gifting, or service.
+          </p>
         </div>
-        <div className="max-w-2xl mx-auto relative">
-          <div className="bg-soft-white rounded-2xl p-8 md:p-10 shadow-soft text-center">
-            <Quote className="w-10 h-10 text-rose/30 mx-auto mb-4" />
-            <p className="text-lg md:text-xl text-charcoal leading-relaxed font-serif italic mb-6">
-              "{t.text}"
-            </p>
-            <div className="flex justify-center gap-1 mb-4">
-              {Array.from({ length: t.rating }).map((_, i) => (
-                <Star key={i} className="w-4 h-4 fill-warning text-warning" />
-              ))}
+
+        <div className="grid md:grid-cols-2 gap-4 mb-10">
+          {items.map((story) => (
+            <article
+              key={story.id}
+              className="bg-soft-white rounded-2xl p-6 shadow-soft border border-blush/40 text-left"
+            >
+              <div className="flex gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-blush flex items-center justify-center text-sm font-semibold text-rose shrink-0">
+                  {story.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <p className="font-medium text-charcoal">{story.name}</p>
+                  <p className="text-xs text-warm-gray">
+                    {story.location ? `${story.location} · ` : ''}
+                    {new Date(story.at).toLocaleDateString(undefined, { dateStyle: 'medium' })}
+                  </p>
+                </div>
+              </div>
+              <p className="text-charcoal/90 leading-relaxed text-sm md:text-base whitespace-pre-wrap">
+                {story.text}
+              </p>
+            </article>
+          ))}
+        </div>
+
+        <div className="max-w-xl mx-auto bg-gradient-to-br from-blush/30 to-champagne/40 rounded-2xl p-6 md:p-8 border border-blush/50">
+          <h3 className="font-serif text-lg font-semibold text-charcoal mb-4 text-center">Add your story</h3>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid sm:grid-cols-2 gap-3">
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your name (optional)"
+                className="w-full px-4 py-2.5 rounded-lg border border-blush bg-soft-white text-sm text-charcoal placeholder:text-warm-gray focus:outline-none focus:border-rose"
+                maxLength={80}
+              />
+              <input
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="City (optional)"
+                className="w-full px-4 py-2.5 rounded-lg border border-blush bg-soft-white text-sm text-charcoal placeholder:text-warm-gray focus:outline-none focus:border-rose"
+                maxLength={80}
+              />
             </div>
-            <p className="font-medium text-charcoal">{t.name}</p>
-            <p className="text-sm text-warm-gray">{t.location} · {t.product}</p>
-          </div>
-          <div className="flex justify-center items-center gap-4 mt-6">
-            <button onClick={prev} className="p-2 rounded-full bg-soft-white shadow-soft hover:shadow-soft-md transition-shadow" aria-label="Previous testimonial">
-              <ChevronLeft className="w-5 h-5 text-charcoal" />
-            </button>
-            <div className="flex gap-2">
-              {testimonials.map((_, i) => (
-                <button key={i} onClick={() => setCurrent(i)} className={`w-2 h-2 rounded-full transition-colors ${i === current ? 'bg-rose' : 'bg-blush'}`} aria-label={`Go to testimonial ${i + 1}`} />
-              ))}
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="How was your Jaai experience?"
+              rows={4}
+              className="w-full px-4 py-3 rounded-lg border border-blush bg-soft-white text-sm text-charcoal placeholder:text-warm-gray focus:outline-none focus:border-rose resize-y min-h-[100px]"
+              maxLength={2000}
+              required
+            />
+            <div className="flex justify-between items-center gap-3 flex-wrap">
+              <p className="text-xs text-warm-gray">Shown on this device after you post. Contact us for featured stories.</p>
+              <Button type="submit" size="sm">
+                Share
+              </Button>
             </div>
-            <button onClick={next} className="p-2 rounded-full bg-soft-white shadow-soft hover:shadow-soft-md transition-shadow" aria-label="Next testimonial">
-              <ChevronRight className="w-5 h-5 text-charcoal" />
-            </button>
-          </div>
+          </form>
         </div>
       </div>
     </section>
@@ -420,7 +512,7 @@ function NewsletterSection() {
   return (
     <section className="theme-invert py-16 md:py-24 bg-charcoal">
       <div className="container-custom text-center">
-        <Sparkles className="w-10 h-10 text-rose mx-auto mb-6" />
+        <Logo size="xl" variant="brand" linkTo={false} className="mx-auto mb-6 max-w-[220px]" />
         <h2 className="heading-2 text-soft-white mb-4">Join the Jaai Community</h2>
         <p className="text-cream/70 max-w-lg mx-auto mb-8">
           Subscribe for exclusive offers, new arrivals, and self-care inspiration delivered to your inbox.
@@ -790,48 +882,8 @@ export default function HomePage() {
         customCandleEnabled={featureCustomCandle}
       />
 
-      {/* Brand Story */}
-      <section className="py-16 md:py-24 bg-gradient-to-br from-blush to-champagne">
-        <div className="container-custom">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1">
-              <span className="text-rose text-sm font-medium uppercase tracking-wide">Our Story</span>
-              <h2 className="heading-2 text-charcoal mt-4 mb-6">
-                Crafted with Intention, Designed for Serenity
-              </h2>
-              <p className="text-warm-gray leading-relaxed mb-6">
-                Jaai was born from a simple belief: that small moments of beauty can transform our everyday lives. 
-                What started as a passion project has grown into a brand dedicated to creating premium, 
-                sustainable products that bring warmth and joy to homes across India.
-              </p>
-              <p className="text-warm-gray leading-relaxed mb-8">
-                {featureHamperPublic
-                  ? 'From hand-poured candles to beautifully curated gift hampers, every product we make reflects our commitment to quality, sustainability, and the art of thoughtful giving.'
-                  : 'From hand-poured candles to thoughtful packaging, every product we make reflects our commitment to quality, sustainability, and the art of mindful living.'}
-              </p>
-              <Link to="/about">
-                <Button variant="secondary">Learn More About Us</Button>
-              </Link>
-            </div>
-            <div className="order-1 lg:order-2">
-              <div className="relative">
-                <LazyImage
-                  src="https://images.unsplash.com/photo-1543512214-318c7553f230?w=800"
-                  alt="Candle making process"
-                  className="w-full rounded-xl shadow-soft-xl"
-                />
-                <div className="absolute -bottom-4 -right-4 bg-soft-white p-6 rounded-xl shadow-soft-lg max-w-[200px]">
-                  <p className="font-serif text-3xl font-semibold text-rose">100%</p>
-                  <p className="text-sm text-warm-gray mt-1">Natural Ingredients</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <TestimonialsSection />
+      {/* Community experiences */}
+      <CommunityExperienceSection />
 
       {/* Newsletter */}
       <NewsletterSection />
