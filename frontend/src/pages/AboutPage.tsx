@@ -40,54 +40,7 @@ export default function AboutPage() {
           <div className="absolute bottom-10 left-10 w-80 h-80 bg-champagne/60 rounded-full blur-3xl" />
         </div>
         <div className="container-custom relative z-10 text-center">
-          <span className="inline-block px-4 py-1.5 bg-rose/10 text-rose text-sm font-medium rounded-full mb-6">
-            Our Story
-          </span>
-          <h1 className="heading-1 text-charcoal mb-6 max-w-3xl mx-auto">
-            Bringing Warmth &amp; Beauty Into Every Home
-          </h1>
-          <p className="body-large text-warm-gray max-w-2xl mx-auto">
-            Jaai was born from a simple belief: that small moments of beauty can
-            transform our everyday lives. What started as a passion project has
-            grown into a brand dedicated to crafting premium home products.
-          </p>
-        </div>
-      </section>
-
-      {/* Story */}
-      <section className="py-16 md:py-24 bg-soft-white">
-        <div className="container-custom">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            <div>
-              <LazyImage
-                src="https://images.unsplash.com/photo-1543512214-318c7553f230?w=800"
-                alt="Handcrafting candles"
-                className="w-full rounded-2xl shadow-soft-xl"
-              />
-            </div>
-            <div>
-              <h2 className="heading-2 text-charcoal mb-6">How It All Began</h2>
-              <div className="space-y-4 text-warm-gray leading-relaxed">
-                <p>
-                  It all started with a single candle, hand-poured in a small
-                  kitchen in Mumbai. The idea was simple — create something
-                  beautiful, natural, and affordable that could transform any
-                  space into a sanctuary.
-                </p>
-                <p>
-                  What began as gifts for friends and family quickly grew as
-                  word spread about our unique fragrances and long-lasting
-                  quality. Today, Jaai has become a trusted name for handcrafted
-                  candles and home décor across India.
-                </p>
-                <p>
-                  We remain committed to the same principles we started with:
-                  quality ingredients, sustainable practices, and a deep love
-                  for creating products that spark joy in everyday moments.
-                </p>
-              </div>
-            </div>
-          </div>
+          <h1 className="heading-1 text-charcoal max-w-3xl mx-auto">About Jaai</h1>
         </div>
       </section>
 
