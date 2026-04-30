@@ -5,6 +5,7 @@ import LoadingSpinner from './components/ui/LoadingSpinner'
 import ErrorBoundary from './components/ErrorBoundary'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import AdminRoute from './components/auth/AdminRoute'
+import FeatureGate from './components/FeatureGate'
 
 // Lazy load pages for better performance
 const HomePage = lazy(() => import('./pages/HomePage'))
@@ -63,8 +64,22 @@ function App() {
           <Route path="order-success" element={<OrderSuccessPage />} />
           <Route path="order-failure" element={<OrderFailurePage />} />
           <Route path="about" element={<AboutPage />} />
-          <Route path="custom-candle" element={<CustomCandlePage />} />
-          <Route path="custom-hamper" element={<CustomHamperPage />} />
+          <Route
+            path="custom-candle"
+            element={
+              <FeatureGate feature="customCandle">
+                <CustomCandlePage />
+              </FeatureGate>
+            }
+          />
+          <Route
+            path="custom-hamper"
+            element={
+              <FeatureGate feature="hamper">
+                <CustomHamperPage />
+              </FeatureGate>
+            }
+          />
           <Route path="loader-demo" element={<LoaderDemoPage />} />
           <Route path="splash-demo" element={<SplashDemoPage />} />
 

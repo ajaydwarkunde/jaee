@@ -21,8 +21,56 @@ import { showCartToast } from '@/components/ui/CartToast'
 import type { Product } from '@/types'
 
 /* ─── Split Hero ─── */
-function SplitHero() {
+function SplitHero({ hamperEnabled }: { hamperEnabled: boolean }) {
   const [hovered, setHovered] = useState<'candles' | 'hampers' | null>(null)
+
+  if (!hamperEnabled) {
+    return (
+      <section className="relative min-h-[85vh] flex items-stretch overflow-hidden">
+        <Link
+          to="/shop/candles"
+          className="relative flex-1 flex items-center justify-center transition-all duration-700 ease-out group cursor-pointer overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-blush via-cream to-champagne" />
+          <div className="absolute inset-0">
+            <LazyImage
+              src="https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=1200&auto=format&fit=crop"
+              alt="Candle collection"
+              className="w-full h-full object-cover"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-charcoal/70 via-charcoal/30 to-charcoal/10" />
+          </div>
+          <div className="relative z-10 text-center px-8 max-w-lg">
+            <div className="transition-all duration-500 scale-100">
+              <div className="w-16 h-16 bg-soft-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-rose/30 transition-colors duration-500">
+                <Flame className="w-8 h-8 text-soft-white" />
+              </div>
+              <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold text-soft-white mb-4 tracking-tight">
+                Candle Store
+              </h2>
+              <p className="text-soft-white/80 text-base md:text-lg leading-relaxed mb-8 max-w-sm mx-auto">
+                Hand-poured premium candles crafted with love. Illuminate your space with warmth and fragrance.
+              </p>
+              <span className="inline-flex items-center gap-2 px-6 py-3 bg-soft-white/20 backdrop-blur-sm text-soft-white font-medium rounded-full group-hover:bg-rose group-hover:text-soft-white transition-all duration-500">
+                Explore Candles
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </span>
+            </div>
+          </div>
+        </Link>
+        <div className="absolute bottom-0 left-0 right-0 md:hidden z-20 bg-gradient-to-t from-charcoal/80 to-transparent p-6">
+          <Link
+            to="/shop/candles"
+            className="flex w-full items-center justify-center gap-2 px-4 py-3 bg-soft-white/20 backdrop-blur-sm text-soft-white font-medium rounded-xl text-sm hover:bg-rose transition-colors"
+          >
+            <Flame className="w-4 h-4" />
+            Explore Candles
+          </Link>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="relative min-h-[85vh] flex items-stretch overflow-hidden">
@@ -147,7 +195,20 @@ function SplitHero() {
 }
 
 /* ─── Store Showcase Cards ─── */
-function StoreShowcase() {
+function StoreShowcase({
+  hamperEnabled,
+  customCandleEnabled,
+}: {
+  hamperEnabled: boolean
+  customCandleEnabled: boolean
+}) {
+  const candleTags = [
+    'Scented Candles',
+    'Home Fragrance',
+    ...(customCandleEnabled ? ['Custom Candles'] : []),
+    ...(hamperEnabled ? ['Gift Sets'] : []),
+  ]
+
   return (
     <section className="py-16 md:py-24 bg-soft-white">
       <div className="container-custom">
@@ -158,7 +219,12 @@ function StoreShowcase() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div
+          className={cn(
+            'grid gap-8',
+            hamperEnabled ? 'md:grid-cols-2' : 'md:grid-cols-1 max-w-2xl mx-auto'
+          )}
+        >
           {/* Candle Store Card */}
           <div className="group relative bg-gradient-to-br from-blush/40 to-champagne/40 rounded-2xl p-8 md:p-10 overflow-hidden hover:shadow-soft-lg transition-shadow duration-500">
             <div className="absolute top-0 right-0 w-48 h-48 bg-rose/10 rounded-full blur-3xl -translate-y-1/4 translate-x-1/4" />
@@ -177,7 +243,7 @@ function StoreShowcase() {
                 Each candle is crafted to bring warmth and serenity to your space.
               </p>
               <div className="flex flex-wrap gap-2 mb-8">
-                {['Scented Candles', 'Custom Candles', 'Gift Sets', 'Home Fragrance'].map((tag) => (
+                {candleTags.map((tag) => (
                   <span key={tag} className="px-3 py-1 bg-soft-white/80 text-xs font-medium text-charcoal rounded-full">{tag}</span>
                 ))}
               </div>
@@ -187,16 +253,19 @@ function StoreShowcase() {
                     Shop Candles
                   </Button>
                 </Link>
-                <Link to="/custom-candle">
-                  <Button variant="outline" icon={<Palette className="w-4 h-4" />}>
-                    Design Your Own
-                  </Button>
-                </Link>
+                {customCandleEnabled && (
+                  <Link to="/custom-candle">
+                    <Button variant="outline" icon={<Palette className="w-4 h-4" />}>
+                      Design Your Own
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
 
           {/* Hamper Store Card */}
+          {hamperEnabled && (
           <div className="group relative bg-gradient-to-br from-champagne/40 to-blush/40 rounded-2xl p-8 md:p-10 overflow-hidden hover:shadow-soft-lg transition-shadow duration-500">
             <div className="absolute top-0 right-0 w-48 h-48 bg-champagne/30 rounded-full blur-3xl -translate-y-1/4 translate-x-1/4" />
             <div className="relative">
@@ -232,6 +301,7 @@ function StoreShowcase() {
               </div>
             </div>
           </div>
+          )}
         </div>
       </div>
     </section>
@@ -380,9 +450,18 @@ function NewsletterSection() {
 }
 
 /* ─── Custom Builder CTA ─── */
-function CustomBuilderSection() {
+function CustomBuilderSection({
+  hamperEnabled,
+  customCandleEnabled,
+}: {
+  hamperEnabled: boolean
+  customCandleEnabled: boolean
+}) {
+  if (!hamperEnabled && !customCandleEnabled) return null
+
+  const both = hamperEnabled && customCandleEnabled
   const [mode, setMode] = useState<'candle' | 'hamper'>('candle')
-  const isCandle = mode === 'candle'
+  const isCandle = both ? mode === 'candle' : customCandleEnabled
 
   return (
     <section className="py-16 md:py-24 bg-gradient-to-br from-rose/5 via-blush to-champagne/50 overflow-hidden">
@@ -392,6 +471,7 @@ function CustomBuilderSection() {
           <p className="text-warm-gray max-w-lg mx-auto mb-8">
             Design a one-of-a-kind piece — handcrafted just for you or someone special
           </p>
+          {both && (
           <div className="inline-flex bg-soft-white rounded-full p-1 shadow-soft">
             <button
               onClick={() => setMode('candle')}
@@ -418,6 +498,7 @@ function CustomBuilderSection() {
               Gift Hamper
             </button>
           </div>
+          )}
         </div>
 
         <div className="relative bg-soft-white rounded-2xl md:rounded-3xl shadow-soft-lg overflow-hidden">
@@ -576,7 +657,12 @@ export default function HomePage() {
   const { isAuthenticated } = useAuthStore()
   const addToGuestCart = useCartStore((state) => state.addToGuestCart)
   const queryClient = useQueryClient()
-  const { freeShippingThreshold } = useStoreSettings()
+  const {
+    freeShippingThreshold,
+    featureHamperPublic,
+    featureCustomCandle,
+    featureTwoStoresSection,
+  } = useStoreSettings()
 
   const { data: featuredProducts, isLoading: productsLoading } = useQuery({
     queryKey: ['products', 'featured'],
@@ -587,6 +673,10 @@ export default function HomePage() {
     queryKey: ['categories'],
     queryFn: categoryService.getCategories,
   })
+
+  const categoryRow = categories?.filter(
+    (c) => featureHamperPublic || c.slug !== 'gift-sets'
+  )
 
   const addToCartMutation = useMutation({
     mutationFn: (product: Product) => cartService.addToCart(product.id, 1),
@@ -611,7 +701,7 @@ export default function HomePage() {
   return (
     <div className="animate-fade-in">
       {/* Split Hero */}
-      <SplitHero />
+      <SplitHero hamperEnabled={featureHamperPublic} />
 
       {/* Features strip */}
       <section className="py-12 bg-soft-white border-y border-blush">
@@ -636,10 +726,15 @@ export default function HomePage() {
       </section>
 
       {/* Store Showcase */}
-      <StoreShowcase />
+      {featureTwoStoresSection && (
+        <StoreShowcase
+          hamperEnabled={featureHamperPublic}
+          customCandleEnabled={featureCustomCandle}
+        />
+      )}
 
       {/* Categories */}
-      {categories && categories.length > 0 && (
+      {categoryRow && categoryRow.length > 0 && (
         <section className="py-16 md:py-24 bg-cream overflow-hidden">
           <div className="container-custom">
             <div className="text-center mb-12">
@@ -650,7 +745,7 @@ export default function HomePage() {
             </div>
             <div className="px-6">
               <CategoryCarousel 
-                categories={categories} 
+                categories={categoryRow} 
                 autoPlay={true}
                 interval={4000}
               />
@@ -690,7 +785,10 @@ export default function HomePage() {
       </section>
 
       {/* Custom Builder CTA */}
-      <CustomBuilderSection />
+      <CustomBuilderSection
+        hamperEnabled={featureHamperPublic}
+        customCandleEnabled={featureCustomCandle}
+      />
 
       {/* Brand Story */}
       <section className="py-16 md:py-24 bg-gradient-to-br from-blush to-champagne">
@@ -707,8 +805,9 @@ export default function HomePage() {
                 sustainable products that bring warmth and joy to homes across India.
               </p>
               <p className="text-warm-gray leading-relaxed mb-8">
-                From hand-poured candles to beautifully curated gift hampers, every product we make reflects 
-                our commitment to quality, sustainability, and the art of thoughtful giving.
+                {featureHamperPublic
+                  ? 'From hand-poured candles to beautifully curated gift hampers, every product we make reflects our commitment to quality, sustainability, and the art of thoughtful giving.'
+                  : 'From hand-poured candles to thoughtful packaging, every product we make reflects our commitment to quality, sustainability, and the art of mindful living.'}
               </p>
               <Link to="/about">
                 <Button variant="secondary">Learn More About Us</Button>

@@ -15,6 +15,9 @@ const DEFAULT_SETTINGS: StoreSettings = {
   instagram_handle: '@jaai.studio',
   announcement_text: '',
   announcement_enabled: 'false',
+  feature_hamper_public: 'false',
+  feature_custom_candle: 'false',
+  feature_two_stores_section: 'false',
 }
 
 export function useStoreSettings() {
@@ -56,5 +59,8 @@ export function useStoreSettings() {
     instagramHandle: getValue('instagram_handle'),
     announcementText: getValue('announcement_text'),
     announcementEnabled: getBoolValue('announcement_enabled'),
+    featureHamperPublic: getBoolValue('feature_hamper_public'),
+    featureCustomCandle: getBoolValue('feature_custom_candle'),
+    featureTwoStoresSection: getBoolValue('feature_two_stores_section'),
   }
 }

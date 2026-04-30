@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { ShoppingBag, User, Menu, X, Search, LogOut, Heart, ChevronDown, Flame, Gift, Sparkles, Package, Palette, Tag } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils'
 import Button from '../ui/Button'
 import Logo from '../ui/Logo'
 import ThemeToggle from '../ui/ThemeToggle'
+import { useStoreSettings } from '@/hooks/useStoreSettings'
 
 function SearchWithSuggestions({ query, onQueryChange, onSearch, onClose }: {
   query: string
@@ -119,12 +120,11 @@ const storeMenus = {
   },
 }
 
-function MegaMenuDropdown({ store, isOpen, onClose }: {
-  store: 'candles' | 'hampers'
+function MegaMenuDropdown({ menu, isOpen, onClose }: {
+  menu: (typeof storeMenus)['candles']
   isOpen: boolean
   onClose: () => void
 }) {
-  const menu = storeMenus[store]
   if (!isOpen) return null
 
   return (
@@ -194,6 +194,18 @@ export default function Header() {
   })
 
   const wishlistCount = wishlistIds?.length ?? 0
+
+  const { featureHamperPublic, featureCustomCandle } = useStoreSettings()
+
+  const candleNavMenu = useMemo(
+    () => ({
+      ...storeMenus.candles,
+      links: storeMenus.candles.links.filter(
+        (l) => l.to !== '/custom-candle' || featureCustomCandle
+      ),
+    }),
+    [featureCustomCandle]
+  )
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -284,13 +296,14 @@ export default function Header() {
                 )}
               </NavLink>
               <MegaMenuDropdown
-                store="candles"
+                menu={candleNavMenu}
                 isOpen={activeDropdown === 'candles'}
                 onClose={() => setActiveDropdown(null)}
               />
             </li>
 
             {/* Hampers dropdown */}
+            {featureHamperPublic && (
             <li
               className="relative"
               onMouseEnter={() => handleDropdownEnter('hampers')}
@@ -315,11 +328,12 @@ export default function Header() {
                 )}
               </NavLink>
               <MegaMenuDropdown
-                store="hampers"
+                menu={storeMenus.hampers}
                 isOpen={activeDropdown === 'hampers'}
                 onClose={() => setActiveDropdown(null)}
               />
             </li>
+            )}
 
             <li>
               <NavLink
@@ -507,7 +521,7 @@ export default function Header() {
                 </button>
                 {mobileExpanded === 'candles' && (
                   <ul className="ml-4 mt-1 space-y-1 border-l-2 border-blush pl-3 animate-slide-up">
-                    {storeMenus.candles.links.map((link) => (
+                    {candleNavMenu.links.map((link) => (
                       <li key={link.to}>
                         <Link
                           to={link.to}
@@ -523,6 +537,7 @@ export default function Header() {
               </li>
 
               {/* Hampers accordion */}
+              {featureHamperPublic && (
               <li>
                 <button
                   onClick={() => setMobileExpanded(mobileExpanded === 'hampers' ? null : 'hampers')}
@@ -547,6 +562,7 @@ export default function Header() {
                   </ul>
                 )}
               </li>
+              )}
 
               <li>
                 <NavLink

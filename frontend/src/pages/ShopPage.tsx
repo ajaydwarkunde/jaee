@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { SlidersHorizontal, X } from 'lucide-react'
 import { productService } from '@/services/productService'
@@ -16,10 +16,13 @@ import { getErrorMessage } from '@/lib/api'
 import toast from 'react-hot-toast'
 import { showCartToast } from '@/components/ui/CartToast'
 import type { FilterOptions, Product, ProductFilters } from '@/types'
+import { useStoreSettings } from '@/hooks/useStoreSettings'
 
 export default function ShopPage() {
   const { categorySlug } = useParams()
+  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
+  const { featureHamperPublic } = useStoreSettings()
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null)
 
@@ -46,6 +49,16 @@ export default function ShopPage() {
     queryKey: ['categories'],
     queryFn: categoryService.getCategories,
   })
+
+  const shopCategories = categories?.filter(
+    (c) => featureHamperPublic || c.slug !== 'gift-sets'
+  )
+
+  useEffect(() => {
+    if (!featureHamperPublic && categorySlug === 'gift-sets') {
+      navigate('/shop', { replace: true })
+    }
+  }, [featureHamperPublic, categorySlug, navigate])
 
   // Get available filter options (colors, sizes)
   const { data: filterOptions } = useQuery<FilterOptions>({
@@ -183,7 +196,7 @@ export default function ShopPage() {
                   >
                     All Products
                   </button>
-                  {categories?.map((cat) => (
+                  {shopCategories?.map((cat) => (
                     <button
                       key={cat.id}
                       onClick={() => handleFilterChange('categoryId', cat.id)}
@@ -399,7 +412,7 @@ export default function ShopPage() {
             <div className="mb-6">
               <h4 className="text-sm font-medium text-charcoal mb-3">Category</h4>
               <div className="space-y-2">
-                {categories?.map((cat) => (
+                {shopCategories?.map((cat) => (
                   <button
                     key={cat.id}
                     onClick={() => {
