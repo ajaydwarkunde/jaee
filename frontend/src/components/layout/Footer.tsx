@@ -2,10 +2,12 @@ import { Link } from 'react-router-dom'
 import { Instagram, Mail, Flame, Gift } from 'lucide-react'
 import Logo from '../ui/Logo'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
+import { instagramProfileUrl } from '@/lib/utils'
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
-  const { featureHamperPublic, featureCustomCandle } = useStoreSettings()
+  const { featureHamperPublic, featureCustomCandle, supportEmail, instagramHandle } = useStoreSettings()
+  const instagramUrl = instagramProfileUrl(instagramHandle)
 
   const candleLinks = [
     { to: '/shop/candles', label: 'Shop Candles' },
@@ -37,7 +39,7 @@ export default function Footer() {
             </div>
             <div className="flex gap-4 mt-6">
               <a 
-                href="https://www.instagram.com/jaai.studio" 
+                href={instagramUrl}
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="p-2 bg-cream/10 rounded-full hover:bg-rose/20 transition-colors"
@@ -46,7 +48,7 @@ export default function Footer() {
                 <Instagram className="w-5 h-5" />
               </a>
               <a 
-                href="mailto:jaeestudio12@gmail.com"
+                href={`mailto:${supportEmail}`}
                 className="p-2 bg-cream/10 rounded-full hover:bg-rose/20 transition-colors"
                 aria-label="Email us"
               >
@@ -54,8 +56,8 @@ export default function Footer() {
               </a>
             </div>
             <div className="mt-4 space-y-1 text-sm text-cream/60">
-              <p>jaeestudio12@gmail.com</p>
-              <p>@jaai.studio</p>
+              <p>{supportEmail}</p>
+              <p>{instagramHandle}</p>
               <p>Mumbai, Maharashtra, India</p>
             </div>
           </div>
@@ -126,7 +128,7 @@ export default function Footer() {
               ))}
               <li>
                 <a 
-                  href="mailto:jaeestudio12@gmail.com"
+                  href={`mailto:${supportEmail}`}
                   className="text-cream/70 hover:text-rose transition-colors"
                 >
                   Contact Us
@@ -144,19 +146,19 @@ export default function Footer() {
             </p>
             <div className="flex items-center gap-4 text-sm text-cream/50">
               <a 
-                href="https://www.instagram.com/jaai.studio"
+                href={instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-cream transition-colors"
               >
-                @jaai.studio
+                {instagramHandle}
               </a>
               <span className="text-cream/30">&middot;</span>
               <a 
-                href="mailto:jaeestudio12@gmail.com"
+                href={`mailto:${supportEmail}`}
                 className="hover:text-cream transition-colors"
               >
-                jaeestudio12@gmail.com
+                {supportEmail}
               </a>
             </div>
           </div>

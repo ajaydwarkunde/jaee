@@ -882,6 +882,46 @@ export default function HomePage() {
         customCandleEnabled={featureCustomCandle}
       />
 
+      {/* Our Story */}
+      <section className="py-16 md:py-24 bg-gradient-to-br from-blush to-champagne">
+        <div className="container-custom">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="order-2 lg:order-1">
+              <span className="text-rose text-sm font-medium uppercase tracking-wide">Our Story</span>
+              <h2 className="heading-2 text-charcoal mt-4 mb-6">
+                Where elegance lingers
+              </h2>
+              <p className="text-warm-gray leading-relaxed mb-6">
+                Crafted with precision and quiet luxury, our candles
+                {featureHamperPublic ? ' and hampers' : ''} embody timeless design. An experience of
+                warmth, scent, and sophistication.
+              </p>
+              <p className="text-warm-gray leading-relaxed mb-8">
+                {featureHamperPublic
+                  ? 'From hand-poured candles to curated gift hampers, Jaai is a quiet expression of modern luxury—scent, design, and craftsmanship in balance.'
+                  : 'Jaai is a quiet expression of modern luxury—scent, design, and craftsmanship in every detail.'}
+              </p>
+              <Link to="/about">
+                <Button variant="secondary">Learn more about us</Button>
+              </Link>
+            </div>
+            <div className="order-1 lg:order-2">
+              <div className="relative">
+                <LazyImage
+                  src="https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=800"
+                  alt="Jaai candle craftsmanship"
+                  className="w-full rounded-xl shadow-soft-xl"
+                />
+                <div className="absolute -bottom-4 -right-4 bg-soft-white p-6 rounded-xl shadow-soft-lg max-w-[200px]">
+                  <p className="font-serif text-3xl font-semibold text-rose">100%</p>
+                  <p className="text-sm text-warm-gray mt-1">Natural Ingredients</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Community experiences */}
       <CommunityExperienceSection />
 

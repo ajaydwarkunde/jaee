@@ -31,6 +31,11 @@ export function formatDateTime(date: string): string {
   }).format(new Date(date))
 }
 
+export function instagramProfileUrl(handleOrUsername: string): string {
+  const user = handleOrUsername.replace(/^@/, '').trim()
+  return `https://www.instagram.com/${encodeURIComponent(user)}/`
+}
+
 export function truncate(str: string, length: number): string {
   if (str.length <= length) return str
   return str.slice(0, length) + '...'

@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom'
 import { Heart, Leaf, Sparkles, Star, ArrowRight, Instagram, Mail } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import LazyImage from '@/components/ui/LazyImage'
+import { useStoreSettings } from '@/hooks/useStoreSettings'
+import { instagramProfileUrl } from '@/lib/utils'
 
 const values = [
   {
@@ -31,6 +33,9 @@ const values = [
 ]
 
 export default function AboutPage() {
+  const { supportEmail, instagramHandle } = useStoreSettings()
+  const instagramUrl = instagramProfileUrl(instagramHandle)
+
   return (
     <div className="animate-fade-in">
       {/* Hero */}
@@ -145,7 +150,7 @@ export default function AboutPage() {
               </Button>
             </Link>
             <a
-              href="https://www.instagram.com/jaai.studio"
+              href={instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -162,20 +167,20 @@ export default function AboutPage() {
             </h3>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-warm-gray">
               <a
-                href="mailto:jaeestudio12@gmail.com"
+                href={`mailto:${supportEmail}`}
                 className="flex items-center gap-2 hover:text-rose transition-colors"
               >
                 <Mail className="w-4 h-4" />
-                jaeestudio12@gmail.com
+                {supportEmail}
               </a>
               <a
-                href="https://www.instagram.com/jaai.studio"
+                href={instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 hover:text-rose transition-colors"
               >
                 <Instagram className="w-4 h-4" />
-                @jaai.studio
+                {instagramHandle}
               </a>
             </div>
             <p className="text-sm text-warm-gray/70 mt-3">Mumbai, Maharashtra, India</p>

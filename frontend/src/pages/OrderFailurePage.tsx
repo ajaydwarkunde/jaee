@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom'
 import { XCircle, ArrowLeft, RefreshCw } from 'lucide-react'
 import Button from '@/components/ui/Button'
+import { useStoreSettings } from '@/hooks/useStoreSettings'
 
 export default function OrderFailurePage() {
+  const { supportEmail } = useStoreSettings()
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blush via-cream to-champagne py-12 flex items-center justify-center">
       <div className="container-custom max-w-md">
@@ -33,7 +36,7 @@ export default function OrderFailurePage() {
 
           <p className="text-sm text-warm-gray mt-8">
             Need help?{' '}
-            <a href="mailto:jaeestudio12@gmail.com" className="text-rose hover:underline">
+            <a href={`mailto:${supportEmail}`} className="text-rose hover:underline">
               Contact Support
             </a>
           </p>
