@@ -6,15 +6,43 @@ import com.jaee.repository.StoreSettingRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 
 @Service
 public class StoreSettingService {
 
     private final StoreSettingRepository settingRepository;
+
+    /**
+     * Settings that may be missing from older databases — merged into admin list and created on first update.
+     */
+    private static final Map<String, DefaultSettingMeta> OPTIONAL_SETTINGS = Map.of(
+        "feature_hamper_public",
+        new DefaultSettingMeta(
+            StoreSetting.SettingType.BOOLEAN,
+            "false",
+            "Show hamper store (nav, hero, gift sets, builders) on the public site"
+        ),
+        "feature_custom_candle",
+        new DefaultSettingMeta(
+            StoreSetting.SettingType.BOOLEAN,
+            "false",
+            "Show custom candle builder links and CTAs"
+        ),
+        "feature_two_stores_section",
+        new DefaultSettingMeta(
+            StoreSetting.SettingType.BOOLEAN,
+            "false",
+            "Show the “Two Stores, One Destination” section on the homepage"
+        )
+    );
+
+    private record DefaultSettingMeta(StoreSetting.SettingType type, String defaultValue, String description) {}
 
     public StoreSettingService(StoreSettingRepository settingRepository) {
         this.settingRepository = settingRepository;
@@ -24,10 +52,23 @@ public class StoreSettingService {
      * Get all settings as DTOs (for admin panel)
      */
     public List<StoreSettingDto> getAllSettings() {
-        return settingRepository.findAllByOrderByKeyAsc()
-            .stream()
-            .map(StoreSettingDto::fromEntity)
-            .toList();
+        Map<String, StoreSettingDto> byKey = new TreeMap<>();
+        for (StoreSetting s : settingRepository.findAllByOrderByKeyAsc()) {
+            byKey.put(s.getKey(), StoreSettingDto.fromEntity(s));
+        }
+        for (var e : OPTIONAL_SETTINGS.entrySet()) {
+            byKey.putIfAbsent(
+                e.getKey(),
+                new StoreSettingDto(
+                    null,
+                    e.getKey(),
+                    e.getValue().defaultValue(),
+                    e.getValue().type().name(),
+                    e.getValue().description()
+                )
+            );
+        }
+        return new ArrayList<>(byKey.values());
     }
 
     /**
@@ -35,9 +76,12 @@ public class StoreSettingService {
      */
     public Map<String, String> getSettingsMap() {
         Map<String, String> settings = new HashMap<>();
-        settingRepository.findAll().forEach(setting -> 
+        settingRepository.findAll().forEach(setting ->
             settings.put(setting.getKey(), setting.getValue())
         );
+        for (var e : OPTIONAL_SETTINGS.entrySet()) {
+            settings.putIfAbsent(e.getKey(), e.getValue().defaultValue());
+        }
         return settings;
     }
 
@@ -80,12 +124,19 @@ public class StoreSettingService {
      */
     @Transactional
     public StoreSettingDto updateSetting(String key, String newValue) {
-        StoreSetting setting = settingRepository.findByKey(key)
-            .orElseThrow(() -> new IllegalArgumentException("Setting not found: " + key));
-        
-        // Validate based on type
+        StoreSetting setting = settingRepository.findByKey(key).orElse(null);
+        if (setting == null) {
+            DefaultSettingMeta meta = OPTIONAL_SETTINGS.get(key);
+            if (meta == null) {
+                throw new IllegalArgumentException("Setting not found: " + key);
+            }
+            setting = new StoreSetting();
+            setting.setKey(key);
+            setting.setType(meta.type());
+            setting.setDescription(meta.description());
+        }
+
         validateValue(setting, newValue);
-        
         setting.setValue(newValue);
         StoreSetting saved = settingRepository.save(setting);
         return StoreSettingDto.fromEntity(saved);

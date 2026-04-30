@@ -16,6 +16,11 @@ type SettingGroup = {
 
 const SETTING_GROUPS: SettingGroup[] = [
   {
+    title: 'Feature flags',
+    icon: <Flag className="w-5 h-5" />,
+    keys: ['feature_hamper_public', 'feature_custom_candle', 'feature_two_stores_section'],
+  },
+  {
     title: 'Shipping',
     icon: <Truck className="w-5 h-5" />,
     keys: ['free_shipping_enabled', 'free_shipping_threshold', 'shipping_charges', 'estimated_delivery_days'],
@@ -35,11 +40,6 @@ const SETTING_GROUPS: SettingGroup[] = [
     icon: <Settings className="w-5 h-5" />,
     keys: ['announcement_enabled', 'announcement_text'],
   },
-  {
-    title: 'Feature flags',
-    icon: <Flag className="w-5 h-5" />,
-    keys: ['feature_hamper_public', 'feature_custom_candle', 'feature_two_stores_section'],
-  },
 ]
 
 const SETTING_LABELS: Record<string, string> = {
@@ -56,7 +56,7 @@ const SETTING_LABELS: Record<string, string> = {
   instagram_handle: 'Instagram Handle',
   announcement_enabled: 'Show Announcement',
   announcement_text: 'Announcement Text',
-  feature_hamper_public: 'Show hamper store on site (nav, hero, gift sets, builders)',
+  feature_hamper_public: 'Enable hamper products & gift sets (nav, hero, shop, builders)',
   feature_custom_candle: 'Custom candle builder (links & CTAs)',
   feature_two_stores_section: '“Two Stores, One Destination” homepage section',
 }
