@@ -888,19 +888,33 @@ export default function HomePage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="order-2 lg:order-1">
               <span className="text-rose text-sm font-medium uppercase tracking-wide">Our Story</span>
-              <h2 className="heading-2 text-charcoal mt-4 mb-6">
-                Where elegance lingers
-              </h2>
-              <p className="text-warm-gray leading-relaxed mb-6">
-                Crafted with precision and quiet luxury, our candles
-                {featureHamperPublic ? ' and hampers' : ''} embody timeless design. An experience of
-                warmth, scent, and sophistication.
+              <p className="font-serif text-xl md:text-2xl text-charcoal leading-snug mt-4 mb-8">
+                A quiet expression of modern luxury, where scent, design, and craftsmanship come together
+                effortlessly.
               </p>
-              <p className="text-warm-gray leading-relaxed mb-8">
-                {featureHamperPublic
-                  ? 'From hand-poured candles to curated gift hampers, Jaai is a quiet expression of modern luxury—scent, design, and craftsmanship in balance.'
-                  : 'Jaai is a quiet expression of modern luxury—scent, design, and craftsmanship in every detail.'}
-              </p>
+              <div className="space-y-5 text-warm-gray leading-relaxed mb-8">
+                <p>
+                  Jaai was born from a quiet desire—to create something meaningful, something of my own.
+                  In the rhythm of a 9-to-5, between deadlines and daily hustle, there was always a longing
+                  to express creativity in its purest form. What began as a small idea evolved into a pursuit
+                  of detail, refinement, and intention.
+                </p>
+                <p>
+                  At Jaai, every candle is meticulously handcrafted using pure, high-quality soy wax—chosen
+                  for its clean, refined burn and its sustainable, environmentally conscious nature. Our
+                  fragrances are carefully developed to be toxin-free, offering an experience that is both
+                  safe and sensorially indulgent.
+                </p>
+                <p>
+                  Each creation reflects a philosophy of understated luxury—where simplicity is elevated, and
+                  every element is thoughtfully considered. From the initial pour to the final finish, our
+                  process is slow, deliberate, and rooted in craftsmanship.
+                </p>
+                <p>
+                  Jaai is more than a brand; it is a reflection of passion, quiet perseverance, and the
+                  belief that true luxury lies in the details.
+                </p>
+              </div>
               <Link to="/about">
                 <Button variant="secondary">Learn more about us</Button>
               </Link>

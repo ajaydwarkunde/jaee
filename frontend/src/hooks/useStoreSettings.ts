@@ -1,6 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { settingsService, StoreSettings } from '@/services/settingsService'
 
+/** Retired values still returned by some APIs / DB rows — show current contact instead */
+const LEGACY_SUPPORT_EMAILS = new Set(['jaeestudio12@gmail.com', 'jaaistudio12@gmail.com'])
+const LEGACY_INSTAGRAM_HANDLES = new Set(['@jaai.studio', '@jaee.studio'])
+
 const DEFAULT_SETTINGS: StoreSettings = {
   free_shipping_enabled: 'true',
   free_shipping_threshold: '999',
@@ -28,7 +32,14 @@ export function useStoreSettings() {
   })
 
   const getValue = (key: keyof StoreSettings): string => {
-    return settings?.[key] ?? DEFAULT_SETTINGS[key]
+    const raw = settings?.[key] ?? DEFAULT_SETTINGS[key]
+    if (key === 'support_email' && LEGACY_SUPPORT_EMAILS.has(raw.trim())) {
+      return DEFAULT_SETTINGS.support_email
+    }
+    if (key === 'instagram_handle' && LEGACY_INSTAGRAM_HANDLES.has(raw.trim())) {
+      return DEFAULT_SETTINGS.instagram_handle
+    }
+    return raw
   }
 
   const getBoolValue = (key: keyof StoreSettings): boolean => {
