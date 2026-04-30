@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
         description = "REST API for Jaai e-commerce platform",
         contact = @Contact(
             name = "Jaai Support",
-            email = "jaeestudio12@gmail.com"
+            email = "jaaistore1212@gmail.com"
         )
     ),
     servers = {

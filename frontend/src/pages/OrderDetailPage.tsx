@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, Package, Truck, CheckCircle, Clock, XCircle, MapPin, Phone, Mail, MessageCircle, ExternalLink } from 'lucide-react'
 import { orderService } from '@/services/orderService'
 import { formatPrice, formatDate } from '@/lib/utils'
+import { useStoreSettings } from '@/hooks/useStoreSettings'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
@@ -31,6 +32,7 @@ ${order.shippingAddress ? `📍 *Delivery Address:*\n${order.shippingAddress}` :
 
 export default function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>()
+  const { supportEmail } = useStoreSettings()
 
   const { data: order, isLoading, error } = useQuery({
     queryKey: ['order', orderId],
@@ -243,7 +245,7 @@ export default function OrderDetailPage() {
                   <MessageCircle className="w-4 h-4" />
                   Share on WhatsApp
                 </a>
-                <a href="mailto:jaeestudio12@gmail.com">
+                <a href={`mailto:${supportEmail}`}>
                   <Button variant="outline" className="w-full" size="sm">
                     Contact Support
                   </Button>

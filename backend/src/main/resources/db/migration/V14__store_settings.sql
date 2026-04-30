@@ -19,9 +19,9 @@ INSERT INTO store_settings (setting_key, setting_value, setting_type, descriptio
     ('cod_charges', '50', 'NUMBER', 'COD extra charges (in INR)'),
     ('shipping_charges', '99', 'NUMBER', 'Standard shipping charges when free shipping not applicable'),
     ('estimated_delivery_days', '5-7', 'STRING', 'Estimated delivery time text'),
-    ('support_email', 'jaeestudio12@gmail.com', 'STRING', 'Support email address'),
+    ('support_email', 'jaaistore1212@gmail.com', 'STRING', 'Support email address'),
     ('support_phone', '', 'STRING', 'Support phone number'),
-    ('instagram_handle', '@jaee.studio', 'STRING', 'Instagram handle'),
+    ('instagram_handle', '@jaai_candle_studio', 'STRING', 'Instagram handle'),
     ('announcement_text', '', 'STRING', 'Top banner announcement text'),
     ('announcement_enabled', 'false', 'BOOLEAN', 'Show announcement banner');
 
