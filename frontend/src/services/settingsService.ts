@@ -22,6 +22,9 @@ export interface StoreSettings {
   instagram_handle: string
   announcement_text: string
   announcement_enabled: string
+  feature_hamper_public: string
+  feature_custom_candle: string
+  feature_two_stores_section: string
   [key: string]: string
 }
 

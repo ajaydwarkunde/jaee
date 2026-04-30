@@ -4,7 +4,7 @@ import { settingsService, StoreSetting } from '@/services/settingsService'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
-import { Save, Settings, Truck, RefreshCw, MessageSquare, ArrowLeft } from 'lucide-react'
+import { Save, Settings, Truck, RefreshCw, MessageSquare, ArrowLeft, Flag } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
@@ -35,6 +35,11 @@ const SETTING_GROUPS: SettingGroup[] = [
     icon: <Settings className="w-5 h-5" />,
     keys: ['announcement_enabled', 'announcement_text'],
   },
+  {
+    title: 'Feature flags',
+    icon: <Flag className="w-5 h-5" />,
+    keys: ['feature_hamper_public', 'feature_custom_candle', 'feature_two_stores_section'],
+  },
 ]
 
 const SETTING_LABELS: Record<string, string> = {
@@ -51,6 +56,9 @@ const SETTING_LABELS: Record<string, string> = {
   instagram_handle: 'Instagram Handle',
   announcement_enabled: 'Show Announcement',
   announcement_text: 'Announcement Text',
+  feature_hamper_public: 'Show hamper store on site (nav, hero, gift sets, builders)',
+  feature_custom_candle: 'Custom candle builder (links & CTAs)',
+  feature_two_stores_section: '“Two Stores, One Destination” homepage section',
 }
 
 export default function AdminSettings() {

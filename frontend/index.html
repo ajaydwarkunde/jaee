@@ -6,7 +6,7 @@
     <link rel="apple-touch-icon" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Jaai - Beautiful aesthetic candles and premium home products" />
-    <meta name="theme-color" content="#1A1216" />
+    <meta name="theme-color" content="#E9868B" />
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,11 +17,12 @@
     <script>
       (function() {
         var t = localStorage.getItem('jaai-theme');
-        if (t === 'light') {
-          var m = document.querySelector('meta[name="theme-color"]');
-          if (m) m.setAttribute('content', '#E9868B');
-        } else {
+        var m = document.querySelector('meta[name="theme-color"]');
+        if (t === 'dark') {
           document.documentElement.classList.add('dark');
+          if (m) m.setAttribute('content', '#1A1216');
+        } else {
+          if (m) m.setAttribute('content', '#E9868B');
         }
       })();
     </script>

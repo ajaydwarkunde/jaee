@@ -1,20 +1,35 @@
 import { Link } from 'react-router-dom'
 import { Instagram, Mail, Flame, Gift } from 'lucide-react'
 import Logo from '../ui/Logo'
+import { useStoreSettings } from '@/hooks/useStoreSettings'
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
+  const { featureHamperPublic, featureCustomCandle } = useStoreSettings()
+
+  const candleLinks = [
+    { to: '/shop/candles', label: 'Shop Candles' },
+    ...(featureCustomCandle ? [{ to: '/custom-candle' as const, label: 'Custom Candle' }] : []),
+    { to: '/sale', label: 'Candle Offers' },
+  ]
 
   return (
     <footer className="theme-invert bg-charcoal text-cream">
       <div className="container-custom py-12 md:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 md:gap-10">
+        <div
+          className={
+            featureHamperPublic
+              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 md:gap-10'
+              : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10'
+          }
+        >
           {/* Brand */}
           <div className="lg:col-span-2">
             <Logo size="lg" variant="light" />
             <p className="mt-4 text-cream/70 max-w-md leading-relaxed">
-              Bringing warmth and beauty into your home with handcrafted candles and carefully 
-              curated gift hampers. Two stores, one destination for thoughtful living.
+              {featureHamperPublic
+                ? 'Bringing warmth and beauty into your home with handcrafted candles and carefully curated gift hampers. Two stores, one destination for thoughtful living.'
+                : 'Bringing warmth and beauty into your home with handcrafted candles and thoughtful design.'}
             </p>
             <div className="flex gap-4 mt-6">
               <a 
@@ -48,11 +63,7 @@ export default function Footer() {
               Candle Store
             </h4>
             <ul className="space-y-3">
-              {[
-                { to: '/shop/candles', label: 'Shop Candles' },
-                { to: '/custom-candle', label: 'Custom Candle' },
-                { to: '/sale', label: 'Candle Offers' },
-              ].map((link) => (
+              {candleLinks.map((link) => (
                 <li key={link.to}>
                   <Link 
                     to={link.to}
@@ -66,6 +77,7 @@ export default function Footer() {
           </div>
 
           {/* Hamper Store */}
+          {featureHamperPublic && (
           <div>
             <h4 className="font-serif text-lg font-medium mb-4 flex items-center gap-2">
               <Gift className="w-4 h-4 text-rose" />
@@ -88,6 +100,7 @@ export default function Footer() {
               ))}
             </ul>
           </div>
+          )}
 
           {/* Support */}
           <div>
