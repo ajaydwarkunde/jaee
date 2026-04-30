@@ -26,11 +26,15 @@ export default function Footer() {
           {/* Brand */}
           <div className="lg:col-span-2">
             <Logo size="lg" variant="light" />
-            <p className="mt-4 text-cream/70 max-w-md leading-relaxed">
-              {featureHamperPublic
-                ? 'Bringing warmth and beauty into your home with handcrafted candles and carefully curated gift hampers. Two stores, one destination for thoughtful living.'
-                : 'Bringing warmth and beauty into your home with handcrafted candles and thoughtful design.'}
-            </p>
+            <div className="mt-4 text-cream/70 max-w-md leading-relaxed space-y-3">
+              <p>
+                Crafted with precision and quiet luxury,
+                <br />
+                our candles and hampers embody timeless design.
+              </p>
+              <p>An experience of warmth, scent, and sophistication.</p>
+              <p>Jaai — where elegance lingers.</p>
+            </div>
             <div className="flex gap-4 mt-6">
               <a 
                 href="https://www.instagram.com/jaai.studio" 
