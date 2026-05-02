@@ -19,6 +19,8 @@ export interface StoreSettings {
   estimated_delivery_days: string
   support_email: string
   support_phone: string
+  /** E.164-style digits for WhatsApp only; not shown on storefront */
+  whatsapp_phone: string
   instagram_handle: string
   announcement_text: string
   announcement_enabled: string

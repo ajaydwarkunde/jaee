@@ -33,7 +33,7 @@ const SETTING_GROUPS: SettingGroup[] = [
   {
     title: 'Contact & Social',
     icon: <MessageSquare className="w-5 h-5" />,
-    keys: ['support_email', 'support_phone', 'instagram_handle'],
+    keys: ['support_email', 'whatsapp_phone', 'instagram_handle'],
   },
   {
     title: 'Announcements',
@@ -52,7 +52,7 @@ const SETTING_LABELS: Record<string, string> = {
   cod_enabled: 'Cash on Delivery',
   cod_charges: 'COD Charges (₹)',
   support_email: 'Support Email',
-  support_phone: 'Support Phone',
+  whatsapp_phone: 'WhatsApp (chat only, not shown on website)',
   instagram_handle: 'Instagram Handle',
   announcement_enabled: 'Show Announcement',
   announcement_text: 'Announcement Text',

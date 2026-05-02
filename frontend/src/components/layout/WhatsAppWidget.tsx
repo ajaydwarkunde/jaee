@@ -1,16 +1,17 @@
 import { useState } from 'react'
 import { X, MessageCircle } from 'lucide-react'
+import { useStoreSettings } from '@/hooks/useStoreSettings'
 
-const WHATSAPP_NUMBER = '919999999999'
 const DEFAULT_MESSAGE = 'Hi! I have a question about Jaai products.'
 
 export default function WhatsAppWidget() {
+  const { whatsappPhoneDigits } = useStoreSettings()
   const [showTooltip, setShowTooltip] = useState(false)
   const [dismissed, setDismissed] = useState(false)
 
   const handleClick = () => {
     window.open(
-      `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(DEFAULT_MESSAGE)}`,
+      `https://wa.me/${whatsappPhoneDigits}?text=${encodeURIComponent(DEFAULT_MESSAGE)}`,
       '_blank'
     )
   }

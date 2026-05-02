@@ -16,6 +16,8 @@ const DEFAULT_SETTINGS: StoreSettings = {
   estimated_delivery_days: '5-7',
   support_email: 'jaaistore1212@gmail.com',
   support_phone: '',
+  /** E.164 digits without +; used only for wa.me — not rendered in the UI */
+  whatsapp_phone: '919404380308',
   instagram_handle: '@jaai_candle_studio',
   announcement_text: '',
   announcement_enabled: 'false',
@@ -73,5 +75,10 @@ export function useStoreSettings() {
     featureHamperPublic: getBoolValue('feature_hamper_public'),
     featureCustomCandle: getBoolValue('feature_custom_candle'),
     featureTwoStoresSection: getBoolValue('feature_two_stores_section'),
+    /** Digits only, suitable for https://wa.me/{digits} — never show as visible text */
+    whatsappPhoneDigits: (() => {
+      const raw = getValue('whatsapp_phone').replace(/\D/g, '')
+      return raw.length >= 10 ? raw : '919404380308'
+    })(),
   }
 }
