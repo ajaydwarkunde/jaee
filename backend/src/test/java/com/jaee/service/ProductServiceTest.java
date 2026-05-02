@@ -191,6 +191,7 @@ class ProductServiceTest {
     void createProduct_ensuresUniqueSlugByAppendingCounter() {
         ProductCreateRequest request = new ProductCreateRequest();
         request.setName("Duplicate");
+        request.setDescription("Duplicate product description for tests.");
         request.setPrice(BigDecimal.TEN);
         request.setStockQty(1);
         request.setActive(true);
@@ -217,6 +218,7 @@ class ProductServiceTest {
 
         ProductCreateRequest request = new ProductCreateRequest();
         request.setName("Product");
+        request.setDescription("Product description for tests.");
         request.setPrice(BigDecimal.TEN);
         request.setStockQty(5);
         request.setActive(true);
@@ -236,6 +238,7 @@ class ProductServiceTest {
 
         ProductCreateRequest request = new ProductCreateRequest();
         request.setName("Product");
+        request.setDescription("Product description for tests.");
         request.setPrice(BigDecimal.TEN);
         request.setStockQty(10);
         request.setActive(true);

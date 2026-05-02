@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ShoppingBag, Heart, Star, Plus, Eye } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { formatPrice } from '@/lib/utils'
+import { formatPrice, productDiscountPercentOff } from '@/lib/utils'
 import { wishlistService } from '@/services/wishlistService'
 import { useAuthStore } from '@/stores/authStore'
 import type { Product } from '@/types'
@@ -17,7 +17,8 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, onAddToCart, onQuickView }: ProductCardProps) {
   const imageUrl = product.images[0] || 'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=400'
-  const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price
+  const discountPct = productDiscountPercentOff(product)
+  const hasDiscount = discountPct != null
   const { isAuthenticated } = useAuthStore()
   const queryClient = useQueryClient()
 
@@ -73,8 +74,10 @@ export default function ProductCard({ product, onAddToCart, onQuickView }: Produ
         
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2">
-          {hasDiscount && product.discountPercent && (
-            <Badge variant="success">{product.discountPercent}% OFF</Badge>
+          {hasDiscount && (
+            <span className="inline-flex items-center rounded-full bg-rose text-soft-white text-xs font-semibold px-2.5 py-1 shadow-md tabular-nums">
+              {discountPct}% off
+            </span>
           )}
           {!product.inStock && (
             <Badge variant="error">Out of Stock</Badge>
@@ -144,13 +147,20 @@ export default function ProductCard({ product, onAddToCart, onQuickView }: Produ
           </div>
         )}
         <div className="mt-2 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="text-lg font-bold text-rose tabular-nums">
-              {formatPrice(product.price, product.currency)}
-            </span>
+          <div className="flex flex-col min-w-0 gap-0.5">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-lg font-bold text-rose tabular-nums">
+                {formatPrice(Number(product.price), product.currency)}
+              </span>
+              {hasDiscount && product.compareAtPrice != null && (
+                <span className="text-sm text-warm-gray line-through tabular-nums">
+                  {formatPrice(Number(product.compareAtPrice), product.currency)}
+                </span>
+              )}
+            </div>
             {hasDiscount && (
-              <span className="text-sm text-warm-gray line-through tabular-nums">
-                {formatPrice(product.compareAtPrice!, product.currency)}
+              <span className="text-sm font-semibold text-rose tabular-nums">
+                {discountPct}% off
               </span>
             )}
           </div>

@@ -13,6 +13,32 @@ export function formatPrice(price: number, currency: string = 'INR'): string {
   }).format(price)
 }
 
+/** Whole percent off when compare-at is above sale price; coerces API strings; ignores invalid API 0. */
+export function productDiscountPercentOff(product: {
+  price: number | string
+  compareAtPrice?: number | string | null
+  discountPercent?: number | string | null
+}): number | null {
+  const price = Number(product.price)
+  const compare =
+    product.compareAtPrice != null && product.compareAtPrice !== ''
+      ? Number(product.compareAtPrice)
+      : NaN
+  if (!Number.isFinite(price) || price <= 0) return null
+  if (!Number.isFinite(compare) || compare <= price) return null
+
+  const fromApi =
+    product.discountPercent != null && product.discountPercent !== ''
+      ? Number(product.discountPercent)
+      : NaN
+  if (Number.isFinite(fromApi) && fromApi > 0) {
+    return Math.min(100, Math.round(fromApi))
+  }
+
+  const computed = Math.round(((compare - price) / compare) * 100)
+  return computed > 0 ? Math.min(100, computed) : null
+}
+
 export function formatDate(date: string): string {
   return new Intl.DateTimeFormat('en-IN', {
     day: 'numeric',

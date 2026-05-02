@@ -62,6 +62,10 @@ export default function VariantEditor({ product, onClose }: { product: Product; 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['variants', product.id] })
       queryClient.invalidateQueries({ queryKey: ['admin-products'] })
+      // Public product & listing caches embed variants — refresh so the storefront shows new prices/SKU/stock.
+      queryClient.invalidateQueries({ queryKey: ['product'] })
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+      queryClient.invalidateQueries({ queryKey: ['products-on-sale'] })
       toast.success('Variants saved!')
       onClose()
     },
