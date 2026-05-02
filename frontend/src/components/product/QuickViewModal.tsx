@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ShoppingBag, Minus, Plus, Heart, Star } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { formatPrice } from '@/lib/utils'
+import { formatPrice, productDiscountPercentOff } from '@/lib/utils'
 import { cartService } from '@/services/cartService'
 import { wishlistService } from '@/services/wishlistService'
 import { useAuthStore } from '@/stores/authStore'
@@ -76,16 +76,22 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
   const images = product.images.length > 0
     ? product.images
     : ['https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=600']
-  const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price
+  const discountPct = productDiscountPercentOff(product)
+  const hasDiscount = discountPct != null
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="xl" showClose>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Image */}
-        <div>
+        <div className="relative">
           <div className="aspect-square bg-cream rounded-lg overflow-hidden">
             <img src={images[selectedImage]} alt={product.name} className="w-full h-full object-cover" />
           </div>
+          {hasDiscount && (
+            <span className="absolute top-3 left-3 inline-flex items-center rounded-full bg-rose text-soft-white text-xs font-semibold px-2.5 py-1 shadow-md tabular-nums">
+              {discountPct}% off
+            </span>
+          )}
           {images.length > 1 && (
             <div className="flex gap-2 mt-3">
               {images.map((img, idx) => (
@@ -116,16 +122,25 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
             </div>
           )}
 
-          <div className="flex items-center gap-3 mb-4 flex-wrap">
-            <span className="text-2xl font-bold text-rose">{formatPrice(product.price, product.currency)}</span>
-            {hasDiscount && (
-              <span className="text-base text-warm-gray line-through">{formatPrice(product.compareAtPrice!, product.currency)}</span>
-            )}
+          <div className="flex flex-col gap-1 mb-4">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-2xl font-bold text-rose tabular-nums">
+                {formatPrice(Number(product.price), product.currency)}
+              </span>
+              {hasDiscount && product.compareAtPrice != null && (
+                <span className="text-base text-warm-gray line-through tabular-nums">
+                  {formatPrice(Number(product.compareAtPrice), product.currency)}
+                </span>
+              )}
             {!product.inStock ? (
               <Badge variant="error">Out of Stock</Badge>
             ) : product.stockQty <= 5 ? (
               <Badge variant="warning">Only {product.stockQty} left</Badge>
             ) : null}
+            </div>
+            {hasDiscount && (
+              <p className="text-sm font-semibold text-rose tabular-nums">{discountPct}% off</p>
+            )}
           </div>
 
           {product.description && (

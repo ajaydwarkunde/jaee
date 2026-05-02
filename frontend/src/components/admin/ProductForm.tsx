@@ -13,7 +13,11 @@ import type { Product, Category, ProductFormData } from '@/types'
 
 const productSchema = z.object({
   name: z.string().min(1, 'Name is required').max(200),
-  description: z.string().optional(),
+  description: z
+    .string()
+    .trim()
+    .min(1, 'Product description is required')
+    .max(5000, 'Description must be at most 5000 characters'),
   price: z.coerce.number().positive('Price must be greater than 0'),
   compareAtPrice: z.coerce.number().min(0).optional().or(z.literal('')),
   currency: z.string().default('INR'),
@@ -169,7 +173,7 @@ export default function ProductForm({
 
     onSubmit({
       name: data.name,
-      description: data.description,
+      description: data.description.trim(),
       price: data.price,
       compareAtPrice: data.compareAtPrice ? Number(data.compareAtPrice) : undefined,
       currency: data.currency,
@@ -201,12 +205,16 @@ export default function ProductForm({
       />
 
       <Textarea
-        label="Description"
+        label="Product description"
         {...register('description')}
-        rows={4}
+        rows={6}
+        required
         error={errors.description?.message}
-        placeholder="Describe your product..."
+        placeholder="Full description for the product page (ingredients, burn time, care, etc.)"
       />
+      <p className="text-xs text-warm-gray -mt-2">
+        Required. This copy appears on the storefront product page and in search.
+      </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Input

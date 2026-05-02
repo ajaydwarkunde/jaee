@@ -37,6 +37,8 @@ export default function AdminProducts() {
     mutationFn: (data: ProductFormData) => productService.createProduct(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-products'] })
+      queryClient.invalidateQueries({ queryKey: ['product'] })
+      queryClient.invalidateQueries({ queryKey: ['products'] })
       toast.success('Product created!')
       setIsFormOpen(false)
     },
@@ -50,6 +52,8 @@ export default function AdminProducts() {
       productService.updateProduct(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-products'] })
+      queryClient.invalidateQueries({ queryKey: ['product'] })
+      queryClient.invalidateQueries({ queryKey: ['products'] })
       toast.success('Product updated!')
       setEditProduct(null)
       setIsFormOpen(false)
@@ -131,6 +135,7 @@ export default function AdminProducts() {
                 <tr>
                   <th className="text-left p-4 font-medium text-charcoal">Product</th>
                   <th className="text-left p-4 font-medium text-charcoal">Category</th>
+                  <th className="text-left p-4 font-medium text-charcoal min-w-[200px] max-w-[280px]">Description</th>
                   <th className="text-left p-4 font-medium text-charcoal">Price</th>
                   <th className="text-left p-4 font-medium text-charcoal">Stock</th>
                   <th className="text-left p-4 font-medium text-charcoal">Status</th>
@@ -161,6 +166,15 @@ export default function AdminProducts() {
                       </div>
                     </td>
                     <td className="p-4 text-warm-gray">{product.categoryNames?.length > 0 ? product.categoryNames.join(', ') : '—'}</td>
+                    <td className="p-4 max-w-[280px]">
+                      {product.description?.trim() ? (
+                        <p className="text-sm text-charcoal/80 line-clamp-2" title={product.description}>
+                          {product.description}
+                        </p>
+                      ) : (
+                        <span className="text-xs text-error/90 font-medium">Add description</span>
+                      )}
+                    </td>
                     <td className="p-4 font-bold tabular-nums">{formatPrice(product.price)}</td>
                     <td className="p-4">{product.stockQty}</td>
                     <td className="p-4">

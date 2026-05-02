@@ -9,7 +9,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { useCartStore } from '@/stores/cartStore'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed'
-import { formatPrice } from '@/lib/utils'
+import { formatPrice, productDiscountPercentOff } from '@/lib/utils'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import { ProductDetailSkeleton } from '@/components/ui/Skeleton'
@@ -455,6 +455,28 @@ function ImageGallery({
   )
 }
 
+/** Detects any change to variant rows (ids, prices, options, images) so the PDP can reset selection after admin edits. */
+function buildVariantsSnapshotKey(variants: Product['variants'] | undefined): string {
+  if (!variants?.length) return '__empty__'
+  return variants
+    .map((v) =>
+      [
+        v.id,
+        v.price,
+        v.compareAtPrice ?? '',
+        v.stockQty,
+        v.active,
+        Object.entries(v.optionValues || {})
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([k, val]) => `${k}=${val}`)
+          .join('&'),
+        (v.images || []).join(','),
+      ].join('~')
+    )
+    .sort()
+    .join('|')
+}
+
 function VariantSelector({
   product,
   selectedVariant,
@@ -466,12 +488,25 @@ function VariantSelector({
 }) {
   const options = product.options || []
   const variants = product.variants || []
+  const optionKeys = options.join('|')
   const [selected, setSelected] = useState<Record<string, string>>(() => {
     if (selectedVariant) return { ...selectedVariant.optionValues }
     const init: Record<string, string> = {}
     options.forEach(opt => { init[opt] = '' })
     return init
   })
+
+  useEffect(() => {
+    if (selectedVariant == null) {
+      const init: Record<string, string> = {}
+      options.forEach((opt) => {
+        init[opt] = ''
+      })
+      setSelected(init)
+      return
+    }
+    setSelected({ ...selectedVariant.optionValues })
+  }, [selectedVariant, product.id, optionKeys])
 
   const getAvailableValues = (optionName: string): string[] => {
     const values = new Set<string>()
@@ -584,6 +619,17 @@ export default function ProductPage() {
     enabled: !!slug,
   })
 
+  const variantsSnapshotKey = useMemo(
+    () => buildVariantsSnapshotKey(product?.variants),
+    [product?.variants]
+  )
+
+  useEffect(() => {
+    setSelectedVariant(null)
+    setQuantity(1)
+    setSelectedImage(0)
+  }, [slug, variantsSnapshotKey])
+
   const { data: relatedProducts = [] } = useQuery({
     queryKey: ['relatedProducts', product?.id],
     queryFn: () => productService.getRelatedProducts(product!.id, 4),
@@ -689,8 +735,14 @@ export default function ProductPage() {
 
   const effectivePrice = selectedVariant?.price ?? product.price
   const effectiveComparePrice = selectedVariant?.compareAtPrice ?? product.compareAtPrice
-  const effectiveDiscount = selectedVariant?.discountPercent ?? product.discountPercent
   const effectiveStock = selectedVariant?.stockQty ?? product.stockQty
+  const discountDisplay = selectedVariant
+    ? productDiscountPercentOff({
+        price: selectedVariant.price,
+        compareAtPrice: selectedVariant.compareAtPrice,
+        discountPercent: selectedVariant.discountPercent,
+      })
+    : productDiscountPercentOff(product)
   const effectiveInStock = selectedVariant ? selectedVariant.inStock : product.inStock
 
   const displayImages = selectedVariant && selectedVariant.images.length > 0
@@ -754,14 +806,22 @@ export default function ProductPage() {
 
             <div className="flex items-center gap-4 mb-6 flex-wrap">
               <span className="text-3xl font-bold text-rose tabular-nums">
-                {formatPrice(effectivePrice, product.currency)}
+                {formatPrice(Number(effectivePrice), product.currency)}
               </span>
-              {effectiveComparePrice && effectiveComparePrice > effectivePrice && (
+              {effectiveComparePrice != null &&
+                Number(effectiveComparePrice) > Number(effectivePrice) &&
+                discountDisplay != null && (
                 <>
                   <span className="text-xl text-warm-gray line-through tabular-nums">
-                    {formatPrice(effectiveComparePrice, product.currency)}
+                    {formatPrice(Number(effectiveComparePrice), product.currency)}
                   </span>
-                  <Badge variant="success" size="md">{effectiveDiscount}% OFF</Badge>
+                  <Badge
+                    variant="success"
+                    size="md"
+                    className="!bg-rose !text-soft-white border-0 shadow-sm font-semibold"
+                  >
+                    {discountDisplay}% off
+                  </Badge>
                 </>
               )}
               {!effectiveInStock ? (

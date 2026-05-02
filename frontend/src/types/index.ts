@@ -204,7 +204,7 @@ export interface OtpVerifyData {
 
 export interface ProductFormData {
   name: string
-  description?: string
+  description: string
   price: number
   compareAtPrice?: number
   currency: string

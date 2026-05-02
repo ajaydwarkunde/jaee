@@ -145,7 +145,7 @@ public class ProductService {
         Product product = Product.builder()
                 .name(request.getName())
                 .slug(slug)
-                .description(request.getDescription())
+                .description(trimDescription(request.getDescription()))
                 .price(request.getPrice())
                 .compareAtPrice(request.getCompareAtPrice())
                 .currency(request.getCurrency())
@@ -182,7 +182,7 @@ public class ProductService {
         product.getCategories().addAll(resolveCategories(request.getCategoryIds()));
 
         product.setName(request.getName());
-        product.setDescription(request.getDescription());
+        product.setDescription(trimDescription(request.getDescription()));
         product.setPrice(request.getPrice());
         product.setCompareAtPrice(request.getCompareAtPrice());
         product.setCurrency(request.getCurrency());
@@ -216,6 +216,13 @@ public class ProductService {
         
         productRepository.delete(product);
         log.info("Product deleted: {}", product.getName());
+    }
+
+    private static String trimDescription(String description) {
+        if (description == null) {
+            return null;
+        }
+        return description.trim();
     }
 
     /** Size + Scent unless the admin supplies a non-empty option list. */
