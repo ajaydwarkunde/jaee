@@ -342,6 +342,25 @@ class CartServiceTest {
     }
 
     @Test
+    void getCartTotal_usesUnitPriceSnapshotNotBaseProductPrice() {
+        User user = createUser(1L);
+        Product p = createProduct(1L, BigDecimal.TEN, 10, true);
+        CartItem item = CartItem.builder()
+                .id(1L)
+                .product(p)
+                .qty(2)
+                .unitPriceSnapshot(BigDecimal.valueOf(25))
+                .build();
+        Cart cart = createCart(user, List.of(item));
+
+        when(cartRepository.findByUserWithItems(user)).thenReturn(Optional.of(cart));
+
+        BigDecimal total = cartService.getCartTotal(user);
+
+        assertThat(total).isEqualByComparingTo(BigDecimal.valueOf(50));
+    }
+
+    @Test
     void getCartTotal_returnsZeroWhenCartEmpty() {
         User user = createUser(1L);
         when(cartRepository.findByUserWithItems(user)).thenReturn(Optional.empty());

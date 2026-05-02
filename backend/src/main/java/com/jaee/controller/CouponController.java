@@ -33,12 +33,13 @@ public class CouponController {
             @AuthenticationPrincipal User user,
             @Valid @RequestBody ApplyCouponRequest request
     ) {
-        // Get cart total for the user
-        BigDecimal cartTotal = cartService.getCartTotal(user);
-        
+        BigDecimal amount = request.getOrderAmount() != null
+                ? request.getOrderAmount()
+                : cartService.getCartTotal(user);
+
         CouponValidationResponse response = couponService.validateCoupon(
                 request.getCode(),
-                cartTotal,
+                amount,
                 user
         );
         

@@ -52,8 +52,12 @@ interface PageResponse<T> {
 export const couponService = {
   // Validate a coupon code
   validateCoupon: async (code: string, orderAmount?: number): Promise<CouponValidationResponse> => {
-    const params = orderAmount ? `?orderAmount=${orderAmount}` : '';
-    const response = await api.get(`/coupons/validate/${code}${params}`);
+    const encodedCode = encodeURIComponent(code);
+    const params =
+      orderAmount !== undefined && orderAmount !== null
+        ? `?orderAmount=${encodeURIComponent(String(orderAmount))}`
+        : '';
+    const response = await api.get(`/coupons/validate/${encodedCode}${params}`);
     return response.data.data;
   },
 

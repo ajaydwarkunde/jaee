@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.text.Normalizer;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -33,6 +34,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class ProductService {
+
+    private static final List<String> DEFAULT_VARIANT_OPTION_NAMES = List.of("Size", "Scent");
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
@@ -149,7 +152,7 @@ public class ProductService {
                 .categories(categories)
                 .images(request.getImages() != null ? request.getImages() : List.of())
                 .videos(request.getVideos() != null ? request.getVideos() : List.of())
-                .options(request.getOptions() != null ? request.getOptions() : List.of())
+                .options(resolveDefaultOptions(request.getOptions()))
                 .stockQty(request.getStockQty())
                 .active(request.getActive())
                 .build();
@@ -190,7 +193,7 @@ public class ProductService {
             product.setVideos(request.getVideos());
         }
         if (request.getOptions() != null) {
-            product.setOptions(request.getOptions());
+            product.setOptions(resolveDefaultOptions(request.getOptions()));
         }
         boolean wasOutOfStock = product.getStockQty() <= 0;
         product.setStockQty(request.getStockQty());
@@ -213,6 +216,14 @@ public class ProductService {
         
         productRepository.delete(product);
         log.info("Product deleted: {}", product.getName());
+    }
+
+    /** Size + Scent unless the admin supplies a non-empty option list. */
+    private List<String> resolveDefaultOptions(List<String> options) {
+        if (options == null || options.isEmpty()) {
+            return new ArrayList<>(DEFAULT_VARIANT_OPTION_NAMES);
+        }
+        return new ArrayList<>(options);
     }
 
     private Set<Category> resolveCategories(List<Long> categoryIds) {
