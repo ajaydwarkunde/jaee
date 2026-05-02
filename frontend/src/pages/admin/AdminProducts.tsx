@@ -172,15 +172,13 @@ export default function AdminProducts() {
                     </td>
                     <td className="p-4">
                       <div className="flex items-center justify-end gap-2">
-                        {product.options && product.options.length > 0 && (
-                          <button
-                            onClick={() => setVariantProduct(product)}
-                            className="p-2 text-warm-gray hover:text-amber-600 transition-colors"
-                            title="Manage Variants"
-                          >
-                            <Layers className="w-4 h-4" />
-                          </button>
-                        )}
+                        <button
+                          onClick={() => setVariantProduct(product)}
+                          className="p-2 text-warm-gray hover:text-amber-600 transition-colors"
+                          title="Manage Variants (Size & Scent)"
+                        >
+                          <Layers className="w-4 h-4" />
+                        </button>
                         <button
                           onClick={() => handleEdit(product)}
                           className="p-2 text-warm-gray hover:text-rose transition-colors"

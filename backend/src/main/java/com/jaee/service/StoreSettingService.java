@@ -54,6 +54,12 @@ public class StoreSettingService {
             StoreSetting.SettingType.BOOLEAN,
             "false",
             "Show the “Two Stores, One Destination” section on the homepage"
+        ),
+        "whatsapp_phone",
+        new DefaultSettingMeta(
+            StoreSetting.SettingType.STRING,
+            "919404380308",
+            "Digits with country code (e.g. 919404380308). WhatsApp chat only — not shown on the storefront."
         )
     );
 
@@ -98,6 +104,8 @@ public class StoreSettingService {
             settings.putIfAbsent(e.getKey(), e.getValue().defaultValue());
         }
         normalizeLegacyPublicContact(settings);
+        // Never expose legacy support phone on the public API (storefront should not display it).
+        settings.remove("support_phone");
         return settings;
     }
 

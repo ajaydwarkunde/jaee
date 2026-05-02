@@ -107,6 +107,10 @@ public class CouponService {
 
     @Transactional(readOnly = true)
     public CouponValidationResponse validateCoupon(String code, BigDecimal orderAmount, User user) {
+        if (orderAmount == null) {
+            orderAmount = BigDecimal.ZERO;
+        }
+
         Coupon coupon = couponRepository.findByCodeIgnoreCase(code.toUpperCase())
                 .orElse(null);
 

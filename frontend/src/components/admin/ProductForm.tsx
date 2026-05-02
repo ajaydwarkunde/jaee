@@ -42,7 +42,9 @@ export default function ProductForm({
   const [uploadedImages, setUploadedImages] = useState<string[]>(product?.images || [])
   const [uploadedVideos, setUploadedVideos] = useState<string[]>(product?.videos || [])
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>(product?.categoryIds || [])
-  const [productOptions, setProductOptions] = useState<string[]>(product?.options || [])
+  const [productOptions, setProductOptions] = useState<string[]>(
+    product?.options && product.options.length > 0 ? product.options : ['Size', 'Scent']
+  )
   const [newOption, setNewOption] = useState('')
   const [isUploading, setIsUploading] = useState(false)
   const [isUploadingVideo, setIsUploadingVideo] = useState(false)
@@ -430,7 +432,7 @@ export default function ProductForm({
           </span>
         </label>
         <p className="text-xs text-warm-gray">
-          Define option types (e.g., Size, Color, Scent). After saving, manage variant values from the product list.
+          New products default to Size and Scent. You can add more types or remove chips before saving. After saving, set prices and stock under Manage Variants on the product list.
         </p>
         <div className="flex gap-2">
           <input

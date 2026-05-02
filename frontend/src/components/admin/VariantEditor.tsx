@@ -120,7 +120,7 @@ export default function VariantEditor({ product, onClose }: { product: Product; 
     return (
       <div className="text-center py-8">
         <p className="text-warm-gray mb-4">
-          This product has no option types defined. Edit the product first and add options (e.g., Size, Color) before creating variants.
+          This product has no option types yet. Open Edit Product — new products default to Size and Scent — save the product, then return here to add variant rows.
         </p>
         <Button variant="outline" onClick={onClose}>Close</Button>
       </div>

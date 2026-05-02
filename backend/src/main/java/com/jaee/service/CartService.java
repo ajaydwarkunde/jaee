@@ -169,7 +169,7 @@ public class CartService {
         }
         
         return cart.getItems().stream()
-                .map(item -> item.getProduct().getPrice().multiply(BigDecimal.valueOf(item.getQty())))
+                .map(CartItem::getSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
