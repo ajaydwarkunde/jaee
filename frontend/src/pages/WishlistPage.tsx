@@ -118,7 +118,7 @@ export default function WishlistPage() {
                 <div className="p-4">
                   <Link
                     to={`/product/${item.product.slug}`}
-                    className="font-serif text-lg font-bold text-charcoal hover:text-rose transition-colors line-clamp-1 tracking-tight"
+                    className="font-serif text-lg font-semibold text-rose hover:opacity-90 transition-opacity line-clamp-1 tracking-tight"
                   >
                     {item.product.name}
                   </Link>
