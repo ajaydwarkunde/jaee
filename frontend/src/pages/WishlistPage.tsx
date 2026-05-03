@@ -118,13 +118,13 @@ export default function WishlistPage() {
                 <div className="p-4">
                   <Link
                     to={`/product/${item.product.slug}`}
-                    className="font-serif text-lg font-medium text-charcoal hover:text-rose transition-colors line-clamp-1"
+                    className="font-serif text-lg font-bold text-charcoal hover:text-rose transition-colors line-clamp-1 tracking-tight"
                   >
                     {item.product.name}
                   </Link>
 
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-lg text-rose font-bold tabular-nums">
+                    <span className="text-lg text-rose font-semibold tabular-nums">
                       {formatPrice(item.product.price)}
                     </span>
                     {item.product.compareAtPrice && item.product.compareAtPrice > item.product.price && (

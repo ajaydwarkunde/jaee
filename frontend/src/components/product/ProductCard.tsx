@@ -135,7 +135,7 @@ export default function ProductCard({ product, onAddToCart, onQuickView }: Produ
             {product.categoryNames.join(' · ')}
           </p>
         )}
-        <h3 className="font-serif text-lg font-medium text-charcoal line-clamp-1 group-hover:text-rose transition-colors">
+        <h3 className="font-serif text-lg font-bold text-charcoal line-clamp-1 group-hover:text-rose transition-colors tracking-tight">
           {product.name}
         </h3>
         {/* Rating */}
@@ -149,7 +149,7 @@ export default function ProductCard({ product, onAddToCart, onQuickView }: Produ
         <div className="mt-2 flex items-center justify-between gap-2">
           <div className="flex flex-col min-w-0 gap-0.5">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-lg font-bold text-rose tabular-nums">
+              <span className="text-lg font-semibold text-rose tabular-nums">
                 {formatPrice(Number(product.price), product.currency)}
               </span>
               {hasDiscount && product.compareAtPrice != null && (

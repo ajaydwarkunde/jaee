@@ -112,7 +112,7 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
           {product.categoryNames?.length > 0 && (
             <p className="text-xs text-warm-gray uppercase tracking-wide mb-1">{product.categoryNames.join(' · ')}</p>
           )}
-          <h2 className="font-serif text-2xl font-medium text-charcoal mb-2">{product.name}</h2>
+          <h2 className="font-serif text-2xl font-bold text-charcoal mb-2 tracking-tight">{product.name}</h2>
 
           {(product.reviewCount ?? 0) > 0 && (
             <div className="flex items-center gap-1 mb-3">
@@ -124,7 +124,7 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
 
           <div className="flex flex-col gap-1 mb-4">
             <div className="flex items-center gap-3 flex-wrap">
-              <span className="text-2xl font-bold text-rose tabular-nums">
+              <span className="text-2xl font-semibold text-rose tabular-nums">
                 {formatPrice(Number(product.price), product.currency)}
               </span>
               {hasDiscount && product.compareAtPrice != null && (

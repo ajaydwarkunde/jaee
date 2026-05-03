@@ -154,7 +154,7 @@ export default function AdminProducts() {
                         />
                         <div>
                           <div className="flex items-center gap-2">
-                            <p className="font-medium text-charcoal">{product.name}</p>
+                            <p className="font-serif font-bold text-charcoal">{product.name}</p>
                             {product.variants && product.variants.length > 0 && (
                               <span className="text-xs px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded-full font-medium">
                                 {product.variants.length} variant{product.variants.length > 1 ? 's' : ''}

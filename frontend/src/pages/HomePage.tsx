@@ -817,6 +817,28 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Brand intro */}
+      <section className="py-16 md:py-20 bg-cream border-y border-blush/60">
+        <div className="container-custom max-w-3xl mx-auto">
+          <p className="font-serif text-xl sm:text-2xl md:text-3xl leading-snug text-charcoal font-semibold mb-8 text-balance rounded-xl bg-gradient-to-br from-rose/15 via-blush/40 to-champagne/50 border border-rose/25 px-6 py-6 md:px-8 md:py-7 shadow-soft">
+            <span className="text-rose">Not just candles</span>
+            {' '}
+            — a quiet ritual of warmth, memory, and presence.
+          </p>
+          <div className="space-y-5 text-warm-gray leading-relaxed text-base md:text-lg">
+            <p>
+              Jaai was born from a simple feeling — the comfort of slowing down. In a world that moves too fast,
+              we wanted to create something that brings you back to yourself. Each candle is crafted with pure soy
+              wax, designed to feel soft, clean, and consciously luxurious.
+            </p>
+            <p>
+              This isn&apos;t just about fragrance. It&apos;s about moments — late-night thoughts, chai breaks,
+              soft music, and the spaces in between. Jaai is for those who romanticize life in the smallest ways.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Store Showcase */}
       {featureTwoStoresSection && (
         <StoreShowcase
@@ -882,41 +904,29 @@ export default function HomePage() {
         customCandleEnabled={featureCustomCandle}
       />
 
-      {/* Our Story */}
+      {/* Our Story teaser */}
       <section className="py-16 md:py-24 bg-gradient-to-br from-blush to-champagne">
         <div className="container-custom">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="order-2 lg:order-1">
               <span className="text-rose text-sm font-medium uppercase tracking-wide">Our Story</span>
-              <p className="font-serif text-xl md:text-2xl text-charcoal leading-snug mt-4 mb-8">
-                A quiet expression of modern luxury, where scent, design, and craftsmanship come together
-                effortlessly.
+              <p className="font-serif text-xl md:text-2xl text-charcoal leading-snug mt-4 mb-6">
+                <span className="text-rose font-semibold">Not just candles</span>
+                {' '}
+                — a quiet ritual of warmth, memory, and presence.
               </p>
               <div className="space-y-5 text-warm-gray leading-relaxed mb-8">
                 <p>
-                  Jaai was born from a quiet desire—to create something meaningful, something of my own.
-                  In the rhythm of a 9-to-5, between deadlines and daily hustle, there was always a longing
-                  to express creativity in its purest form. What began as a small idea evolved into a pursuit
-                  of detail, refinement, and intention.
+                  Jaai was born from a simple feeling — the comfort of slowing down. Each candle is crafted with
+                  pure soy wax, designed to feel soft, clean, and consciously luxurious — for late-night thoughts,
+                  chai breaks, and the spaces in between.
                 </p>
                 <p>
-                  At Jaai, every candle is meticulously handcrafted using pure, high-quality soy wax—chosen
-                  for its clean, refined burn and its sustainable, environmentally conscious nature. Our
-                  fragrances are carefully developed to be toxin-free, offering an experience that is both
-                  safe and sensorially indulgent.
-                </p>
-                <p>
-                  Each creation reflects a philosophy of understated luxury—where simplicity is elevated, and
-                  every element is thoughtfully considered. From the initial pour to the final finish, our
-                  process is slow, deliberate, and rooted in craftsmanship.
-                </p>
-                <p>
-                  Jaai is more than a brand; it is a reflection of passion, quiet perseverance, and the
-                  belief that true luxury lies in the details.
+                  Jaai is for those who romanticize life in the smallest ways.
                 </p>
               </div>
               <Link to="/about">
-                <Button variant="secondary">Learn more about us</Button>
+                <Button variant="secondary">Read our full story</Button>
               </Link>
             </div>
             <div className="order-1 lg:order-2">

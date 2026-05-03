@@ -205,15 +205,15 @@ export default function ProductForm({
       />
 
       <Textarea
-        label="Product description"
+        label="Product description (storefront)"
         {...register('description')}
         rows={6}
         required
         error={errors.description?.message}
-        placeholder="Full description for the product page (ingredients, burn time, care, etc.)"
+        placeholder="Ingredients, burn time, care, scent notes — appears below the title on the public product page."
       />
       <p className="text-xs text-warm-gray -mt-2">
-        Required. This copy appears on the storefront product page and in search.
+        Required for every product. Shoppers see this on the product detail page; it is also used for search.
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

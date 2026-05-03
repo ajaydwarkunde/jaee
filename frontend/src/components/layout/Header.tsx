@@ -74,9 +74,9 @@ function SearchWithSuggestions({ query, onQueryChange, onSearch, onClose }: {
                     className="w-10 h-10 rounded object-cover shrink-0"
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-charcoal truncate">{product.name}</p>
+                    <p className="text-sm font-bold text-charcoal truncate">{product.name}</p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <p className="text-xs text-rose font-bold">{formatPrice(product.price, product.currency)}</p>
+                      <p className="text-xs text-rose font-semibold tabular-nums">{formatPrice(product.price, product.currency)}</p>
                       {product.categoryNames?.length > 0 && (
                         <span className="text-[10px] text-warm-gray">in {product.categoryNames[0]}</span>
                       )}
