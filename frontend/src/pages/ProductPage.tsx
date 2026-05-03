@@ -792,7 +792,7 @@ export default function ProductPage() {
               </p>
             )}
             
-            <h1 className="heading-2 text-charcoal mb-4">{product.name}</h1>
+            <h1 className="heading-2 font-bold text-charcoal mb-4">{product.name}</h1>
 
             {/* Rating summary */}
             {(product.reviewCount ?? 0) > 0 && (
@@ -805,7 +805,7 @@ export default function ProductPage() {
             )}
 
             <div className="flex items-center gap-4 mb-6 flex-wrap">
-              <span className="text-3xl font-bold text-rose tabular-nums">
+              <span className="text-3xl font-semibold text-rose tabular-nums">
                 {formatPrice(Number(effectivePrice), product.currency)}
               </span>
               {effectiveComparePrice != null &&
