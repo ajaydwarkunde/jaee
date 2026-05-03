@@ -37,7 +37,7 @@ export default function RecentlyViewed({ excludeProductId, maxItems = 4 }: Recen
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
             </div>
-            <h3 className="font-serif font-bold text-charcoal group-hover:text-rose transition-colors line-clamp-1 tracking-tight">
+            <h3 className="font-serif text-lg font-semibold text-rose group-hover:opacity-90 transition-opacity line-clamp-1 tracking-tight">
               {item.name}
             </h3>
             <p className="text-rose font-semibold mt-1 tabular-nums">{formatPrice(item.price)}</p>

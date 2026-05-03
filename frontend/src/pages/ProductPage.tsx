@@ -792,7 +792,9 @@ export default function ProductPage() {
               </p>
             )}
             
-            <h1 className="heading-2 font-bold text-charcoal mb-4">{product.name}</h1>
+            <h1 className="font-serif text-3xl md:text-4xl font-semibold text-rose tracking-tight mb-4">
+              {product.name}
+            </h1>
 
             {/* Rating summary */}
             {(product.reviewCount ?? 0) > 0 && (

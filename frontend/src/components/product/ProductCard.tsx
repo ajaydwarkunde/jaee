@@ -135,7 +135,7 @@ export default function ProductCard({ product, onAddToCart, onQuickView }: Produ
             {product.categoryNames.join(' · ')}
           </p>
         )}
-        <h3 className="font-serif text-lg font-bold text-charcoal line-clamp-1 group-hover:text-rose transition-colors tracking-tight">
+        <h3 className="font-serif text-lg font-semibold text-rose line-clamp-1 tracking-tight">
           {product.name}
         </h3>
         {/* Rating */}
