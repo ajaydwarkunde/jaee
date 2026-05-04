@@ -68,8 +68,11 @@ public class CartService {
 
     /** Sets total billable weight (basis for zone rate table). */
     private void enrichCartTotals(Cart cart, CartDto dto) {
-        dto.setTotalWeightKg(
-                shipmentQuoteService.computeTotalCartWeightKg(cart).setScale(3, RoundingMode.HALF_UP));
+        BigDecimal raw = shipmentQuoteService.computeTotalCartWeightKg(cart);
+        if (raw == null) {
+            raw = BigDecimal.ZERO;
+        }
+        dto.setTotalWeightKg(raw.setScale(3, RoundingMode.HALF_UP));
     }
 
     @Transactional
