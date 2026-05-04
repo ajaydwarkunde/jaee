@@ -9,16 +9,24 @@ import java.util.Set;
 
 /**
  * Maps a delivery address to a zone column from the carrier rate card.
- * Origin (warehouse) defaults to Mumbai, Maharashtra — tune via app.shipping.*.
+ * Origin defaults to Wakad, Pune (Maharashtra) — tune via app.shipping.*.
+ * Pune metro suburbs share the same “local” bucket as Wakad for tier selection.
  */
 @Component
 public class ShippingZoneResolver {
 
-    @Value("${app.shipping.origin-city:Mumbai}")
+    @Value("${app.shipping.origin-city:Wakad}")
     private String originCity;
 
     @Value("${app.shipping.origin-state:Maharashtra}")
     private String originState;
+
+    /** Pune metro area — same-day / local tier relative to a Wakad warehouse. */
+    private static final Set<String> PUNE_METRO_CLUSTER = Set.of(
+            "pune", "wakad", "hinjewadi", "pimpri", "chinchwad", "pimpri-chinchwad",
+            "aundh", "baner", "kothrud", "viman nagar", "kharadi", "hadapsar", "wagholi",
+            "pimple saudagar", "bhosari"
+    );
 
     private static final Set<String> METRO_CITIES = Set.of(
             "mumbai", "delhi", "new delhi", "bengaluru", "bangalore", "hyderabad",
@@ -39,13 +47,12 @@ public class ShippingZoneResolver {
         }
         String city = norm(address.getCity());
         String state = norm(address.getState());
-        String oc = norm(originCity);
         String os = norm(originState);
 
-        if (!city.isEmpty() && city.equals(oc)) {
+        if (!city.isEmpty() && isSameFulfillmentLocalArea(city)) {
             return ShippingZone.LOCAL;
         }
-        if (!state.isEmpty() && state.equals(os) && !city.equals(oc)) {
+        if (!state.isEmpty() && state.equals(os) && !isSameFulfillmentLocalArea(city)) {
             return ShippingZone.REGIONAL;
         }
         if (!state.isEmpty() && REMOTE_STATES.contains(state)) {
@@ -55,6 +62,24 @@ public class ShippingZoneResolver {
             return ShippingZone.METRO;
         }
         return ShippingZone.NATIONAL;
+    }
+
+    /**
+     * True when delivery city is the same as origin, or both sit in the Pune metro cluster
+     * (warehouse in Wakad / Pune area).
+     */
+    private boolean isSameFulfillmentLocalArea(String cityNorm) {
+        if (cityNorm.isEmpty()) {
+            return false;
+        }
+        String o = norm(originCity);
+        if (o.isEmpty()) {
+            return false;
+        }
+        if (cityNorm.equals(o)) {
+            return true;
+        }
+        return PUNE_METRO_CLUSTER.contains(o) && PUNE_METRO_CLUSTER.contains(cityNorm);
     }
 
     private static String norm(String s) {

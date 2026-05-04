@@ -181,7 +181,7 @@ export default function Header() {
   
   const { data: cart } = useQuery({
     queryKey: ['cart'],
-    queryFn: cartService.getCart,
+    queryFn: () => cartService.getCart(),
     enabled: isAuthenticated,
   })
 

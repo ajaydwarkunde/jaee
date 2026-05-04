@@ -3,6 +3,7 @@ import { Instagram, Mail, Flame, Gift } from 'lucide-react'
 import Logo from '../ui/Logo'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
 import { instagramProfileUrl } from '@/lib/utils'
+import { BUSINESS_LOCATION_LINE } from '@/config/business'
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
@@ -58,7 +59,7 @@ export default function Footer() {
             <div className="mt-4 space-y-1 text-sm text-cream/60">
               <p>{supportEmail}</p>
               <p>{instagramHandle}</p>
-              <p>Mumbai, Maharashtra, India</p>
+              <p>{BUSINESS_LOCATION_LINE}</p>
             </div>
           </div>
 

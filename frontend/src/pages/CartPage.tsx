@@ -15,6 +15,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { getErrorMessage } from '@/lib/api'
 import toast from 'react-hot-toast'
 import type { AddressFormData } from '@/types'
+import { CITY_INPUT_PLACEHOLDER } from '@/config/business'
 
 export default function CartPage() {
   const navigate = useNavigate()
@@ -472,7 +473,7 @@ export default function CartPage() {
                             label="City *"
                             value={addressForm.city}
                             onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
-                            placeholder="Mumbai"
+                            placeholder={CITY_INPUT_PLACEHOLDER}
                             required
                           />
                           <Input

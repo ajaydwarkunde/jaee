@@ -81,8 +81,9 @@ app:
   pricing:
     razorpay-fee-rate: ${RAZORPAY_FEE_RATE:0.02365}
 
+  # Fulfillment / warehouse (shipping tier “local” uses Pune metro cluster — see ShippingZoneResolver)
   shipping:
-    origin-city: ${SHIPPING_ORIGIN_CITY:Mumbai}
+    origin-city: ${SHIPPING_ORIGIN_CITY:Wakad}
     origin-state: ${SHIPPING_ORIGIN_STATE:Maharashtra}
 
   supabase:
