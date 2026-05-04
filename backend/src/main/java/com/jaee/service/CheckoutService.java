@@ -9,6 +9,7 @@ import com.jaee.repository.CartRepository;
 import com.jaee.repository.CouponRepository;
 import com.jaee.repository.OrderRepository;
 import com.jaee.repository.ProductRepository;
+import com.jaee.repository.ProductVariantRepository;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
 import com.razorpay.Utils;
@@ -40,6 +41,7 @@ public class CheckoutService {
     private final EmailService emailService;
     private final WhatsAppService whatsAppService;
     private final ShipmentQuoteService shipmentQuoteService;
+    private final ProductVariantRepository productVariantRepository;
 
     @Value("${app.razorpay.key-id}")
     private String razorpayKeyId;
@@ -81,15 +83,25 @@ public class CheckoutService {
             throw new BadRequestException("Cart is empty");
         }
 
-        // Validate stock
         for (CartItem item : cart.getItems()) {
             Product product = item.getProduct();
             if (!product.getActive()) {
                 throw new BadRequestException("Product '" + product.getName() + "' is no longer available");
             }
-            if (product.getStockQty() < item.getQty()) {
-                throw new BadRequestException("Insufficient stock for '" + product.getName() + 
-                        "'. Available: " + product.getStockQty());
+            if (item.getVariant() != null) {
+                ProductVariant v = item.getVariant();
+                if (!Boolean.TRUE.equals(v.getActive())) {
+                    throw new BadRequestException("An option in your cart is no longer available: " + product.getName());
+                }
+                int avail = v.getStockQty() != null ? v.getStockQty() : 0;
+                if (avail < item.getQty()) {
+                    throw new BadRequestException("Insufficient stock for '" + product.getName() + "'. Available: " + avail);
+                }
+            } else {
+                if (product.getStockQty() < item.getQty()) {
+                    throw new BadRequestException("Insufficient stock for '" + product.getName() +
+                            "'. Available: " + product.getStockQty());
+                }
             }
         }
 
@@ -235,14 +247,7 @@ public class CheckoutService {
         order.setPaidAt(LocalDateTime.now());
         order.setRazorpayPaymentId(razorpayPaymentId);
 
-        // Reduce stock
-        for (OrderItem item : order.getItems()) {
-            Product product = item.getProduct();
-            if (product != null) {
-                product.reduceStock(item.getQty());
-                productRepository.save(product);
-            }
-        }
+        reduceInventoryForOrder(order);
 
         orderRepository.save(order);
 
@@ -330,13 +335,7 @@ public class CheckoutService {
         order.setPaidAt(LocalDateTime.now());
         order.setRazorpayPaymentId(razorpayPaymentId);
 
-        for (OrderItem item : order.getItems()) {
-            Product product = item.getProduct();
-            if (product != null) {
-                product.reduceStock(item.getQty());
-                productRepository.save(product);
-            }
-        }
+        reduceInventoryForOrder(order);
 
         orderRepository.save(order);
 
@@ -417,18 +416,47 @@ public class CheckoutService {
                 .build();
 
         for (CartItem cartItem : cart.getItems()) {
+            String label = cartItem.getVariantLabel();
+            String baseName = cartItem.getProduct().getName();
+            String lineName = (label == null || label.isBlank()) ? baseName : baseName + " — " + label;
+            String img = resolveCartLineImage(cartItem);
+
             OrderItem orderItem = OrderItem.builder()
                     .product(cartItem.getProduct())
-                    .nameSnapshot(cartItem.getProduct().getName())
+                    .variant(cartItem.getVariant())
+                    .variantLabel(label)
+                    .nameSnapshot(lineName)
                     .priceSnapshot(cartItem.getUnitPriceSnapshot())
                     .qty(cartItem.getQty())
-                    .imageUrl(cartItem.getProduct().getImages().isEmpty() ? null : 
-                            cartItem.getProduct().getImages().get(0))
+                    .imageUrl(img)
                     .build();
             order.addItem(orderItem);
         }
 
         return orderRepository.save(order);
+    }
+
+    private static String resolveCartLineImage(CartItem cartItem) {
+        if (cartItem.getVariant() != null
+                && cartItem.getVariant().getImages() != null
+                && !cartItem.getVariant().getImages().isEmpty()) {
+            return cartItem.getVariant().getImages().get(0);
+        }
+        return cartItem.getProduct().getImages().isEmpty() ? null : cartItem.getProduct().getImages().get(0);
+    }
+
+    private void reduceInventoryForOrder(Order order) {
+        for (OrderItem item : order.getItems()) {
+            if (item.getVariant() != null) {
+                ProductVariant v = item.getVariant();
+                v.reduceStock(item.getQty());
+                productVariantRepository.save(v);
+            } else if (item.getProduct() != null) {
+                Product p = item.getProduct();
+                p.reduceStock(item.getQty());
+                productRepository.save(p);
+            }
+        }
     }
 
     private String formatAddress(Address address) {

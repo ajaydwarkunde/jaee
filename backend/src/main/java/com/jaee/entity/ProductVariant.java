@@ -56,4 +56,11 @@ public class ProductVariant {
     public boolean isInStock() {
         return stockQty != null && stockQty > 0;
     }
+
+    public void reduceStock(int quantity) {
+        if (stockQty == null || stockQty < quantity) {
+            throw new IllegalStateException("Insufficient stock for variant: " + (sku != null ? sku : id));
+        }
+        stockQty -= quantity;
+    }
 }

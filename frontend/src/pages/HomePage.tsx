@@ -550,11 +550,11 @@ function CustomBuilderSection({
   hamperEnabled: boolean
   customCandleEnabled: boolean
 }) {
-  if (!hamperEnabled && !customCandleEnabled) return null
-
-  const both = hamperEnabled && customCandleEnabled
   const [mode, setMode] = useState<'candle' | 'hamper'>('candle')
+  const both = hamperEnabled && customCandleEnabled
   const isCandle = both ? mode === 'candle' : customCandleEnabled
+
+  if (!hamperEnabled && !customCandleEnabled) return null
 
   return (
     <section className="py-16 md:py-24 bg-gradient-to-br from-rose/5 via-blush to-champagne/50 overflow-hidden">

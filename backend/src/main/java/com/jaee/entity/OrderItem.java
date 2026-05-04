@@ -26,6 +26,13 @@ public class OrderItem {
     @JoinColumn(name = "product_id")
     private Product product;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "variant_id")
+    private ProductVariant variant;
+
+    @Column(length = 500)
+    private String variantLabel;
+
     @Column(nullable = false)
     private String nameSnapshot;
 

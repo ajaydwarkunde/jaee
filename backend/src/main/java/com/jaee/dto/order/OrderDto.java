@@ -84,6 +84,8 @@ public class OrderDto {
         private Integer qty;
         private BigDecimal subtotal;
         private String imageUrl;
+        private Long variantId;
+        private String variantLabel;
         
         public static OrderItemDto fromEntity(OrderItem item) {
             return OrderItemDto.builder()
@@ -94,6 +96,8 @@ public class OrderDto {
                     .qty(item.getQty())
                     .subtotal(item.getSubtotal())
                     .imageUrl(item.getImageUrl())
+                    .variantId(item.getVariant() != null ? item.getVariant().getId() : null)
+                    .variantLabel(item.getVariantLabel())
                     .build();
         }
     }
