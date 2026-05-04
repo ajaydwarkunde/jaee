@@ -10,6 +10,7 @@ import { useCartStore } from '@/stores/cartStore'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed'
 import { formatPrice, productDiscountPercentOff } from '@/lib/utils'
+import { defaultVariantIdForProduct } from '@/lib/cartHelpers'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import { ProductDetailSkeleton } from '@/components/ui/Skeleton'
@@ -135,7 +136,7 @@ function FrequentlyBoughtTogether({ product, onAddToCart }: { product: Product; 
   })
 
   const addToCartMutation = useMutation({
-    mutationFn: (p: Product) => cartService.addToCart(p.id, 1),
+    mutationFn: (p: Product) => cartService.addToCart(p.id, 1, defaultVariantIdForProduct(p)),
     onSuccess: (_, p) => {
       queryClient.invalidateQueries({ queryKey: ['cart'] })
       showCartToast({ productName: p.name, productImage: p.images[0], price: p.price, currency: p.currency })
@@ -149,7 +150,7 @@ function FrequentlyBoughtTogether({ product, onAddToCart }: { product: Product; 
     if (isAuthenticated) {
       addToCartMutation.mutate(p)
     } else {
-      addToGuestCart(p.id, 1)
+      addToGuestCart(p.id, 1, defaultVariantIdForProduct(p))
       showCartToast({ productName: p.name, productImage: p.images[0], price: p.price, currency: p.currency })
     }
   }
@@ -644,10 +645,18 @@ export default function ProductPage() {
   }, [product, addToRecentlyViewed])
 
   const addToCartMutation = useMutation({
-    mutationFn: () => cartService.addToCart(product!.id, quantity),
+    mutationFn: () =>
+      cartService.addToCart(product!.id, quantity, selectedVariant?.id ?? undefined),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] })
-      showCartToast({ productName: product!.name, productImage: product!.images[0], price: product!.price, currency: product!.currency, quantity })
+      const p = product!
+      showCartToast({
+        productName: p.name,
+        productImage: p.images[0],
+        price: Number(selectedVariant?.price ?? p.price),
+        currency: p.currency,
+        quantity,
+      })
     },
     onError: (error) => {
       toast.error(getErrorMessage(error))
@@ -696,8 +705,14 @@ export default function ProductPage() {
     if (isAuthenticated) {
       addToCartMutation.mutate()
     } else {
-      addToGuestCart(product.id, quantity)
-      showCartToast({ productName: product.name, productImage: product.images[0], price: product.price, currency: product.currency, quantity })
+      addToGuestCart(product.id, quantity, selectedVariant?.id)
+      showCartToast({
+        productName: product.name,
+        productImage: product.images[0],
+        price: Number(selectedVariant?.price ?? product.price),
+        currency: product.currency,
+        quantity,
+      })
     }
   }
 
