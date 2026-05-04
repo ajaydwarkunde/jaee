@@ -2,6 +2,7 @@ package com.jaee.dto.cart;
 
 import com.jaee.entity.Cart;
 import com.jaee.entity.CartItem;
+import com.jaee.entity.ProductVariant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -58,19 +59,39 @@ public class CartDto {
         private BigDecimal subtotal;
         private Boolean inStock;
         private Integer availableQty;
+        private Long variantId;
+        private String variantLabel;
         
         public static CartItemDto fromEntity(CartItem item) {
+            ProductVariant v = item.getVariant();
+            boolean inStock;
+            int availableQty;
+            String image;
+            if (v != null) {
+                availableQty = v.getStockQty() != null ? v.getStockQty() : 0;
+                inStock = v.isInStock();
+                image = (v.getImages() != null && !v.getImages().isEmpty())
+                        ? v.getImages().get(0)
+                        : (item.getProduct().getImages().isEmpty() ? null : item.getProduct().getImages().get(0));
+            } else {
+                availableQty = item.getProduct().getStockQty();
+                inStock = item.getProduct().isInStock();
+                image = item.getProduct().getImages().isEmpty() ? null : item.getProduct().getImages().get(0);
+            }
+
             return CartItemDto.builder()
                     .id(item.getId())
                     .productId(item.getProduct().getId())
                     .productName(item.getProduct().getName())
                     .productSlug(item.getProduct().getSlug())
-                    .productImage(item.getProduct().getImages().isEmpty() ? null : item.getProduct().getImages().get(0))
+                    .productImage(image)
                     .unitPrice(item.getUnitPriceSnapshot())
                     .qty(item.getQty())
                     .subtotal(item.getSubtotal())
-                    .inStock(item.getProduct().isInStock())
-                    .availableQty(item.getProduct().getStockQty())
+                    .inStock(inStock)
+                    .availableQty(availableQty)
+                    .variantId(v != null ? v.getId() : null)
+                    .variantLabel(item.getVariantLabel())
                     .build();
         }
     }

@@ -60,12 +60,6 @@ public class StoreSettingService {
             StoreSetting.SettingType.STRING,
             "919404380308",
             "Digits with country code (e.g. 919404380308). WhatsApp chat only — not shown on the storefront."
-        ),
-        "razorpay_fee_rate",
-        new DefaultSettingMeta(
-            StoreSetting.SettingType.NUMBER,
-            "0.02365",
-            "Decimal fraction used with base cost: retail price = ceil(base × (1 + rate))"
         )
     );
 

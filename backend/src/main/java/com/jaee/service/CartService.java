@@ -8,6 +8,7 @@ import com.jaee.entity.Address;
 import com.jaee.entity.Cart;
 import com.jaee.entity.CartItem;
 import com.jaee.entity.Product;
+import com.jaee.entity.ProductVariant;
 import com.jaee.entity.User;
 import com.jaee.exception.BadRequestException;
 import com.jaee.exception.NotFoundException;
@@ -15,6 +16,8 @@ import com.jaee.repository.AddressRepository;
 import com.jaee.repository.CartItemRepository;
 import com.jaee.repository.CartRepository;
 import com.jaee.repository.ProductRepository;
+import com.jaee.repository.ProductVariantRepository;
+import com.jaee.util.VariantLabelFormatter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,6 +34,7 @@ public class CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
+    private final ProductVariantRepository productVariantRepository;
     private final AddressRepository addressRepository;
     private final ShipmentQuoteService shipmentQuoteService;
 
@@ -70,18 +74,44 @@ public class CartService {
             throw new BadRequestException("Product is not available");
         }
 
-        if (product.getStockQty() < request.getQty()) {
-            throw new BadRequestException("Insufficient stock. Available: " + product.getStockQty());
+        long variantCount = productVariantRepository.countByProduct_Id(product.getId());
+        Long variantId = request.getVariantId();
+        if (variantCount > 0 && variantId == null) {
+            throw new BadRequestException("Please select an option for this product");
+        }
+        if (variantCount == 0 && variantId != null) {
+            variantId = null;
         }
 
-        // Check if item already in cart
-        CartItem existingItem = cartItemRepository.findByCartAndProduct(cart, product)
+        ProductVariant variant = null;
+        BigDecimal unitPrice = product.getPrice();
+        int available;
+
+        if (variantId != null) {
+            variant = productVariantRepository.findByIdAndProduct_Id(variantId, product.getId())
+                    .orElseThrow(() -> new BadRequestException("Invalid product option"));
+            if (!Boolean.TRUE.equals(variant.getActive())) {
+                throw new BadRequestException("This option is no longer available");
+            }
+            unitPrice = variant.getPrice();
+            available = variant.getStockQty() != null ? variant.getStockQty() : 0;
+        } else {
+            available = product.getStockQty() != null ? product.getStockQty() : 0;
+        }
+
+        if (available < request.getQty()) {
+            throw new BadRequestException("Insufficient stock. Available: " + available);
+        }
+
+        String variantLabel = variant != null ? VariantLabelFormatter.format(variant) : null;
+
+        CartItem existingItem = cartItemRepository.findCartLine(cart, product, variantId)
                 .orElse(null);
 
         if (existingItem != null) {
             int newQty = existingItem.getQty() + request.getQty();
-            if (product.getStockQty() < newQty) {
-                throw new BadRequestException("Insufficient stock. Available: " + product.getStockQty());
+            if (available < newQty) {
+                throw new BadRequestException("Insufficient stock. Available: " + available);
             }
             existingItem.setQty(newQty);
             cartItemRepository.save(existingItem);
@@ -89,8 +119,10 @@ public class CartService {
             CartItem newItem = CartItem.builder()
                     .cart(cart)
                     .product(product)
+                    .variant(variant)
+                    .variantLabel(variantLabel)
                     .qty(request.getQty())
-                    .unitPriceSnapshot(product.getPrice())
+                    .unitPriceSnapshot(unitPrice)
                     .build();
             cart.addItem(newItem);
             cartItemRepository.save(newItem);
@@ -113,8 +145,11 @@ public class CartService {
             cart.removeItem(item);
             cartItemRepository.delete(item);
         } else {
-            if (item.getProduct().getStockQty() < request.getQty()) {
-                throw new BadRequestException("Insufficient stock. Available: " + item.getProduct().getStockQty());
+            int available = item.getVariant() != null
+                    ? (item.getVariant().getStockQty() != null ? item.getVariant().getStockQty() : 0)
+                    : (item.getProduct().getStockQty() != null ? item.getProduct().getStockQty() : 0);
+            if (available < request.getQty()) {
+                throw new BadRequestException("Insufficient stock. Available: " + available);
             }
             item.setQty(request.getQty());
             cartItemRepository.save(item);
@@ -147,25 +182,54 @@ public class CartService {
                     .orElse(null);
 
             if (product == null || !product.getActive()) {
-                continue; // Skip invalid products
+                continue;
             }
 
-            CartItem existingItem = cartItemRepository.findByCartAndProduct(cart, product)
-                    .orElse(null);
+            long variantCount = productVariantRepository.countByProduct_Id(product.getId());
+            Long variantId = guestItem.getVariantId();
+            if (variantCount > 0 && variantId == null) {
+                continue;
+            }
+            if (variantCount == 0) {
+                variantId = null;
+            }
 
-            int qtyToAdd = Math.min(guestItem.getQty(), product.getStockQty());
-            if (qtyToAdd <= 0) continue;
+            ProductVariant variant = null;
+            BigDecimal unitPrice = product.getPrice();
+            int available;
+
+            if (variantId != null) {
+                variant = productVariantRepository.findByIdAndProduct_Id(variantId, product.getId()).orElse(null);
+                if (variant == null || !Boolean.TRUE.equals(variant.getActive())) {
+                    continue;
+                }
+                unitPrice = variant.getPrice();
+                available = variant.getStockQty() != null ? variant.getStockQty() : 0;
+            } else {
+                available = product.getStockQty() != null ? product.getStockQty() : 0;
+            }
+
+            String variantLabel = variant != null ? VariantLabelFormatter.format(variant) : null;
+
+            CartItem existingItem = cartItemRepository.findCartLine(cart, product, variantId).orElse(null);
+
+            int qtyToAdd = Math.min(guestItem.getQty(), available);
+            if (qtyToAdd <= 0) {
+                continue;
+            }
 
             if (existingItem != null) {
-                int newQty = Math.min(existingItem.getQty() + qtyToAdd, product.getStockQty());
+                int newQty = Math.min(existingItem.getQty() + qtyToAdd, available);
                 existingItem.setQty(newQty);
                 cartItemRepository.save(existingItem);
             } else {
                 CartItem newItem = CartItem.builder()
                         .cart(cart)
                         .product(product)
+                        .variant(variant)
+                        .variantLabel(variantLabel)
                         .qty(qtyToAdd)
-                        .unitPriceSnapshot(product.getPrice())
+                        .unitPriceSnapshot(unitPrice)
                         .build();
                 cart.addItem(newItem);
                 cartItemRepository.save(newItem);

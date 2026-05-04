@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ProductVariantRepository extends JpaRepository<ProductVariant, Long> {
@@ -15,4 +16,8 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     List<ProductVariant> findByProductIdWithDetails(@Param("productId") Long productId);
 
     void deleteAllByProductId(Long productId);
+
+    long countByProduct_Id(Long productId);
+
+    Optional<ProductVariant> findByIdAndProduct_Id(Long id, Long productId);
 }

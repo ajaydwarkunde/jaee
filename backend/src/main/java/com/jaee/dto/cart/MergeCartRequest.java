@@ -20,5 +20,7 @@ public class MergeCartRequest {
         
         @NotNull(message = "Quantity is required")
         private Integer qty;
+
+        private Long variantId;
     }
 }

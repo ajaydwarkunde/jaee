@@ -289,18 +289,6 @@ export default function CartPage() {
   const orderTotal =
     cart != null ? Math.max(0, cart.subtotal - discountNum + shippingNum) : 0
 
-  const shippingZoneLabel = (z?: string | null) => {
-    if (!z) return ''
-    const labels: Record<string, string> = {
-      LOCAL: 'Local',
-      REGIONAL: 'Regional',
-      METRO: 'Metro',
-      NATIONAL: 'National',
-      REMOTE: 'Remote',
-    }
-    return labels[z] ?? z
-  }
-
   return (
     <div className="bg-cream min-h-screen py-8 md:py-12">
       <div className="container-custom">
@@ -599,12 +587,7 @@ export default function CartPage() {
                     </div>
                   )}
                   <div className="flex justify-between text-warm-gray">
-                    <span>
-                      Shipping
-                      {cart.shippingZone && selectedAddressId ? (
-                        <span className="text-warm-gray/70"> ({shippingZoneLabel(cart.shippingZone)})</span>
-                      ) : null}
-                    </span>
+                    <span>Shipping</span>
                     {!selectedAddressId ? (
                       <span className="text-xs text-warm-gray">Select address</span>
                     ) : cart.freeShippingApplied ? (
