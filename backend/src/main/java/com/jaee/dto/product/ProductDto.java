@@ -23,6 +23,8 @@ public class ProductDto {
     private String slug;
     private String description;
     private BigDecimal price;
+    /** Per-unit weight for delivery estimates (kg). */
+    private BigDecimal weightKg;
     private BigDecimal compareAtPrice;
     private Integer discountPercent;
     private String currency;
@@ -54,6 +56,7 @@ public class ProductDto {
                 .slug(product.getSlug())
                 .description(product.getDescription())
                 .price(product.getPrice())
+                .weightKg(product.getWeightKg())
                 .compareAtPrice(product.getCompareAtPrice())
                 .discountPercent(calculateDiscount(product.getPrice(), product.getCompareAtPrice()))
                 .currency(product.getCurrency())

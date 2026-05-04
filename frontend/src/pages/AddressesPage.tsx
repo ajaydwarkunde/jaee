@@ -8,6 +8,7 @@ import Input from '@/components/ui/Input'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import toast from 'react-hot-toast'
 import type { Address, AddressFormData } from '@/types'
+import { CITY_INPUT_PLACEHOLDER } from '@/config/business'
 
 export default function AddressesPage() {
   const queryClient = useQueryClient()
@@ -128,7 +129,7 @@ export default function AddressesPage() {
               <Input label="Address Line 1 *" name="line1" value={formData.line1} onChange={handleChange} placeholder="123 Main Street" required />
               <Input label="Address Line 2" name="line2" value={formData.line2 || ''} onChange={handleChange} placeholder="Apartment, suite, etc." />
               <div className="grid grid-cols-2 gap-4">
-                <Input label="City *" name="city" value={formData.city} onChange={handleChange} placeholder="Mumbai" required />
+                <Input label="City *" name="city" value={formData.city} onChange={handleChange} placeholder={CITY_INPUT_PLACEHOLDER} required />
                 <Input label="State *" name="state" value={formData.state || ''} onChange={handleChange} placeholder="Maharashtra" required />
               </div>
               <div className="grid grid-cols-3 gap-4">

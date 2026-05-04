@@ -39,6 +39,7 @@ public class CheckoutService {
     private final CouponService couponService;
     private final EmailService emailService;
     private final WhatsAppService whatsAppService;
+    private final ShipmentQuoteService shipmentQuoteService;
 
     @Value("${app.razorpay.key-id}")
     private String razorpayKeyId;
@@ -123,8 +124,11 @@ public class CheckoutService {
             discountAmount = validation.getDiscountAmount();
         }
 
+        ShipmentQuoteService.Quote shipQuote = shipmentQuoteService.quote(user, cart, shippingAddress, couponCode);
+
         // Create pending order in our database
-        Order pendingOrder = createPendingOrder(user, cart, shippingAddress, shippingAddressStr, coupon, discountAmount);
+        Order pendingOrder = createPendingOrder(user, cart, shippingAddress, shippingAddressStr, coupon, discountAmount,
+                shipQuote);
 
         // Calculate total in paise (Razorpay expects amount in smallest currency unit)
         long amountInPaise = pendingOrder.getTotalAmount()
@@ -382,12 +386,16 @@ public class CheckoutService {
     }
 
     private Order createPendingOrder(User user, Cart cart, Address shippingAddress, String shippingAddressStr,
-                                       Coupon coupon, BigDecimal discountAmount) {
+                                       Coupon coupon, BigDecimal discountAmount,
+                                       ShipmentQuoteService.Quote shipQuote) {
         BigDecimal subtotal = cart.getItems().stream()
                 .map(CartItem::getSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         
-        BigDecimal total = subtotal.subtract(discountAmount != null ? discountAmount : BigDecimal.ZERO);
+        BigDecimal shippingAmount = shipQuote != null ? shipQuote.shippingAmount() : BigDecimal.ZERO;
+        BigDecimal discount = discountAmount != null ? discountAmount : BigDecimal.ZERO;
+
+        BigDecimal total = subtotal.subtract(discount).add(shippingAmount);
         if (total.compareTo(BigDecimal.ZERO) < 0) {
             total = BigDecimal.ZERO;
         }
@@ -403,7 +411,9 @@ public class CheckoutService {
                 .address(shippingAddress)
                 .coupon(coupon)
                 .couponCode(coupon != null ? coupon.getCode() : null)
-                .discountAmount(discountAmount != null ? discountAmount : BigDecimal.ZERO)
+                .discountAmount(discount)
+                .shippingAmount(shippingAmount)
+                .shippingZone(shipQuote != null ? shipQuote.zone().name() : null)
                 .build();
 
         for (CartItem cartItem : cart.getItems()) {

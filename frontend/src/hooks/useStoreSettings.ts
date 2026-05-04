@@ -24,6 +24,7 @@ const DEFAULT_SETTINGS: StoreSettings = {
   feature_hamper_public: 'false',
   feature_custom_candle: 'false',
   feature_two_stores_section: 'false',
+  razorpay_fee_rate: '0.02365',
 }
 
 export function useStoreSettings() {
@@ -53,6 +54,11 @@ export function useStoreSettings() {
     return parseInt(getValue(key), 10) || 0
   }
 
+  const razorpayFeeRate = Math.max(
+    0,
+    parseFloat(getValue('razorpay_fee_rate' as keyof StoreSettings)) || 0.02365
+  )
+
   return {
     settings: settings ?? DEFAULT_SETTINGS,
     isLoading,
@@ -75,6 +81,7 @@ export function useStoreSettings() {
     featureHamperPublic: getBoolValue('feature_hamper_public'),
     featureCustomCandle: getBoolValue('feature_custom_candle'),
     featureTwoStoresSection: getBoolValue('feature_two_stores_section'),
+    razorpayFeeRate,
     /** Digits only, suitable for https://wa.me/{digits} — never show as visible text */
     whatsappPhoneDigits: (() => {
       const raw = getValue('whatsapp_phone').replace(/\D/g, '')

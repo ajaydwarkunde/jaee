@@ -20,6 +20,7 @@ import toast from 'react-hot-toast'
 import { showCartToast } from '@/components/ui/CartToast'
 import Logo from '@/components/ui/Logo'
 import type { Product } from '@/types'
+import { BUSINESS_LOCATION_SHORT } from '@/config/business'
 
 const COMMUNITY_STORAGE_KEY = 'jaai-community-experiences'
 
@@ -35,7 +36,7 @@ const SEED_COMMUNITY_STORIES: CommunityStory[] = [
   {
     id: 'seed-1',
     name: 'Priya M.',
-    location: 'Mumbai',
+    location: 'Pune',
     text: 'The candles from Jaai are absolutely divine — the fragrance fills the room and lasts for hours.',
     at: new Date().toISOString(),
   },
@@ -803,7 +804,7 @@ export default function HomePage() {
               { icon: Sparkles, title: 'Premium Quality', desc: 'Hand-poured with care' },
               { icon: Truck, title: 'Free Shipping', desc: `On orders over ₹${freeShippingThreshold}` },
               { icon: Gift, title: 'Gift Wrapping', desc: 'Beautiful packaging' },
-              { icon: Heart, title: 'Made with Love', desc: 'Crafted in India' },
+              { icon: Heart, title: 'Made with Love', desc: `Handcrafted in ${BUSINESS_LOCATION_SHORT}` },
             ].map(({ icon: Icon, title, desc }) => (
               <div key={title} className="text-center">
                 <div className="w-12 h-12 bg-rose/10 rounded-full flex items-center justify-center mx-auto mb-3">

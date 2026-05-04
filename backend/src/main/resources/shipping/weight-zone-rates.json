@@ -1,0 +1,1600 @@
+{
+"meta": {
+"codFeeInr": 30,
+"volumetricDivisor": 5000
+},
+"rates": [
+{
+"weightKg": 0.5,
+"local": 25.0,
+"regional": 28.0,
+"metro": 33.0,
+"national": 36.0,
+"remote": 57.0
+},
+{
+"weightKg": 1.0,
+"local": 40.0,
+"regional": 49.0,
+"metro": 58.0,
+"national": 65.0,
+"remote": 74.0
+},
+{
+"weightKg": 1.5,
+"local": 55.0,
+"regional": 66.0,
+"metro": 77.0,
+"national": 86.0,
+"remote": 96.0
+},
+{
+"weightKg": 2.0,
+"local": 70.0,
+"regional": 83.0,
+"metro": 96.0,
+"national": 107.0,
+"remote": 118.0
+},
+{
+"weightKg": 2.5,
+"local": 85.0,
+"regional": 100.0,
+"metro": 115.0,
+"national": 128.0,
+"remote": 140.0
+},
+{
+"weightKg": 3.0,
+"local": 100.0,
+"regional": 117.0,
+"metro": 134.0,
+"national": 149.0,
+"remote": 162.0
+},
+{
+"weightKg": 3.5,
+"local": 115.0,
+"regional": 134.0,
+"metro": 153.0,
+"national": 170.0,
+"remote": 184.0
+},
+{
+"weightKg": 4.0,
+"local": 130.0,
+"regional": 151.0,
+"metro": 172.0,
+"national": 191.0,
+"remote": 206.0
+},
+{
+"weightKg": 4.5,
+"local": 145.0,
+"regional": 168.0,
+"metro": 191.0,
+"national": 212.0,
+"remote": 228.0
+},
+{
+"weightKg": 5.0,
+"local": 160.0,
+"regional": 185.0,
+"metro": 210.0,
+"national": 233.0,
+"remote": 250.0
+},
+{
+"weightKg": 5.5,
+"local": 160.0,
+"regional": 185.0,
+"metro": 210.0,
+"national": 233.0,
+"remote": 250.0
+},
+{
+"weightKg": 6.0,
+"local": 174.0,
+"regional": 201.0,
+"metro": 230.0,
+"national": 253.0,
+"remote": 272.0
+},
+{
+"weightKg": 6.5,
+"local": 174.0,
+"regional": 201.0,
+"metro": 230.0,
+"national": 253.0,
+"remote": 272.0
+},
+{
+"weightKg": 7.0,
+"local": 188.0,
+"regional": 217.0,
+"metro": 250.0,
+"national": 273.0,
+"remote": 294.0
+},
+{
+"weightKg": 7.5,
+"local": 188.0,
+"regional": 217.0,
+"metro": 250.0,
+"national": 273.0,
+"remote": 294.0
+},
+{
+"weightKg": 8.0,
+"local": 202.0,
+"regional": 233.0,
+"metro": 270.0,
+"national": 293.0,
+"remote": 316.0
+},
+{
+"weightKg": 8.5,
+"local": 202.0,
+"regional": 233.0,
+"metro": 270.0,
+"national": 293.0,
+"remote": 316.0
+},
+{
+"weightKg": 9.0,
+"local": 216.0,
+"regional": 249.0,
+"metro": 290.0,
+"national": 313.0,
+"remote": 338.0
+},
+{
+"weightKg": 9.5,
+"local": 216.0,
+"regional": 249.0,
+"metro": 290.0,
+"national": 313.0,
+"remote": 338.0
+},
+{
+"weightKg": 10.0,
+"local": 230.0,
+"regional": 265.0,
+"metro": 310.0,
+"national": 333.0,
+"remote": 360.0
+},
+{
+"weightKg": 10.5,
+"local": 230.0,
+"regional": 265.0,
+"metro": 310.0,
+"national": 333.0,
+"remote": 360.0
+},
+{
+"weightKg": 11.0,
+"local": 244.0,
+"regional": 281.0,
+"metro": 330.0,
+"national": 353.0,
+"remote": 382.0
+},
+{
+"weightKg": 11.5,
+"local": 244.0,
+"regional": 281.0,
+"metro": 330.0,
+"national": 353.0,
+"remote": 382.0
+},
+{
+"weightKg": 12.0,
+"local": 258.0,
+"regional": 297.0,
+"metro": 350.0,
+"national": 373.0,
+"remote": 404.0
+},
+{
+"weightKg": 12.5,
+"local": 258.0,
+"regional": 297.0,
+"metro": 350.0,
+"national": 373.0,
+"remote": 404.0
+},
+{
+"weightKg": 13.0,
+"local": 272.0,
+"regional": 313.0,
+"metro": 370.0,
+"national": 393.0,
+"remote": 426.0
+},
+{
+"weightKg": 13.5,
+"local": 272.0,
+"regional": 313.0,
+"metro": 370.0,
+"national": 393.0,
+"remote": 426.0
+},
+{
+"weightKg": 14.0,
+"local": 286.0,
+"regional": 329.0,
+"metro": 390.0,
+"national": 413.0,
+"remote": 448.0
+},
+{
+"weightKg": 14.5,
+"local": 286.0,
+"regional": 329.0,
+"metro": 390.0,
+"national": 413.0,
+"remote": 448.0
+},
+{
+"weightKg": 15.0,
+"local": 300.0,
+"regional": 345.0,
+"metro": 410.0,
+"national": 433.0,
+"remote": 470.0
+},
+{
+"weightKg": 15.5,
+"local": 300.0,
+"regional": 345.0,
+"metro": 410.0,
+"national": 433.0,
+"remote": 470.0
+},
+{
+"weightKg": 16.0,
+"local": 314.0,
+"regional": 361.0,
+"metro": 430.0,
+"national": 453.0,
+"remote": 492.0
+},
+{
+"weightKg": 16.5,
+"local": 314.0,
+"regional": 361.0,
+"metro": 430.0,
+"national": 453.0,
+"remote": 492.0
+},
+{
+"weightKg": 17.0,
+"local": 328.0,
+"regional": 377.0,
+"metro": 450.0,
+"national": 473.0,
+"remote": 514.0
+},
+{
+"weightKg": 17.5,
+"local": 328.0,
+"regional": 377.0,
+"metro": 450.0,
+"national": 473.0,
+"remote": 514.0
+},
+{
+"weightKg": 18.0,
+"local": 342.0,
+"regional": 393.0,
+"metro": 470.0,
+"national": 493.0,
+"remote": 536.0
+},
+{
+"weightKg": 18.5,
+"local": 342.0,
+"regional": 393.0,
+"metro": 470.0,
+"national": 493.0,
+"remote": 536.0
+},
+{
+"weightKg": 19.0,
+"local": 356.0,
+"regional": 409.0,
+"metro": 490.0,
+"national": 513.0,
+"remote": 558.0
+},
+{
+"weightKg": 19.5,
+"local": 356.0,
+"regional": 409.0,
+"metro": 490.0,
+"national": 513.0,
+"remote": 558.0
+},
+{
+"weightKg": 20.0,
+"local": 370.0,
+"regional": 425.0,
+"metro": 510.0,
+"national": 533.0,
+"remote": 580.0
+},
+{
+"weightKg": 20.5,
+"local": 370.0,
+"regional": 425.0,
+"metro": 510.0,
+"national": 533.0,
+"remote": 580.0
+},
+{
+"weightKg": 21.0,
+"local": 384.0,
+"regional": 441.0,
+"metro": 530.0,
+"national": 553.0,
+"remote": 602.0
+},
+{
+"weightKg": 21.5,
+"local": 384.0,
+"regional": 441.0,
+"metro": 530.0,
+"national": 553.0,
+"remote": 602.0
+},
+{
+"weightKg": 22.0,
+"local": 398.0,
+"regional": 457.0,
+"metro": 550.0,
+"national": 573.0,
+"remote": 624.0
+},
+{
+"weightKg": 22.5,
+"local": 398.0,
+"regional": 457.0,
+"metro": 550.0,
+"national": 573.0,
+"remote": 624.0
+},
+{
+"weightKg": 23.0,
+"local": 412.0,
+"regional": 473.0,
+"metro": 570.0,
+"national": 593.0,
+"remote": 646.0
+},
+{
+"weightKg": 23.5,
+"local": 412.0,
+"regional": 473.0,
+"metro": 570.0,
+"national": 593.0,
+"remote": 646.0
+},
+{
+"weightKg": 24.0,
+"local": 426.0,
+"regional": 489.0,
+"metro": 590.0,
+"national": 613.0,
+"remote": 668.0
+},
+{
+"weightKg": 24.5,
+"local": 426.0,
+"regional": 489.0,
+"metro": 590.0,
+"national": 613.0,
+"remote": 668.0
+},
+{
+"weightKg": 25.0,
+"local": 440.0,
+"regional": 505.0,
+"metro": 610.0,
+"national": 633.0,
+"remote": 690.0
+},
+{
+"weightKg": 25.5,
+"local": 440.0,
+"regional": 505.0,
+"metro": 610.0,
+"national": 633.0,
+"remote": 690.0
+},
+{
+"weightKg": 26.0,
+"local": 454.0,
+"regional": 521.0,
+"metro": 630.0,
+"national": 653.0,
+"remote": 712.0
+},
+{
+"weightKg": 26.5,
+"local": 454.0,
+"regional": 521.0,
+"metro": 630.0,
+"national": 653.0,
+"remote": 712.0
+},
+{
+"weightKg": 27.0,
+"local": 468.0,
+"regional": 537.0,
+"metro": 650.0,
+"national": 673.0,
+"remote": 734.0
+},
+{
+"weightKg": 27.5,
+"local": 468.0,
+"regional": 537.0,
+"metro": 650.0,
+"national": 673.0,
+"remote": 734.0
+},
+{
+"weightKg": 28.0,
+"local": 482.0,
+"regional": 553.0,
+"metro": 670.0,
+"national": 693.0,
+"remote": 756.0
+},
+{
+"weightKg": 28.5,
+"local": 482.0,
+"regional": 553.0,
+"metro": 670.0,
+"national": 693.0,
+"remote": 756.0
+},
+{
+"weightKg": 29.0,
+"local": 496.0,
+"regional": 569.0,
+"metro": 690.0,
+"national": 713.0,
+"remote": 778.0
+},
+{
+"weightKg": 29.5,
+"local": 496.0,
+"regional": 569.0,
+"metro": 690.0,
+"national": 713.0,
+"remote": 778.0
+},
+{
+"weightKg": 30.0,
+"local": 510.0,
+"regional": 585.0,
+"metro": 710.0,
+"national": 733.0,
+"remote": 800.0
+},
+{
+"weightKg": 30.5,
+"local": 510.0,
+"regional": 585.0,
+"metro": 710.0,
+"national": 733.0,
+"remote": 800.0
+},
+{
+"weightKg": 31.0,
+"local": 524.0,
+"regional": 601.0,
+"metro": 730.0,
+"national": 753.0,
+"remote": 822.0
+},
+{
+"weightKg": 31.5,
+"local": 524.0,
+"regional": 601.0,
+"metro": 730.0,
+"national": 753.0,
+"remote": 822.0
+},
+{
+"weightKg": 32.0,
+"local": 538.0,
+"regional": 617.0,
+"metro": 750.0,
+"national": 773.0,
+"remote": 844.0
+},
+{
+"weightKg": 32.5,
+"local": 538.0,
+"regional": 617.0,
+"metro": 750.0,
+"national": 773.0,
+"remote": 844.0
+},
+{
+"weightKg": 33.0,
+"local": 552.0,
+"regional": 633.0,
+"metro": 770.0,
+"national": 793.0,
+"remote": 866.0
+},
+{
+"weightKg": 33.5,
+"local": 552.0,
+"regional": 633.0,
+"metro": 770.0,
+"national": 793.0,
+"remote": 866.0
+},
+{
+"weightKg": 34.0,
+"local": 566.0,
+"regional": 649.0,
+"metro": 790.0,
+"national": 813.0,
+"remote": 888.0
+},
+{
+"weightKg": 34.5,
+"local": 566.0,
+"regional": 649.0,
+"metro": 790.0,
+"national": 813.0,
+"remote": 888.0
+},
+{
+"weightKg": 35.0,
+"local": 580.0,
+"regional": 665.0,
+"metro": 810.0,
+"national": 833.0,
+"remote": 910.0
+},
+{
+"weightKg": 35.5,
+"local": 580.0,
+"regional": 665.0,
+"metro": 810.0,
+"national": 833.0,
+"remote": 910.0
+},
+{
+"weightKg": 36.0,
+"local": 594.0,
+"regional": 681.0,
+"metro": 830.0,
+"national": 853.0,
+"remote": 932.0
+},
+{
+"weightKg": 36.5,
+"local": 594.0,
+"regional": 681.0,
+"metro": 830.0,
+"national": 853.0,
+"remote": 932.0
+},
+{
+"weightKg": 37.0,
+"local": 608.0,
+"regional": 697.0,
+"metro": 850.0,
+"national": 873.0,
+"remote": 954.0
+},
+{
+"weightKg": 37.5,
+"local": 608.0,
+"regional": 697.0,
+"metro": 850.0,
+"national": 873.0,
+"remote": 954.0
+},
+{
+"weightKg": 38.0,
+"local": 622.0,
+"regional": 713.0,
+"metro": 870.0,
+"national": 893.0,
+"remote": 976.0
+},
+{
+"weightKg": 38.5,
+"local": 622.0,
+"regional": 713.0,
+"metro": 870.0,
+"national": 893.0,
+"remote": 976.0
+},
+{
+"weightKg": 39.0,
+"local": 636.0,
+"regional": 729.0,
+"metro": 890.0,
+"national": 913.0,
+"remote": 998.0
+},
+{
+"weightKg": 39.5,
+"local": 636.0,
+"regional": 729.0,
+"metro": 890.0,
+"national": 913.0,
+"remote": 998.0
+},
+{
+"weightKg": 40.0,
+"local": 650.0,
+"regional": 745.0,
+"metro": 910.0,
+"national": 933.0,
+"remote": 1020.0
+},
+{
+"weightKg": 40.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 41.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 41.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 42.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 42.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 43.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 43.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 44.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 44.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 45.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 45.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 46.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 46.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 47.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 47.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 48.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 48.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 49.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 49.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 50.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 50.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 51.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 51.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 52.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 52.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 53.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 53.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 54.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 54.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 55.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 55.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 56.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 56.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 57.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 57.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 58.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 58.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 59.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 59.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 60.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 60.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 61.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 61.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 62.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 62.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 63.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 63.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 64.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 64.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 65.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 65.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 66.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 66.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 67.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 67.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 68.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 68.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 69.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 69.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 70.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 70.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 71.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 71.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 72.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 72.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 73.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 73.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 74.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 74.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 75.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 75.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 76.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 76.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 77.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 77.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 78.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 78.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 79.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 79.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 80.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 80.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 81.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 81.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 82.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 82.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 83.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 83.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 84.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 84.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 85.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 85.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 86.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 86.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 87.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 87.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 88.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 88.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 89.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 89.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 90.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 90.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 91.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 91.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 92.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 92.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 93.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 93.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 94.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 94.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 95.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 95.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 96.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 96.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 97.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 97.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 98.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 98.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 99.0,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+},
+{
+"weightKg": 99.5,
+"local": 1999.0,
+"regional": 1999.0,
+"metro": 1999.0,
+"national": 1999.0,
+"remote": 1999.0
+}
+]
+}

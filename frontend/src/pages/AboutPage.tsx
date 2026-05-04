@@ -4,6 +4,7 @@ import Button from '@/components/ui/Button'
 import LazyImage from '@/components/ui/LazyImage'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
 import { instagramProfileUrl } from '@/lib/utils'
+import { BUSINESS_LOCATION_LINE } from '@/config/business'
 
 const values = [
   {
@@ -283,7 +284,7 @@ export default function AboutPage() {
                 {instagramHandle}
               </a>
             </div>
-            <p className="text-sm text-warm-gray/70 mt-3">Mumbai, Maharashtra, India</p>
+            <p className="text-sm text-warm-gray/70 mt-3">{BUSINESS_LOCATION_LINE}</p>
           </div>
         </div>
       </section>

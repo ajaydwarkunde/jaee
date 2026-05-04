@@ -46,6 +46,9 @@ class ProductServiceTest {
     @Mock
     private StockNotificationService stockNotificationService;
 
+    @Mock
+    private RetailPricingService retailPricingService;
+
     @InjectMocks
     private ProductService productService;
 

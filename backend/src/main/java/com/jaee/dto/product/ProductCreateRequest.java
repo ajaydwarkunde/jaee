@@ -3,7 +3,6 @@ package com.jaee.dto.product;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -21,9 +20,18 @@ public class ProductCreateRequest {
     @Size(max = 5000, message = "Description must not exceed 5000 characters")
     private String description;
     
-    @NotNull(message = "Price is required")
+    /**
+     * Retail price in INR. Optional if {@code baseCost} is set (price is then computed with Razorpay fee).
+     */
     @DecimalMin(value = "0.01", message = "Price must be greater than 0")
     private BigDecimal price;
+
+    /** When set, selling price = ceil(baseCost × (1 + Razorpay fee rate)). */
+    @DecimalMin(value = "0.01", message = "Base cost must be greater than 0")
+    private BigDecimal baseCost;
+
+    @DecimalMin(value = "0.001", message = "Weight must be positive")
+    private BigDecimal weightKg;
 
     @DecimalMin(value = "0.01", message = "Compare at price must be greater than 0")
     private BigDecimal compareAtPrice;

@@ -64,6 +64,12 @@ public class Order {
     @Builder.Default
     private BigDecimal discountAmount = BigDecimal.ZERO;
 
+    @Column(precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal shippingAmount = BigDecimal.ZERO;
+
+    private String shippingZone;
+
     private String trackingNumber;
 
     private String trackingUrl;

@@ -15,6 +15,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { getErrorMessage } from '@/lib/api'
 import toast from 'react-hot-toast'
 import type { AddressFormData } from '@/types'
+import { CITY_INPUT_PLACEHOLDER } from '@/config/business'
 
 export default function CartPage() {
   const navigate = useNavigate()
@@ -33,10 +34,11 @@ export default function CartPage() {
   const [couponLoading, setCouponLoading] = useState(false)
   const [couponError, setCouponError] = useState('')
 
-  // Get cart for authenticated users
+  // Get cart for authenticated users (shipping quote when address + optional coupon)
   const { data: cart, isLoading: cartLoading } = useQuery({
-    queryKey: ['cart'],
-    queryFn: cartService.getCart,
+    queryKey: ['cart', selectedAddressId, appliedCoupon?.code],
+    queryFn: () =>
+      cartService.getCart(selectedAddressId ?? undefined, appliedCoupon?.code),
     enabled: isAuthenticated,
   })
 
@@ -282,6 +284,23 @@ export default function CartPage() {
   const isEmpty = !cart || cart.items.length === 0
   const selectedAddress = addresses?.find(a => a.id === selectedAddressId)
 
+  const discountNum = Number(appliedCoupon?.discountAmount ?? 0)
+  const shippingNum = Number(cart?.shippingAmount ?? 0)
+  const orderTotal =
+    cart != null ? Math.max(0, cart.subtotal - discountNum + shippingNum) : 0
+
+  const shippingZoneLabel = (z?: string | null) => {
+    if (!z) return ''
+    const labels: Record<string, string> = {
+      LOCAL: 'Local',
+      REGIONAL: 'Regional',
+      METRO: 'Metro',
+      NATIONAL: 'National',
+      REMOTE: 'Remote',
+    }
+    return labels[z] ?? z
+  }
+
   return (
     <div className="bg-cream min-h-screen py-8 md:py-12">
       <div className="container-custom">
@@ -454,7 +473,7 @@ export default function CartPage() {
                             label="City *"
                             value={addressForm.city}
                             onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
-                            placeholder="Mumbai"
+                            placeholder={CITY_INPUT_PLACEHOLDER}
                             required
                           />
                           <Input
@@ -580,18 +599,23 @@ export default function CartPage() {
                     </div>
                   )}
                   <div className="flex justify-between text-warm-gray">
-                    <span>Shipping</span>
-                    <span className="text-success">Free</span>
+                    <span>
+                      Shipping
+                      {cart.shippingZone && selectedAddressId ? (
+                        <span className="text-warm-gray/70"> ({shippingZoneLabel(cart.shippingZone)})</span>
+                      ) : null}
+                    </span>
+                    {!selectedAddressId ? (
+                      <span className="text-xs text-warm-gray">Select address</span>
+                    ) : cart.freeShippingApplied ? (
+                      <span className="text-success">Free</span>
+                    ) : (
+                      <span>{formatPrice(shippingNum)}</span>
+                    )}
                   </div>
                   <div className="border-t border-blush pt-3 flex justify-between font-medium text-charcoal">
                     <span>Total</span>
-                    <span className="text-lg">
-                      {formatPrice(
-                        appliedCoupon?.discountAmount 
-                          ? cart.subtotal - appliedCoupon.discountAmount
-                          : cart.subtotal
-                      )}
-                    </span>
+                    <span className="text-lg">{formatPrice(orderTotal)}</span>
                   </div>
                 </div>
 

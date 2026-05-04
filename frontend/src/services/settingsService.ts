@@ -27,6 +27,7 @@ export interface StoreSettings {
   feature_hamper_public: string
   feature_custom_candle: string
   feature_two_stores_section: string
+  razorpay_fee_rate: string
   [key: string]: string
 }
 
