@@ -129,6 +129,8 @@ export interface Cart {
 export interface GuestCartItem {
   productId: number
   qty: number
+  /** When the product has variants, must match server cart line */
+  variantId?: number
 }
 
 // Order types

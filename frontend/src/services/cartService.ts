@@ -11,8 +11,12 @@ export const cartService = {
     return response.data.data
   },
 
-  addToCart: async (productId: number, qty: number): Promise<Cart> => {
-    const response = await api.post<ApiResponse<Cart>>('/cart/items', { productId, qty })
+  addToCart: async (productId: number, qty: number, variantId?: number): Promise<Cart> => {
+    const body: { productId: number; qty: number; variantId?: number } = { productId, qty }
+    if (variantId != null) {
+      body.variantId = variantId
+    }
+    const response = await api.post<ApiResponse<Cart>>('/cart/items', body)
     return response.data.data
   },
 

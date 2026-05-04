@@ -9,6 +9,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { useCartStore } from '@/stores/cartStore'
 import { getErrorMessage } from '@/lib/api'
 import type { Product } from '@/types'
+import { defaultVariantIdForProduct } from '@/lib/cartHelpers'
 import Modal from '../ui/Modal'
 import Button from '../ui/Button'
 import Badge from '../ui/Badge'
@@ -37,7 +38,8 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
   const isWishlisted = product ? wishlistIds.includes(product.id) : false
 
   const addToCartMutation = useMutation({
-    mutationFn: () => cartService.addToCart(product!.id, quantity),
+    mutationFn: () =>
+      cartService.addToCart(product!.id, quantity, defaultVariantIdForProduct(product!)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] })
       showCartToast({ productName: product!.name, productImage: product!.images[0], price: product!.price, currency: product!.currency, quantity })
@@ -65,7 +67,7 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
     if (isAuthenticated) {
       addToCartMutation.mutate()
     } else {
-      addToGuestCart(product.id, quantity)
+      addToGuestCart(product.id, quantity, defaultVariantIdForProduct(product))
       showCartToast({ productName: product.name, productImage: product.images[0], price: product.price, currency: product.currency, quantity })
       onClose()
     }

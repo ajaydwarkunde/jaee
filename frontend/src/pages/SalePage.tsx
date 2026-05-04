@@ -11,6 +11,7 @@ import { getErrorMessage } from '@/lib/api'
 import toast from 'react-hot-toast'
 import { showCartToast } from '@/components/ui/CartToast'
 import type { Product } from '@/types'
+import { defaultVariantIdForProduct } from '@/lib/cartHelpers'
 
 export default function SalePage() {
   const [page, setPage] = useState(0)
@@ -24,7 +25,8 @@ export default function SalePage() {
   })
 
   const addToCartMutation = useMutation({
-    mutationFn: (product: Product) => cartService.addToCart(product.id, 1),
+    mutationFn: (product: Product) =>
+      cartService.addToCart(product.id, 1, defaultVariantIdForProduct(product)),
     onSuccess: (_, product) => {
       queryClient.invalidateQueries({ queryKey: ['cart'] })
       showCartToast({ productName: product.name, productImage: product.images[0], price: product.price, currency: product.currency })
@@ -38,7 +40,7 @@ export default function SalePage() {
     if (isAuthenticated) {
       addToCartMutation.mutate(product)
     } else {
-      addToGuestCart(product.id, 1)
+      addToGuestCart(product.id, 1, defaultVariantIdForProduct(product))
       showCartToast({ productName: product.name, productImage: product.images[0], price: product.price, currency: product.currency })
     }
   }

@@ -10,6 +10,8 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import LazyImage from '@/components/ui/LazyImage'
 import toast from 'react-hot-toast'
 import { showCartToast } from '@/components/ui/CartToast'
+import type { Product } from '@/types'
+import { defaultVariantIdForProduct } from '@/lib/cartHelpers'
 
 export default function WishlistPage() {
   const { isAuthenticated } = useAuthStore()
@@ -34,8 +36,8 @@ export default function WishlistPage() {
   })
 
   const addToCartMutation = useMutation({
-    mutationFn: (product: { id: number; name: string; images: string[]; price: number; currency: string }) =>
-      cartService.addToCart(product.id, 1),
+    mutationFn: (product: Product) =>
+      cartService.addToCart(product.id, 1, defaultVariantIdForProduct(product)),
     onSuccess: (_, product) => {
       queryClient.invalidateQueries({ queryKey: ['cart'] })
       showCartToast({ productName: product.name, productImage: product.images[0], price: product.price, currency: product.currency })

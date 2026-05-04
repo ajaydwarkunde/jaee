@@ -27,6 +27,16 @@ describe('cartStore', () => {
     expect(cart[0].qty).toBe(5)
   })
 
+  it('addToGuestCart keeps separate lines for same product different variants', () => {
+    useCartStore.getState().addToGuestCart(1, 1, 10)
+    useCartStore.getState().addToGuestCart(1, 2, 20)
+
+    const cart = useCartStore.getState().guestCart
+    expect(cart).toHaveLength(2)
+    expect(cart.find((i) => i.variantId === 10)?.qty).toBe(1)
+    expect(cart.find((i) => i.variantId === 20)?.qty).toBe(2)
+  })
+
   it('addToGuestCart handles multiple products', () => {
     useCartStore.getState().addToGuestCart(1, 1)
     useCartStore.getState().addToGuestCart(2, 3)
