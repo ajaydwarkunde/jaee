@@ -3,6 +3,7 @@ package com.jaee.dto.cart;
 import com.jaee.entity.Cart;
 import com.jaee.entity.CartItem;
 import com.jaee.entity.ProductVariant;
+import com.jaee.util.VariantLabelFormatter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +22,9 @@ public class CartDto {
     private List<CartItemDto> items;
     private BigDecimal subtotal;
     private Integer itemCount;
+
+    /** Sum of (product weight kg × qty) for all lines — same basis as shipping calculation. */
+    private BigDecimal totalWeightKg;
 
     /** Populated when {@code addressId} is passed to GET /cart. */
     private BigDecimal shippingAmount;
@@ -79,6 +83,11 @@ public class CartDto {
                 image = item.getProduct().getImages().isEmpty() ? null : item.getProduct().getImages().get(0);
             }
 
+            String variantLabel = item.getVariantLabel();
+            if ((variantLabel == null || variantLabel.isBlank()) && v != null) {
+                variantLabel = VariantLabelFormatter.format(v);
+            }
+
             return CartItemDto.builder()
                     .id(item.getId())
                     .productId(item.getProduct().getId())
@@ -91,7 +100,7 @@ public class CartDto {
                     .inStock(inStock)
                     .availableQty(availableQty)
                     .variantId(v != null ? v.getId() : null)
-                    .variantLabel(item.getVariantLabel())
+                    .variantLabel(variantLabel)
                     .build();
         }
     }

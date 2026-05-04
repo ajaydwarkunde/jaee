@@ -112,6 +112,9 @@ export interface CartItem {
   subtotal: number
   inStock: boolean
   availableQty: number
+  variantId?: number | null
+  /** Option summary e.g. "Size: M · Scent: Rose" */
+  variantLabel?: string | null
 }
 
 export interface Cart {
@@ -119,6 +122,8 @@ export interface Cart {
   items: CartItem[]
   subtotal: number
   itemCount: number
+  /** Sum of (product kg × qty); same basis as server shipping tiers */
+  totalWeightKg?: number | null
   /** Present when cart was loaded with addressId */
   shippingAmount?: number | null
   shippingZone?: string | null

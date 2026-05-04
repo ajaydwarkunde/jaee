@@ -326,6 +326,9 @@ export default function CartPage() {
                     >
                       {item.productName}
                     </Link>
+                    {item.variantLabel ? (
+                      <p className="text-sm text-warm-gray mt-1 line-clamp-2">{item.variantLabel}</p>
+                    ) : null}
                     <p className="text-rose font-bold tabular-nums mt-1">
                       {formatPrice(item.unitPrice)}
                     </p>
@@ -584,6 +587,12 @@ export default function CartPage() {
                     <div className="flex justify-between text-success">
                       <span>Discount</span>
                       <span>-{formatPrice(appliedCoupon.discountAmount)}</span>
+                    </div>
+                  )}
+                  {cart.totalWeightKg != null && Number(cart.totalWeightKg) > 0 && (
+                    <div className="flex justify-between text-warm-gray text-sm">
+                      <span>Est. total weight</span>
+                      <span className="tabular-nums">{Number(cart.totalWeightKg).toFixed(2)} kg</span>
                     </div>
                   )}
                   <div className="flex justify-between text-warm-gray">

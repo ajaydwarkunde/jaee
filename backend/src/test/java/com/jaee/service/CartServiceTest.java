@@ -14,6 +14,7 @@ import com.jaee.repository.CartItemRepository;
 import com.jaee.repository.CartRepository;
 import com.jaee.repository.ProductRepository;
 import com.jaee.repository.ProductVariantRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -57,6 +59,12 @@ class CartServiceTest {
 
     @InjectMocks
     private CartService cartService;
+
+    @BeforeEach
+    void stubTotalCartWeight() {
+        lenient().when(shipmentQuoteService.computeTotalCartWeightKg(any(Cart.class)))
+                .thenReturn(BigDecimal.ZERO);
+    }
 
     private User createUser(Long id) {
         User user = new User();
