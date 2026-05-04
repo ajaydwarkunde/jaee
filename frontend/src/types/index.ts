@@ -214,8 +214,6 @@ export interface ProductFormData {
   name: string
   description: string
   price?: number
-  /** If set, backend computes selling price (ceil base × (1 + fee)) */
-  baseCost?: number
   weightKg?: number
   compareAtPrice?: number
   currency: string

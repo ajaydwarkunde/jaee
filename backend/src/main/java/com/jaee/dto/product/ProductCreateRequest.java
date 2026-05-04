@@ -20,13 +20,11 @@ public class ProductCreateRequest {
     @Size(max = 5000, message = "Description must not exceed 5000 characters")
     private String description;
     
-    /**
-     * Retail price in INR. Optional if {@code baseCost} is set (price is then computed with Razorpay fee).
-     */
+    /** Retail selling price in INR (includes any payment fees you choose to bake in). */
     @DecimalMin(value = "0.01", message = "Price must be greater than 0")
     private BigDecimal price;
 
-    /** When set, selling price = ceil(baseCost × (1 + Razorpay fee rate)). */
+    /** Optional landed cost for margin tracking only; does not change {@code price}. */
     @DecimalMin(value = "0.01", message = "Base cost must be greater than 0")
     private BigDecimal baseCost;
 

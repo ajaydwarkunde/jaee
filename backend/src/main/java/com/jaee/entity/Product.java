@@ -35,7 +35,7 @@ public class Product {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
-    /** Landed cost before Razorpay fee — optional, for admin margin tracking. */
+    /** Optional landed cost — for admin margin tracking only. */
     @Column(precision = 10, scale = 2)
     private BigDecimal baseCost;
 

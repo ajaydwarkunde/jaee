@@ -10,36 +10,22 @@ import Select from '@/components/ui/Select'
 import { imageService } from '@/services/imageService'
 import toast from 'react-hot-toast'
 import type { Product, Category, ProductFormData } from '@/types'
-import { useStoreSettings } from '@/hooks/useStoreSettings'
 
-const productSchema = z
-  .object({
-    name: z.string().min(1, 'Name is required').max(200),
-    description: z
-      .string()
-      .trim()
-      .min(1, 'Product description is required')
-      .max(5000, 'Description must be at most 5000 characters'),
-    price: z.coerce.number().min(0),
-    baseCost: z.number().positive().optional(),
-    weightKg: z.coerce.number().min(0.001, 'Weight must be positive'),
-    compareAtPrice: z.coerce.number().min(0).optional().or(z.literal('')),
-    currency: z.string().default('INR'),
-    images: z.string().optional(),
-    stockQty: z.coerce.number().int().min(0, 'Stock cannot be negative'),
-    active: z.boolean().default(true),
-  })
-  .superRefine((data, ctx) => {
-    const hasPrice = data.price > 0
-    const hasBase = data.baseCost != null && data.baseCost > 0
-    if (!hasPrice && !hasBase) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Enter a selling price or a positive base cost',
-        path: ['price'],
-      })
-    }
-  })
+const productSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(200),
+  description: z
+    .string()
+    .trim()
+    .min(1, 'Product description is required')
+    .max(5000, 'Description must be at most 5000 characters'),
+  price: z.coerce.number().min(0.01, 'Enter a selling price greater than 0'),
+  weightKg: z.coerce.number().min(0.001, 'Weight must be positive'),
+  compareAtPrice: z.coerce.number().min(0).optional().or(z.literal('')),
+  currency: z.string().default('INR'),
+  images: z.string().optional(),
+  stockQty: z.coerce.number().int().min(0, 'Stock cannot be negative'),
+  active: z.boolean().default(true),
+})
 
 type ProductFormSchema = z.infer<typeof productSchema>
 
@@ -71,21 +57,18 @@ export default function ProductForm({
   const [isDraggingVideo, setIsDraggingVideo] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const videoInputRef = useRef<HTMLInputElement>(null)
-  const { razorpayFeeRate } = useStoreSettings()
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     setValue,
-    watch,
   } = useForm<ProductFormSchema>({
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: product?.name || '',
       description: product?.description || '',
       price: product?.price || 0,
-      baseCost: undefined,
       weightKg: product?.weightKg ?? 0.5,
       compareAtPrice: product?.compareAtPrice || '',
       currency: product?.currency || 'INR',
@@ -94,19 +77,6 @@ export default function ProductForm({
       active: product?.active ?? true,
     },
   })
-
-  const baseCostWatch = watch('baseCost')
-
-  const applyRetailFromBaseCost = () => {
-    const b = Number(baseCostWatch)
-    if (!b || b <= 0) {
-      toast.error('Enter a positive base cost')
-      return
-    }
-    const p = Math.ceil(b * (1 + razorpayFeeRate))
-    setValue('price', p, { shouldValidate: true })
-    toast.success(`Selling price set to ₹${p} (ceil incl. fee)`)
-  }
 
   const handleFileUpload = async (files: FileList | File[]) => {
     const validFiles = Array.from(files).filter((file) => {
@@ -215,11 +185,7 @@ export default function ProductForm({
       stockQty: data.stockQty,
       active: data.active,
     }
-    if (data.baseCost != null && data.baseCost > 0) {
-      payload.baseCost = data.baseCost
-    } else {
-      payload.price = data.price
-    }
+    payload.price = data.price
     payload.weightKg = data.weightKg
     onSubmit(payload)
   }
@@ -254,7 +220,7 @@ export default function ProductForm({
         Required for every product. Shoppers see this on the product detail page; it is also used for search.
       </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         <Input
           label="Selling Price (₹)"
           type="number"
@@ -263,27 +229,6 @@ export default function ProductForm({
           error={errors.price?.message}
           placeholder="0"
         />
-        <div className="space-y-1">
-          <Input
-            label="Base cost (₹, optional)"
-            type="number"
-            step="0.01"
-            {...register('baseCost', {
-              setValueAs: (v) =>
-                v === '' || v == null || Number.isNaN(Number(v)) ? undefined : Number(v),
-            })}
-            placeholder="Landed cost before fees"
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="w-full"
-            onClick={applyRetailFromBaseCost}
-          >
-            Set price (ceil + {Math.round(razorpayFeeRate * 10000) / 100}% fee)
-          </Button>
-        </div>
         <Input
           label="Weight (kg) — shipping"
           type="number"
