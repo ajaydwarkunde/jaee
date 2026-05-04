@@ -2,8 +2,12 @@ import { api } from '@/lib/api'
 import type { ApiResponse, Cart, GuestCartItem } from '@/types'
 
 export const cartService = {
-  getCart: async (): Promise<Cart> => {
-    const response = await api.get<ApiResponse<Cart>>('/cart')
+  getCart: async (addressId?: number, couponCode?: string): Promise<Cart> => {
+    const params = new URLSearchParams()
+    if (addressId != null) params.set('addressId', String(addressId))
+    if (couponCode) params.set('couponCode', couponCode)
+    const qs = params.toString()
+    const response = await api.get<ApiResponse<Cart>>(qs ? `/cart?${qs}` : '/cart')
     return response.data.data
   },
 

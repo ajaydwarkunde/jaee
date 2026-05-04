@@ -35,6 +35,15 @@ public class Product {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
+    /** Landed cost before Razorpay fee — optional, for admin margin tracking. */
+    @Column(precision = 10, scale = 2)
+    private BigDecimal baseCost;
+
+    /** Billable shipping weight per unit (kg). */
+    @Column(nullable = false, precision = 8, scale = 3)
+    @Builder.Default
+    private BigDecimal weightKg = new BigDecimal("0.5");
+
     @Column(precision = 10, scale = 2)
     private BigDecimal compareAtPrice;
 

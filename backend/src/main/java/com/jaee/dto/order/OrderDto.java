@@ -32,6 +32,9 @@ public class OrderDto {
     private String couponCode;
     private BigDecimal discountAmount;
 
+    private BigDecimal shippingAmount;
+    private String shippingZone;
+
     // Tracking fields
     private String trackingNumber;
     private String trackingUrl;
@@ -58,6 +61,8 @@ public class OrderDto {
                 .paidAt(order.getPaidAt())
                 .couponCode(order.getCouponCode())
                 .discountAmount(order.getDiscountAmount())
+                .shippingAmount(order.getShippingAmount())
+                .shippingZone(order.getShippingZone())
                 .trackingNumber(order.getTrackingNumber())
                 .trackingUrl(order.getTrackingUrl())
                 .carrier(order.getCarrier())

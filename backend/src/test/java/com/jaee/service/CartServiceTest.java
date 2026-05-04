@@ -9,6 +9,7 @@ import com.jaee.entity.Product;
 import com.jaee.entity.User;
 import com.jaee.exception.BadRequestException;
 import com.jaee.exception.NotFoundException;
+import com.jaee.repository.AddressRepository;
 import com.jaee.repository.CartItemRepository;
 import com.jaee.repository.CartRepository;
 import com.jaee.repository.ProductRepository;
@@ -41,6 +42,12 @@ class CartServiceTest {
 
     @Mock
     private ProductRepository productRepository;
+
+    @Mock
+    private AddressRepository addressRepository;
+
+    @Mock
+    private ShipmentQuoteService shipmentQuoteService;
 
     @InjectMocks
     private CartService cartService;

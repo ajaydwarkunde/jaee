@@ -20,6 +20,11 @@ public class CartDto {
     private List<CartItemDto> items;
     private BigDecimal subtotal;
     private Integer itemCount;
+
+    /** Populated when {@code addressId} is passed to GET /cart. */
+    private BigDecimal shippingAmount;
+    private String shippingZone;
+    private Boolean freeShippingApplied;
     
     public static CartDto fromEntity(Cart cart) {
         List<CartItemDto> itemDtos = cart.getItems().stream()

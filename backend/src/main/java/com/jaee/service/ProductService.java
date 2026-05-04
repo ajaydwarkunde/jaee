@@ -40,6 +40,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final StockNotificationService stockNotificationService;
+    private final RetailPricingService retailPricingService;
     
     private static final Pattern NONLATIN = Pattern.compile("[^\\w-]");
     private static final Pattern WHITESPACE = Pattern.compile("[\\s]");
@@ -131,6 +132,8 @@ public class ProductService {
 
     @Transactional
     public ProductDto createProduct(ProductCreateRequest request) {
+        BigDecimal sellingPrice = resolveSellingPrice(request);
+
         String slug = toSlug(request.getName());
         
         // Ensure unique slug
@@ -146,7 +149,9 @@ public class ProductService {
                 .name(request.getName())
                 .slug(slug)
                 .description(trimDescription(request.getDescription()))
-                .price(request.getPrice())
+                .price(sellingPrice)
+                .baseCost(request.getBaseCost())
+                .weightKg(request.getWeightKg() != null ? request.getWeightKg() : new BigDecimal("0.5"))
                 .compareAtPrice(request.getCompareAtPrice())
                 .currency(request.getCurrency())
                 .categories(categories)
@@ -183,7 +188,15 @@ public class ProductService {
 
         product.setName(request.getName());
         product.setDescription(trimDescription(request.getDescription()));
-        product.setPrice(request.getPrice());
+
+        if (request.getBaseCost() != null && request.getBaseCost().compareTo(BigDecimal.ZERO) > 0) {
+            product.setBaseCost(request.getBaseCost());
+            product.setPrice(retailPricingService.retailFromBaseCost(request.getBaseCost()));
+        } else if (request.getPrice() != null) {
+            product.setPrice(request.getPrice());
+        }
+
+        product.setWeightKg(request.getWeightKg() != null ? request.getWeightKg() : product.getWeightKg());
         product.setCompareAtPrice(request.getCompareAtPrice());
         product.setCurrency(request.getCurrency());
         if (request.getImages() != null) {
@@ -216,6 +229,16 @@ public class ProductService {
         
         productRepository.delete(product);
         log.info("Product deleted: {}", product.getName());
+    }
+
+    private BigDecimal resolveSellingPrice(ProductCreateRequest request) {
+        if (request.getBaseCost() != null && request.getBaseCost().compareTo(BigDecimal.ZERO) > 0) {
+            return retailPricingService.retailFromBaseCost(request.getBaseCost());
+        }
+        if (request.getPrice() != null && request.getPrice().compareTo(BigDecimal.ZERO) > 0) {
+            return request.getPrice();
+        }
+        throw new BadRequestException("Provide a selling price or a positive base cost");
     }
 
     private static String trimDescription(String description) {

@@ -27,8 +27,12 @@ public class CartController {
 
     @GetMapping
     @Operation(summary = "Get current user's cart")
-    public ResponseEntity<ApiResponse<CartDto>> getCart(@AuthenticationPrincipal User user) {
-        CartDto cart = cartService.getCart(user);
+    public ResponseEntity<ApiResponse<CartDto>> getCart(
+            @AuthenticationPrincipal User user,
+            @RequestParam(required = false) Long addressId,
+            @RequestParam(required = false) String couponCode
+    ) {
+        CartDto cart = cartService.getCart(user, addressId, couponCode);
         return ResponseEntity.ok(ApiResponse.success(cart));
     }
 

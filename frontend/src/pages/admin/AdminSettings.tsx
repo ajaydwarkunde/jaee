@@ -23,7 +23,7 @@ const SETTING_GROUPS: SettingGroup[] = [
   {
     title: 'Shipping',
     icon: <Truck className="w-5 h-5" />,
-    keys: ['free_shipping_enabled', 'free_shipping_threshold', 'shipping_charges', 'estimated_delivery_days'],
+    keys: ['free_shipping_enabled', 'free_shipping_threshold', 'shipping_charges', 'estimated_delivery_days', 'razorpay_fee_rate'],
   },
   {
     title: 'Returns & COD',
@@ -45,6 +45,7 @@ const SETTING_GROUPS: SettingGroup[] = [
 const SETTING_LABELS: Record<string, string> = {
   free_shipping_enabled: 'Free Shipping Enabled',
   free_shipping_threshold: 'Free Shipping Min Order (₹)',
+  razorpay_fee_rate: 'Razorpay fee rate (decimal, e.g. 0.02365 for ~2.365%)',
   shipping_charges: 'Standard Shipping (₹)',
   estimated_delivery_days: 'Estimated Delivery Days',
   return_days: 'Return Period (days)',

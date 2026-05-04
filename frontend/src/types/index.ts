@@ -38,6 +38,8 @@ export interface Product {
   slug: string
   description: string | null
   price: number
+  /** Per unit, for delivery (kg) */
+  weightKg?: number
   compareAtPrice: number | null
   discountPercent: number | null
   currency: string
@@ -117,6 +119,10 @@ export interface Cart {
   items: CartItem[]
   subtotal: number
   itemCount: number
+  /** Present when cart was loaded with addressId */
+  shippingAmount?: number | null
+  shippingZone?: string | null
+  freeShippingApplied?: boolean | null
 }
 
 // Guest cart item for localStorage
@@ -140,6 +146,8 @@ export interface Order {
   id: number
   status: 'PENDING' | 'PAID' | 'CANCELLED' | 'SHIPPED' | 'FULFILLED'
   totalAmount: number
+  shippingAmount?: number
+  shippingZone?: string | null
   currency: string
   items: OrderItem[]
   shippingAddress: string | null
@@ -205,7 +213,10 @@ export interface OtpVerifyData {
 export interface ProductFormData {
   name: string
   description: string
-  price: number
+  price?: number
+  /** If set, backend computes selling price (ceil base × (1 + fee)) */
+  baseCost?: number
+  weightKg?: number
   compareAtPrice?: number
   currency: string
   categoryIds: number[]

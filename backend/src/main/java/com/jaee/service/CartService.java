@@ -4,12 +4,14 @@ import com.jaee.dto.cart.AddToCartRequest;
 import com.jaee.dto.cart.CartDto;
 import com.jaee.dto.cart.MergeCartRequest;
 import com.jaee.dto.cart.UpdateCartItemRequest;
+import com.jaee.entity.Address;
 import com.jaee.entity.Cart;
 import com.jaee.entity.CartItem;
 import com.jaee.entity.Product;
 import com.jaee.entity.User;
 import com.jaee.exception.BadRequestException;
 import com.jaee.exception.NotFoundException;
+import com.jaee.repository.AddressRepository;
 import com.jaee.repository.CartItemRepository;
 import com.jaee.repository.CartRepository;
 import com.jaee.repository.ProductRepository;
@@ -29,11 +31,33 @@ public class CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
+    private final AddressRepository addressRepository;
+    private final ShipmentQuoteService shipmentQuoteService;
 
     @Transactional(readOnly = true)
     public CartDto getCart(User user) {
+        return getCart(user, null, null);
+    }
+
+    @Transactional(readOnly = true)
+    public CartDto getCart(User user, Long addressId, String couponCode) {
         Cart cart = getOrCreateCart(user);
-        return CartDto.fromEntity(cart);
+        CartDto dto = CartDto.fromEntity(cart);
+
+        if (addressId == null || cart.getItems().isEmpty()) {
+            return dto;
+        }
+
+        Address address = addressRepository.findByIdAndUser(addressId, user).orElse(null);
+        if (address == null) {
+            return dto;
+        }
+
+        ShipmentQuoteService.Quote q = shipmentQuoteService.quote(user, cart, address, couponCode);
+        dto.setShippingAmount(q.shippingAmount());
+        dto.setShippingZone(q.zone().name());
+        dto.setFreeShippingApplied(q.freeShippingApplied());
+        return dto;
     }
 
     @Transactional
