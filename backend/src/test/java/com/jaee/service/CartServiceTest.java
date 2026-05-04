@@ -28,6 +28,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -127,7 +128,7 @@ class CartServiceTest {
         when(cartRepository.findByUserWithItems(user)).thenReturn(Optional.of(cart));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         when(productVariantRepository.countByProduct_Id(1L)).thenReturn(0L);
-        when(cartItemRepository.findCartLine(cart, product, isNull())).thenReturn(Optional.empty());
+        when(cartItemRepository.findCartLine(eq(cart), eq(product), isNull())).thenReturn(Optional.empty());
         when(cartItemRepository.save(any(CartItem.class))).thenAnswer(inv -> {
             CartItem item = inv.getArgument(0);
             item.setId(1L);
@@ -160,7 +161,7 @@ class CartServiceTest {
         when(cartRepository.findByUserWithItems(user)).thenReturn(Optional.of(cart));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         when(productVariantRepository.countByProduct_Id(1L)).thenReturn(0L);
-        when(cartItemRepository.findCartLine(cart, product, isNull())).thenReturn(Optional.of(existingItem));
+        when(cartItemRepository.findCartLine(eq(cart), eq(product), isNull())).thenReturn(Optional.of(existingItem));
 
         AddToCartRequest request = new AddToCartRequest();
         request.setProductId(1L);
