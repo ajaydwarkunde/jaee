@@ -13,6 +13,7 @@ import com.jaee.repository.AddressRepository;
 import com.jaee.repository.CartItemRepository;
 import com.jaee.repository.CartRepository;
 import com.jaee.repository.ProductRepository;
+import com.jaee.repository.ProductVariantRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,6 +28,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,6 +44,9 @@ class CartServiceTest {
 
     @Mock
     private ProductRepository productRepository;
+
+    @Mock
+    private ProductVariantRepository productVariantRepository;
 
     @Mock
     private AddressRepository addressRepository;
@@ -121,7 +126,8 @@ class CartServiceTest {
 
         when(cartRepository.findByUserWithItems(user)).thenReturn(Optional.of(cart));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
-        when(cartItemRepository.findByCartAndProduct(cart, product)).thenReturn(Optional.empty());
+        when(productVariantRepository.countByProduct_Id(1L)).thenReturn(0L);
+        when(cartItemRepository.findCartLine(cart, product, isNull())).thenReturn(Optional.empty());
         when(cartItemRepository.save(any(CartItem.class))).thenAnswer(inv -> {
             CartItem item = inv.getArgument(0);
             item.setId(1L);
@@ -153,7 +159,8 @@ class CartServiceTest {
 
         when(cartRepository.findByUserWithItems(user)).thenReturn(Optional.of(cart));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
-        when(cartItemRepository.findByCartAndProduct(cart, product)).thenReturn(Optional.of(existingItem));
+        when(productVariantRepository.countByProduct_Id(1L)).thenReturn(0L);
+        when(cartItemRepository.findCartLine(cart, product, isNull())).thenReturn(Optional.of(existingItem));
 
         AddToCartRequest request = new AddToCartRequest();
         request.setProductId(1L);
