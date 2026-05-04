@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 
 @Service
@@ -47,6 +48,7 @@ public class CartService {
     public CartDto getCart(User user, Long addressId, String couponCode) {
         Cart cart = getOrCreateCart(user);
         CartDto dto = CartDto.fromEntity(cart);
+        enrichCartTotals(cart, dto);
 
         if (addressId == null || cart.getItems().isEmpty()) {
             return dto;
@@ -62,6 +64,12 @@ public class CartService {
         dto.setShippingZone(q.zone().name());
         dto.setFreeShippingApplied(q.freeShippingApplied());
         return dto;
+    }
+
+    /** Sets total billable weight (basis for zone rate table). */
+    private void enrichCartTotals(Cart cart, CartDto dto) {
+        dto.setTotalWeightKg(
+                shipmentQuoteService.computeTotalCartWeightKg(cart).setScale(3, RoundingMode.HALF_UP));
     }
 
     @Transactional
@@ -129,7 +137,9 @@ public class CartService {
         }
 
         log.info("Added {} x {} to cart for user {}", request.getQty(), product.getName(), user.getId());
-        return CartDto.fromEntity(cart);
+        CartDto dto = CartDto.fromEntity(cart);
+        enrichCartTotals(cart, dto);
+        return dto;
     }
 
     @Transactional
@@ -155,7 +165,9 @@ public class CartService {
             cartItemRepository.save(item);
         }
 
-        return CartDto.fromEntity(cart);
+        CartDto dto = CartDto.fromEntity(cart);
+        enrichCartTotals(cart, dto);
+        return dto;
     }
 
     @Transactional
@@ -170,7 +182,9 @@ public class CartService {
         cart.removeItem(item);
         cartItemRepository.delete(item);
 
-        return CartDto.fromEntity(cart);
+        CartDto dto = CartDto.fromEntity(cart);
+        enrichCartTotals(cart, dto);
+        return dto;
     }
 
     @Transactional
@@ -237,7 +251,9 @@ public class CartService {
         }
 
         log.info("Merged {} guest items into cart for user {}", request.getGuestItems().size(), user.getId());
-        return CartDto.fromEntity(cart);
+        CartDto dto = CartDto.fromEntity(cart);
+        enrichCartTotals(cart, dto);
+        return dto;
     }
 
     @Transactional
