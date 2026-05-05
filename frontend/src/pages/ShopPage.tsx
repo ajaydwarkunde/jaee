@@ -28,6 +28,14 @@ export default function ShopPage() {
   const addToGuestCart = useCartStore((state) => state.addToGuestCart)
   const queryClient = useQueryClient()
 
+  useEffect(() => {
+    void import('./HomePage')
+    void queryClient.prefetchQuery({
+      queryKey: ['products', 'featured'],
+      queryFn: () => productService.getFeaturedProducts(8),
+    })
+  }, [queryClient])
+
   // Filter state
   const [filters, setFilters] = useState<ProductFilters>({
     categoryId: undefined,
@@ -65,7 +73,11 @@ export default function ShopPage() {
   })
 
   // Get category by slug
-  const { data: currentCategory } = useQuery({
+  const {
+    data: currentCategory,
+    isFetched: categoryFetched,
+    isError: categoryFetchError,
+  } = useQuery({
     queryKey: ['category', categorySlug],
     queryFn: () => categoryService.getCategoryBySlug(categorySlug!),
     enabled: !!categorySlug,
@@ -88,11 +100,23 @@ export default function ShopPage() {
     }
   }, [searchParams])
 
-  // Get products
-  const { data: productsData, isLoading } = useQuery({
+  // Get products — avoid fetching “all products” before category route applies categoryId (matches prefetch key)
+  const { data: productsData, isLoading: productsLoading } = useQuery({
     queryKey: ['products', filters],
     queryFn: () => productService.getProducts(filters),
+    enabled:
+      !categorySlug ||
+      filters.categoryId !== undefined ||
+      (categoryFetched && categoryFetchError),
   })
+
+  const gridLoading =
+    (Boolean(categorySlug) && !categoryFetched) ||
+    (Boolean(categorySlug) &&
+      categoryFetched &&
+      filters.categoryId === undefined &&
+      !categoryFetchError) ||
+    productsLoading
 
   // Add to cart mutation
   const addToCartMutation = useMutation({
@@ -355,10 +379,11 @@ export default function ShopPage() {
             {/* Products Grid */}
             <ProductGrid
               products={productsData?.content || []}
-              loading={isLoading}
+              loading={gridLoading}
               onAddToCart={handleAddToCart}
               onQuickView={setQuickViewProduct}
               emptyMessage="No products found. Try adjusting your filters."
+              priorityImageCount={12}
             />
 
             <QuickViewModal

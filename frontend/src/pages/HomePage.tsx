@@ -21,6 +21,7 @@ import FooterNewsletter from '@/components/layout/FooterNewsletter'
 import type { Product } from '@/types'
 import { defaultVariantIdForProduct } from '@/lib/cartHelpers'
 import { BUSINESS_LOCATION_SHORT } from '@/config/business'
+import { candleListingFilters } from '@/lib/shopPrefetch'
 
 const COMMUNITY_STORAGE_KEY = 'jaai-community-experiences'
 
@@ -363,6 +364,30 @@ export default function HomePage() {
 
   const categoryRow = categories
 
+  /** Warm Shop JS bundle + candle listing cache before user navigates — faster perceived load */
+  useEffect(() => {
+    void import('./ShopPage')
+  }, [])
+
+  useEffect(() => {
+    if (!categories?.length) return
+    void queryClient.prefetchQuery({
+      queryKey: ['filterOptions'],
+      queryFn: () => productService.getFilterOptions(),
+    })
+    const candles = categories.find((c) => c.slug === 'candles')
+    if (!candles) return
+    const filters = candleListingFilters(candles.id)
+    void queryClient.prefetchQuery({
+      queryKey: ['products', filters],
+      queryFn: () => productService.getProducts(filters),
+    })
+    void queryClient.prefetchQuery({
+      queryKey: ['category', 'candles'],
+      queryFn: () => categoryService.getCategoryBySlug('candles'),
+    })
+  }, [categories, queryClient])
+
   const addToCartMutation = useMutation({
     mutationFn: (product: Product) =>
       cartService.addToCart(product.id, 1, defaultVariantIdForProduct(product)),
@@ -409,6 +434,7 @@ export default function HomePage() {
             loading={productsLoading}
             onAddToCart={handleAddToCart}
             onQuickView={setQuickViewProduct}
+            priorityImageCount={12}
           />
 
           <QuickViewModal
