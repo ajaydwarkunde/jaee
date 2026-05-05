@@ -420,15 +420,27 @@ public class CheckoutService {
             String baseName = cartItem.getProduct().getName();
             String lineName = (label == null || label.isBlank()) ? baseName : baseName + " — " + label;
             String img = resolveCartLineImage(cartItem);
+            var variant = cartItem.getVariant();
+            var product = cartItem.getProduct();
+            BigDecimal compareAt = null;
+            if (variant != null && variant.getCompareAtPrice() != null) {
+                compareAt = variant.getCompareAtPrice();
+            }
+            if (compareAt == null && product != null) {
+                compareAt = product.getCompareAtPrice();
+            }
+            String skuSnap = variant != null ? variant.getSku() : null;
 
             OrderItem orderItem = OrderItem.builder()
-                    .product(cartItem.getProduct())
-                    .variant(cartItem.getVariant())
+                    .product(product)
+                    .variant(variant)
                     .variantLabel(label)
                     .nameSnapshot(lineName)
                     .priceSnapshot(cartItem.getUnitPriceSnapshot())
                     .qty(cartItem.getQty())
                     .imageUrl(img)
+                    .skuSnapshot(skuSnap)
+                    .compareAtPriceSnapshot(compareAt)
                     .build();
             order.addItem(orderItem);
         }

@@ -62,7 +62,7 @@ export default function Footer() {
 
           {/* Candle Store */}
           <div>
-            <h4 className="font-serif text-lg font-medium mb-4 flex items-center gap-2">
+            <h4 className="font-serif text-lg mb-4 flex items-center gap-2">
               <Flame className="w-4 h-4 text-rose" />
               Candle Store
             </h4>
@@ -83,7 +83,7 @@ export default function Footer() {
           {/* Hamper Store */}
           {featureHamperPublic && (
           <div>
-            <h4 className="font-serif text-lg font-medium mb-4 flex items-center gap-2">
+            <h4 className="font-serif text-lg mb-4 flex items-center gap-2">
               <Gift className="w-4 h-4 text-rose" />
               Hamper Store
             </h4>
@@ -108,7 +108,7 @@ export default function Footer() {
 
           {/* Support */}
           <div>
-            <h4 className="font-serif text-lg font-medium mb-4">Support</h4>
+            <h4 className="font-serif text-lg mb-4">Support</h4>
             <ul className="space-y-3">
               {[
                 { to: '/orders', label: 'Track Order' },

@@ -12,6 +12,8 @@ interface VariantRow {
   sku: string
   price: number
   compareAtPrice: number | ''
+  /** Per-unit shipping weight (kg) */
+  weightKg: number
   stockQty: number
   active: boolean
   optionValues: Record<string, string>
@@ -26,6 +28,7 @@ function newVariantRow(options: string[]): VariantRow {
     sku: '',
     price: 0,
     compareAtPrice: '',
+    weightKg: 0.5,
     stockQty: 0,
     active: true,
     optionValues,
@@ -49,6 +52,7 @@ export default function VariantEditor({ product, onClose }: { product: Product; 
     sku: v.sku || '',
     price: v.price,
     compareAtPrice: v.compareAtPrice ?? '',
+    weightKg: v.weightKg != null && v.weightKg > 0 ? v.weightKg : 0.5,
     stockQty: v.stockQty,
     active: v.active,
     optionValues: v.optionValues,
@@ -95,14 +99,21 @@ export default function VariantEditor({ product, onClose }: { product: Product; 
   }
 
   const handleSave = () => {
-    const invalid = variants.some(v => v.price <= 0 || Object.values(v.optionValues).some(val => !val.trim()))
+    const invalid = variants.some(
+      (v) =>
+        v.price <= 0 ||
+        !Number.isFinite(v.weightKg) ||
+        v.weightKg <= 0 ||
+        Object.values(v.optionValues).some((val) => !val.trim()),
+    )
     if (invalid) {
-      toast.error('All variants need a price and all option values filled in')
+      toast.error('Each variant needs a price, weight (kg), and all option values filled in')
       return
     }
-    const data: VariantCreateRequest[] = variants.map(v => ({
+    const data: VariantCreateRequest[] = variants.map((v) => ({
       sku: v.sku || undefined,
       price: v.price,
+      weightKg: v.weightKg,
       compareAtPrice: v.compareAtPrice ? Number(v.compareAtPrice) : undefined,
       stockQty: v.stockQty,
       active: v.active,
@@ -124,7 +135,8 @@ export default function VariantEditor({ product, onClose }: { product: Product; 
     return (
       <div className="text-center py-8">
         <p className="text-warm-gray mb-4">
-          This product has no option types yet. Open Edit Product — new products default to Size and Scent — save the product, then return here to add variant rows.
+          This product has no option types yet. Edit the product and save — new products default to a &quot;Default&quot;
+          option — then add variants with price, weight, and stock here.
         </p>
         <Button variant="outline" onClick={onClose}>Close</Button>
       </div>
@@ -168,6 +180,7 @@ export default function VariantEditor({ product, onClose }: { product: Product; 
                 ))}
                 <th className="text-left py-2 px-2 font-medium text-charcoal">Price</th>
                 <th className="text-left py-2 px-2 font-medium text-charcoal">Compare</th>
+                <th className="text-left py-2 px-2 font-medium text-charcoal whitespace-nowrap">Weight (kg)</th>
                 <th className="text-left py-2 px-2 font-medium text-charcoal">Stock</th>
                 <th className="text-left py-2 px-2 font-medium text-charcoal">SKU</th>
                 <th className="py-2 px-2"></th>
@@ -203,6 +216,17 @@ export default function VariantEditor({ product, onClose }: { product: Product; 
                       value={v.compareAtPrice}
                       onChange={(e) => updateRow(v.key, 'compareAtPrice', e.target.value ? Number(e.target.value) : '')}
                       placeholder="—"
+                      className="w-20 px-2 py-1.5 border border-blush rounded text-sm text-charcoal bg-soft-white focus:outline-none focus:border-rose"
+                    />
+                  </td>
+                  <td className="py-2 px-2">
+                    <input
+                      type="number"
+                      step="0.001"
+                      min={0.001}
+                      value={v.weightKg}
+                      onChange={(e) => updateRow(v.key, 'weightKg', Number(e.target.value))}
+                      title="Shipping weight per unit"
                       className="w-20 px-2 py-1.5 border border-blush rounded text-sm text-charcoal bg-soft-white focus:outline-none focus:border-rose"
                     />
                   </td>

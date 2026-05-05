@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,6 +40,7 @@ public class VariantService {
                 .product(product)
                 .sku(request.getSku())
                 .price(request.getPrice())
+                .weightKg(resolveVariantWeight(request.getWeightKg(), product))
                 .compareAtPrice(request.getCompareAtPrice())
                 .stockQty(request.getStockQty())
                 .active(request.getActive())
@@ -58,6 +60,7 @@ public class VariantService {
 
         variant.setSku(request.getSku());
         variant.setPrice(request.getPrice());
+        variant.setWeightKg(resolveVariantWeight(request.getWeightKg(), variant.getProduct()));
         variant.setCompareAtPrice(request.getCompareAtPrice());
         variant.setStockQty(request.getStockQty());
         variant.setActive(request.getActive());
@@ -107,5 +110,15 @@ public class VariantService {
         log.info("Bulk saved {} variants for product {}", variants.size(), productId);
 
         return variants.stream().map(VariantDto::fromEntity).collect(Collectors.toList());
+    }
+
+    private static BigDecimal resolveVariantWeight(BigDecimal requestWeight, Product product) {
+        if (requestWeight != null && requestWeight.compareTo(BigDecimal.ZERO) > 0) {
+            return requestWeight;
+        }
+        if (product.getWeightKg() != null && product.getWeightKg().compareTo(BigDecimal.ZERO) > 0) {
+            return product.getWeightKg();
+        }
+        return new BigDecimal("0.500");
     }
 }

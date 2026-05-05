@@ -62,6 +62,8 @@ export interface ProductVariant {
   productId: number
   sku: string | null
   price: number
+  /** Per-unit shipping weight (kg) */
+  weightKg?: number | null
   compareAtPrice: number | null
   discountPercent: number | null
   stockQty: number
@@ -147,6 +149,12 @@ export interface OrderItem {
   qty: number
   subtotal: number
   imageUrl: string | null
+  variantId?: number | null
+  variantLabel?: string | null
+  /** SKU captured at checkout */
+  sku?: string | null
+  /** Compare-at / retail (MRP) at checkout */
+  compareAtPrice?: number | null
 }
 
 export interface Order {
@@ -155,6 +163,8 @@ export interface Order {
   totalAmount: number
   shippingAmount?: number
   shippingZone?: string | null
+  discountAmount?: number | null
+  couponCode?: string | null
   currency: string
   items: OrderItem[]
   shippingAddress: string | null
@@ -221,7 +231,6 @@ export interface ProductFormData {
   name: string
   description: string
   price?: number
-  weightKg?: number
   compareAtPrice?: number
   currency: string
   categoryIds: number[]

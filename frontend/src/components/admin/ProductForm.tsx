@@ -19,7 +19,6 @@ const productSchema = z.object({
     .min(1, 'Product description is required')
     .max(5000, 'Description must be at most 5000 characters'),
   price: z.coerce.number().min(0.01, 'Enter a selling price greater than 0'),
-  weightKg: z.coerce.number().min(0.001, 'Weight must be positive'),
   compareAtPrice: z.coerce.number().min(0).optional().or(z.literal('')),
   currency: z.string().default('INR'),
   images: z.string().optional(),
@@ -48,7 +47,7 @@ export default function ProductForm({
   const [uploadedVideos, setUploadedVideos] = useState<string[]>(product?.videos || [])
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>(product?.categoryIds || [])
   const [productOptions, setProductOptions] = useState<string[]>(
-    product?.options && product.options.length > 0 ? product.options : ['Size', 'Scent']
+    product?.options && product.options.length > 0 ? product.options : ['Default']
   )
   const [newOption, setNewOption] = useState('')
   const [isUploading, setIsUploading] = useState(false)
@@ -69,7 +68,6 @@ export default function ProductForm({
       name: product?.name || '',
       description: product?.description || '',
       price: product?.price || 0,
-      weightKg: product?.weightKg ?? 0.5,
       compareAtPrice: product?.compareAtPrice || '',
       currency: product?.currency || 'INR',
       images: product?.images.join('\n') || '',
@@ -186,7 +184,6 @@ export default function ProductForm({
       active: data.active,
     }
     payload.price = data.price
-    payload.weightKg = data.weightKg
     onSubmit(payload)
   }
 
@@ -220,7 +217,7 @@ export default function ProductForm({
         Required for every product. Shoppers see this on the product detail page; it is also used for search.
       </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Input
           label="Selling Price (₹)"
           type="number"
@@ -230,13 +227,6 @@ export default function ProductForm({
           placeholder="0"
         />
         <Input
-          label="Weight (kg) — shipping"
-          type="number"
-          step="0.1"
-          {...register('weightKg', { valueAsNumber: true })}
-          error={errors.weightKg?.message}
-        />
-        <Input
           label="Compare at Price"
           type="number"
           step="0.01"
@@ -244,6 +234,9 @@ export default function ProductForm({
           {...register('compareAtPrice')}
         />
       </div>
+      <p className="text-xs text-warm-gray -mt-2">
+        Set per-SKU weight under Manage Variants after saving — required for accurate shipping.
+      </p>
       <Select
         label="Currency"
         options={[
@@ -450,7 +443,7 @@ export default function ProductForm({
           </span>
         </label>
         <p className="text-xs text-warm-gray">
-          New products default to Size and Scent. You can add more types or remove chips before saving. After saving, set prices and stock under Manage Variants on the product list.
+          New products default to a single &quot;Default&quot; option so you can add at least one SKU (price, stock, weight). Rename chips or add option types as needed. Use Manage Variants on the product list for SKU details.
         </p>
         <div className="flex gap-2">
           <input

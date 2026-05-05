@@ -9,6 +9,7 @@ import Badge from '@/components/ui/Badge'
 import Input from '@/components/ui/Input'
 import Modal from '@/components/ui/Modal'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import OrderItemsBreakdown from '@/components/order/OrderItemsBreakdown'
 import toast from 'react-hot-toast'
 import type { Order } from '@/types'
 
@@ -31,6 +32,7 @@ export default function AdminOrders() {
   const [newStatus, setNewStatus] = useState('')
   const [showTrackingModal, setShowTrackingModal] = useState(false)
   const [trackingForm, setTrackingForm] = useState({ trackingNumber: '', trackingUrl: '', carrier: '' })
+  const [detailOrderId, setDetailOrderId] = useState<number | null>(null)
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ['admin-orders', statusFilter, page],
@@ -40,6 +42,12 @@ export default function AdminOrders() {
   const { data: stats } = useQuery({
     queryKey: ['admin-order-stats'],
     queryFn: orderService.getOrderStats,
+  })
+
+  const { data: detailOrder, isLoading: detailLoading } = useQuery({
+    queryKey: ['admin-order-detail', detailOrderId],
+    queryFn: () => orderService.getOrderByIdAdmin(detailOrderId!),
+    enabled: detailOrderId != null,
   })
 
   const updateStatusMutation = useMutation({
@@ -184,7 +192,7 @@ export default function AdminOrders() {
                       </td>
                       <td className="p-4">
                         <div>
-                          <p className="font-medium text-charcoal">{order.userName || 'N/A'}</p>
+                          <p className="text-charcoal">{order.userName || 'N/A'}</p>
                           <p className="text-sm text-warm-gray">{order.customerEmail}</p>
                         </div>
                       </td>
@@ -192,7 +200,7 @@ export default function AdminOrders() {
                         <span className="text-warm-gray">{order.itemCount || order.items?.length || 0} items</span>
                       </td>
                       <td className="p-4">
-                        <span className="font-bold tabular-nums">{formatPrice(order.totalAmount)}</span>
+                        <span className="tabular-nums text-charcoal">{formatPrice(order.totalAmount)}</span>
                       </td>
                       <td className="p-4">
                         <Badge variant={statusConfig.color as 'success' | 'error' | 'warning'}>
@@ -207,13 +215,14 @@ export default function AdminOrders() {
                       </td>
                       <td className="p-4">
                         <div className="flex items-center justify-end gap-2">
-                          <Link
-                            to={`/orders/${order.id}`}
+                          <button
+                            type="button"
+                            onClick={() => setDetailOrderId(order.id)}
                             className="p-2 text-warm-gray hover:text-charcoal transition-colors"
-                            title="View Order"
+                            title="View order items"
                           >
                             <Eye className="w-4 h-4" />
-                          </Link>
+                          </button>
                           <button
                             onClick={() => openTrackingModal(order)}
                             className="p-2 text-warm-gray hover:text-blue-600 transition-colors"
@@ -318,6 +327,48 @@ export default function AdminOrders() {
           </div>
         </Modal>
 
+        <Modal
+          isOpen={detailOrderId != null}
+          onClose={() => setDetailOrderId(null)}
+          title={detailOrder ? `Order #${detailOrder.id}` : 'Order'}
+          size="xl"
+        >
+          {detailLoading && (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-rose border-t-transparent" />
+            </div>
+          )}
+          {!detailLoading && detailOrder && (
+            <div className="space-y-6">
+              <div className="flex flex-wrap gap-4 text-sm text-warm-gray">
+                <span>
+                  <span className="text-charcoal">Customer:</span> {detailOrder.userName || '—'} ·{' '}
+                  {detailOrder.customerEmail || '—'}
+                </span>
+                <span>
+                  <span className="text-charcoal">Status:</span> {detailOrder.status}
+                </span>
+                <span>
+                  <span className="text-charcoal">Total:</span>{' '}
+                  <span className="tabular-nums text-charcoal">
+                    {formatPrice(detailOrder.totalAmount, detailOrder.currency)}
+                  </span>
+                </span>
+              </div>
+              {detailOrder.shippingAddress && (
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-warm-gray mb-1">Shipping</p>
+                  <p className="text-sm text-charcoal whitespace-pre-line">{detailOrder.shippingAddress}</p>
+                </div>
+              )}
+              <div>
+                <p className="text-sm text-charcoal mb-3">Line items</p>
+                <OrderItemsBreakdown items={detailOrder.items} currency={detailOrder.currency} dense />
+              </div>
+            </div>
+          )}
+        </Modal>
+
         {/* Update Tracking Modal */}
         <Modal
           isOpen={showTrackingModal}
@@ -368,7 +419,7 @@ function StatCard({ label, value, color }: { label: string; value: number; color
   return (
     <div className={`${color} rounded-xl p-4`}>
       <p className="text-sm text-warm-gray">{label}</p>
-      <p className="text-2xl font-bold text-charcoal">{value}</p>
+      <p className="text-2xl text-charcoal tabular-nums">{value}</p>
     </div>
   )
 }

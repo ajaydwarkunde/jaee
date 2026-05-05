@@ -1,38 +1,19 @@
 import { Link, useParams } from 'react-router-dom'
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, Package, Truck, CheckCircle, Clock, XCircle, MapPin, Phone, Mail, MessageCircle, ExternalLink } from 'lucide-react'
+import { ArrowLeft, Package, Truck, MapPin, Phone, Mail, MessageCircle, ExternalLink } from 'lucide-react'
 import { orderService } from '@/services/orderService'
 import { formatPrice, formatDate } from '@/lib/utils'
+import { orderWhatsAppHref } from '@/lib/orderWhatsApp'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import OrderStepper from '@/components/ui/OrderStepper'
-import type { Order } from '@/types'
-
-// Generate WhatsApp share link with order details
-function generateWhatsAppLink(order: Order): string {
-  const items = order.items
-    .map((item) => `• ${item.name} x${item.qty} - ₹${item.subtotal}`)
-    .join('\n')
-
-  const message = `📦 *Order #${order.id} - Jaai*
-📅 ${formatDate(order.createdAt)}
-📊 Status: ${order.status}
-
-*Items:*
-${items}
-
-💰 *Total: ₹${order.totalAmount}*
-
-${order.shippingAddress ? `📍 *Delivery Address:*\n${order.shippingAddress}` : ''}`
-
-  return `https://wa.me/?text=${encodeURIComponent(message)}`
-}
-
+import OrderItemsBreakdown from '@/components/order/OrderItemsBreakdown'
 export default function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>()
-  const { supportEmail } = useStoreSettings()
+  const { supportEmail, whatsappPhoneDigits } = useStoreSettings()
 
   const { data: order, isLoading, error } = useQuery({
     queryKey: ['order', orderId],
@@ -40,20 +21,28 @@ export default function OrderDetailPage() {
     enabled: !!orderId,
   })
 
-  const getStatusInfo = (status: string) => {
+  const summary = useMemo(() => {
+    if (!order) return null
+    const itemsSum = order.items.reduce((s, i) => s + i.subtotal, 0)
+    const shipping = order.shippingAmount ?? 0
+    const discount = order.discountAmount ?? 0
+    return { itemsSum, shipping, discount }
+  }, [order])
+
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case 'PENDING':
-        return { badge: <Badge variant="warning">Pending</Badge>, icon: Clock, color: 'text-yellow-600' }
+        return <Badge variant="warning">Pending</Badge>
       case 'PAID':
-        return { badge: <Badge variant="success">Paid</Badge>, icon: CheckCircle, color: 'text-green-600' }
+        return <Badge variant="success">Paid</Badge>
       case 'SHIPPED':
-        return { badge: <Badge variant="default">Shipped</Badge>, icon: Truck, color: 'text-blue-600' }
+        return <Badge variant="default">Shipped</Badge>
       case 'FULFILLED':
-        return { badge: <Badge variant="success">Delivered</Badge>, icon: Package, color: 'text-green-600' }
+        return <Badge variant="success">Delivered</Badge>
       case 'CANCELLED':
-        return { badge: <Badge variant="error">Cancelled</Badge>, icon: XCircle, color: 'text-red-600' }
+        return <Badge variant="error">Cancelled</Badge>
       default:
-        return { badge: <Badge>{status}</Badge>, icon: Package, color: 'text-warm-gray' }
+        return <Badge>{status}</Badge>
     }
   }
 
@@ -61,13 +50,13 @@ export default function OrderDetailPage() {
     return <LoadingSpinner fullScreen />
   }
 
-  if (error || !order) {
+  if (error || !order || !summary) {
     return (
       <div className="bg-cream min-h-screen py-8 md:py-12">
         <div className="container-custom max-w-4xl text-center">
           <Package className="w-16 h-16 text-warm-gray/50 mx-auto mb-4" />
           <h1 className="heading-3 text-charcoal mb-2">Order not found</h1>
-          <p className="text-warm-gray mb-8">This order doesn't exist or you don't have access to it.</p>
+          <p className="text-warm-gray mb-8">This order doesn&apos;t exist or you don&apos;t have access to it.</p>
           <Link to="/orders">
             <Button>View All Orders</Button>
           </Link>
@@ -76,12 +65,11 @@ export default function OrderDetailPage() {
     )
   }
 
-  const statusInfo = getStatusInfo(order.status)
+  const statusBadge = getStatusBadge(order.status)
 
   return (
     <div className="bg-cream min-h-screen py-8 md:py-12">
       <div className="container-custom max-w-4xl">
-        {/* Back Link */}
         <Link
           to="/orders"
           className="inline-flex items-center text-warm-gray hover:text-charcoal mb-6 transition-colors"
@@ -90,129 +78,95 @@ export default function OrderDetailPage() {
           Back to Orders
         </Link>
 
-        {/* Order Header */}
         <div className="bg-soft-white rounded-xl shadow-soft p-6 mb-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="heading-3 text-charcoal">Order #{order.id}</h1>
-              <p className="text-warm-gray mt-1">
-                Placed on {formatDate(order.createdAt)}
-              </p>
+              <p className="text-warm-gray mt-1">Placed on {formatDate(order.createdAt)}</p>
             </div>
             <div className="text-right">
-              {statusInfo.badge}
-              <p className="text-2xl font-bold text-rose tabular-nums mt-2">
-                {formatPrice(order.totalAmount, order.currency)}
-              </p>
+              {statusBadge}
+              <p className="text-2xl text-rose tabular-nums mt-2">{formatPrice(order.totalAmount, order.currency)}</p>
             </div>
           </div>
 
-          {/* Order Progress Stepper */}
           <div className="mt-8 pt-6 border-t border-blush">
             <OrderStepper status={order.status} />
           </div>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Order Items */}
           <div className="lg:col-span-2 bg-soft-white rounded-xl shadow-soft p-6">
-            <h2 className="font-serif text-lg font-medium text-charcoal mb-4">
+            <h2 className="font-serif text-lg text-charcoal mb-4">
               Order Items ({order.items.length})
             </h2>
-            <div className="space-y-4">
-              {order.items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex gap-4 p-4 bg-cream rounded-lg"
-                >
-                  <img
-                    src={item.imageUrl || 'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=200'}
-                    alt={item.name}
-                    className="w-20 h-20 object-cover rounded-lg"
-                  />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-charcoal">{item.name}</h3>
-                    <p className="text-sm text-warm-gray mt-1">
-                      Qty: {item.qty} × {formatPrice(item.price)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-medium text-charcoal">
-                      {formatPrice(item.subtotal)}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <OrderItemsBreakdown items={order.items} currency={order.currency} />
 
-            {/* Order Summary */}
             <div className="mt-6 pt-6 border-t border-blush space-y-3">
               <div className="flex justify-between text-warm-gray">
-                <span>Subtotal</span>
-                <span>{formatPrice(order.totalAmount, order.currency)}</span>
+                <span>Items subtotal</span>
+                <span className="tabular-nums">{formatPrice(summary.itemsSum, order.currency)}</span>
               </div>
+              {summary.discount > 0 && (
+                <div className="flex justify-between text-success">
+                  <span>{order.couponCode ? `Discount (${order.couponCode})` : 'Discount'}</span>
+                  <span className="tabular-nums">−{formatPrice(summary.discount, order.currency)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-warm-gray">
                 <span>Shipping</span>
-                <span className="text-success">Free</span>
+                <span className={summary.shipping === 0 ? 'text-success' : 'tabular-nums'}>
+                  {summary.shipping === 0 ? 'Free' : formatPrice(summary.shipping, order.currency)}
+                </span>
               </div>
-              <div className="flex justify-between font-medium text-charcoal text-lg pt-3 border-t border-blush">
+              <div className="flex justify-between text-charcoal text-lg pt-3 border-t border-blush">
                 <span>Total</span>
-                <span className="text-rose">{formatPrice(order.totalAmount, order.currency)}</span>
+                <span className="text-rose tabular-nums">{formatPrice(order.totalAmount, order.currency)}</span>
               </div>
             </div>
           </div>
 
-          {/* Order Info */}
           <div className="space-y-6">
-            {/* Customer Info */}
             <div className="bg-soft-white rounded-xl shadow-soft p-6">
-              <h2 className="font-serif text-lg font-medium text-charcoal mb-4">
-                Customer Details
-              </h2>
+              <h2 className="font-serif text-lg text-charcoal mb-4">Customer Details</h2>
               <div className="space-y-3">
                 {order.customerEmail && (
                   <div className="flex items-center gap-3 text-warm-gray">
-                    <Mail className="w-4 h-4" />
+                    <Mail className="w-4 h-4 shrink-0" />
                     <span className="text-sm">{order.customerEmail}</span>
                   </div>
                 )}
                 {order.customerPhone && (
                   <div className="flex items-center gap-3 text-warm-gray">
-                    <Phone className="w-4 h-4" />
+                    <Phone className="w-4 h-4 shrink-0" />
                     <span className="text-sm">{order.customerPhone}</span>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Shipping Address */}
             {order.shippingAddress && (
               <div className="bg-soft-white rounded-xl shadow-soft p-6">
-                <h2 className="font-serif text-lg font-medium text-charcoal mb-4">
-                  Shipping Address
-                </h2>
+                <h2 className="font-serif text-lg text-charcoal mb-4">Shipping Address</h2>
                 <div className="flex items-start gap-3 text-warm-gray">
-                  <MapPin className="w-4 h-4 mt-0.5" />
-                  <p className="text-sm">{order.shippingAddress}</p>
+                  <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
+                  <p className="text-sm whitespace-pre-line">{order.shippingAddress}</p>
                 </div>
               </div>
             )}
 
-            {/* Tracking Info */}
             {order.trackingNumber && (
               <div className="bg-soft-white rounded-xl shadow-soft p-6">
-                <h2 className="font-serif text-lg font-medium text-charcoal mb-4">
-                  Tracking Details
-                </h2>
+                <h2 className="font-serif text-lg text-charcoal mb-4">Tracking Details</h2>
                 <div className="space-y-3">
                   {order.carrier && (
                     <div className="flex items-center gap-3 text-warm-gray">
-                      <Truck className="w-4 h-4" />
-                      <span className="text-sm font-medium">{order.carrier}</span>
+                      <Truck className="w-4 h-4 shrink-0" />
+                      <span className="text-sm text-charcoal">{order.carrier}</span>
                     </div>
                   )}
                   <div className="flex items-center gap-3 text-warm-gray">
-                    <Package className="w-4 h-4" />
+                    <Package className="w-4 h-4 shrink-0" />
                     <span className="text-sm font-mono">{order.trackingNumber}</span>
                   </div>
                   {order.trackingUrl && (
@@ -220,7 +174,7 @@ export default function OrderDetailPage() {
                       href={order.trackingUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-rose hover:bg-rose/90 text-white text-sm font-medium rounded-lg transition-colors"
+                      className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-rose hover:bg-rose/90 text-soft-white text-sm rounded-lg transition-colors"
                     >
                       <ExternalLink className="w-4 h-4" />
                       Track Order
@@ -230,25 +184,22 @@ export default function OrderDetailPage() {
               </div>
             )}
 
-            {/* Actions */}
             <div className="bg-soft-white rounded-xl shadow-soft p-6">
-              <h2 className="font-serif text-lg font-medium text-charcoal mb-4">
-                Need Help?
-              </h2>
-              <div className="space-y-3">
-                <a
-                  href={generateWhatsAppLink(order)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-[#25D366] hover:bg-[#1da851] text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  Share on WhatsApp
-                </a>
-                <a href={`mailto:${supportEmail}`}>
+              <h2 className="font-serif text-lg text-charcoal mb-4">Need Help?</h2>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
+                <a href={`mailto:${supportEmail}`} className="flex-1 min-w-0">
                   <Button variant="outline" className="w-full" size="sm">
                     Contact Support
                   </Button>
+                </a>
+                <a
+                  href={orderWhatsAppHref(order, whatsappPhoneDigits)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 min-w-0 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#25D366] hover:bg-[#1da851] text-soft-white text-sm rounded-lg transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4 shrink-0" />
+                  Share on WhatsApp
                 </a>
               </div>
             </div>

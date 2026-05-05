@@ -56,9 +56,8 @@ public class ShipmentQuoteService {
     }
 
     /**
-     * Billable weight for rate lookup: sum over lines of (product weight per unit × quantity).
-     * Each unit uses {@link com.jaee.entity.Product#getWeightKg()} or 0.5 kg if unset.
-     * This total is what {@link ShippingRateService#computeShippingInr} uses with the address zone.
+     * Billable weight: sum of (per-unit kg × qty). Uses variant {@code weightKg} when set,
+     * otherwise product {@code weightKg}, otherwise 0.5 kg.
      */
     public BigDecimal computeTotalCartWeightKg(Cart cart) {
         if (cart.getItems() == null || cart.getItems().isEmpty()) {
@@ -66,11 +65,21 @@ public class ShipmentQuoteService {
         }
         BigDecimal totalKg = BigDecimal.ZERO;
         for (CartItem item : cart.getItems()) {
-            BigDecimal w = item.getProduct().getWeightKg() != null
-                    ? item.getProduct().getWeightKg()
-                    : new BigDecimal("0.5");
-            totalKg = totalKg.add(w.multiply(BigDecimal.valueOf(item.getQty())));
+            BigDecimal perUnit = unitWeightKg(item);
+            totalKg = totalKg.add(perUnit.multiply(BigDecimal.valueOf(item.getQty())));
         }
         return totalKg;
+    }
+
+    private static BigDecimal unitWeightKg(CartItem item) {
+        if (item.getVariant() != null && item.getVariant().getWeightKg() != null
+                && item.getVariant().getWeightKg().compareTo(BigDecimal.ZERO) > 0) {
+            return item.getVariant().getWeightKg();
+        }
+        if (item.getProduct().getWeightKg() != null
+                && item.getProduct().getWeightKg().compareTo(BigDecimal.ZERO) > 0) {
+            return item.getProduct().getWeightKg();
+        }
+        return new BigDecimal("0.5");
     }
 }

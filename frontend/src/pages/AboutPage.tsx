@@ -59,18 +59,28 @@ export default function AboutPage() {
       <section className="py-16 md:py-24 bg-cream">
         <div className="container-custom max-w-3xl mx-auto">
           <div className="space-y-5 text-warm-gray leading-relaxed text-base md:text-lg">
-            <p className="text-charcoal">
-              Not just candles, but a feeling of warmth, comfort, and calm.
+            <p>
+              Jaai began with a very simple feeling. I wanted to create something that could make everyday moments feel
+              softer, calmer, and a little more meaningful. I&apos;ve always believed that the atmosphere around us
+              changes the way we feel, and for me, candles were never just décor. They were comfort, warmth, quiet
+              evenings, slow mornings, and the feeling of being completely at ease in your own space.
             </p>
             <p>
-              Jaai was created from the idea of slowing down and enjoying life&apos;s quiet moments. In a world that
-              always feels busy, we wanted to make something that helps you pause and feel at peace. Every candle is
-              made with pure soy wax and crafted to feel clean, soft, and luxurious.
+              What started as a small personal idea slowly became something much bigger. I found myself deeply involved
+              in every little detail, from testing fragrances to choosing the right wax and understanding what truly
+              makes a candle feel luxurious. I didn&apos;t want Jaai to be just another candle brand. I wanted it to feel
+              intentional. Something people could connect with emotionally, not just visually.
             </p>
             <p>
-              For us, candles are more than just fragrance. They are about cozy evenings, chai breaks, soft music,
-              and the little moments that make life feel special. Jaai is for people who find beauty in simple
-              things.
+              Quality became the foundation of everything we do. From using pure soy wax for a cleaner and longer burn to
+              carefully selecting fragrances that feel subtle yet memorable, every decision is made with care. We
+              believe luxury should feel effortless and honest. It should look beautiful, but also feel good to live with
+              every single day.
+            </p>
+            <p>
+              Jaai is our way of bringing warmth, elegance, and comfort into everyday living. It&apos;s for the people who
+              appreciate soft lighting, beautiful spaces, and the little rituals that make life feel slower and more
+              personal. More than anything, Jaai is about creating a feeling people want to come back to.
             </p>
           </div>
         </div>
@@ -94,7 +104,7 @@ export default function AboutPage() {
                 <div className="w-14 h-14 bg-rose/10 rounded-full flex items-center justify-center mx-auto mb-5">
                   <Icon className="w-6 h-6 text-rose" />
                 </div>
-                <h3 className="font-serif text-lg font-semibold text-charcoal mb-2">
+                <h3 className="font-serif text-lg text-charcoal mb-2">
                   {title}
                 </h3>
                 <p className="text-sm text-warm-gray leading-relaxed">
@@ -111,7 +121,7 @@ export default function AboutPage() {
         <div className="container-custom max-w-3xl mx-auto">
           <h2 className="heading-2 text-charcoal mb-10 text-center">A Note from the Founder</h2>
           <div className="bg-cream/80 rounded-2xl p-8 md:p-10 lg:p-12 shadow-soft border border-blush/50 space-y-6 text-warm-gray leading-relaxed text-base md:text-lg">
-            <p className="text-charcoal font-medium">Jaai started as something very personal to me.</p>
+            <p className="text-charcoal">Jaai started as something very personal to me.</p>
             <p>
               I&apos;ve always been drawn to small, quiet moments—the kind that don&apos;t ask for attention but
               somehow mean the most. Lighting a candle after a long day, sitting in a space that feels calm,
@@ -178,11 +188,11 @@ export default function AboutPage() {
                   },
                 ].map(({ step, title, desc }) => (
                   <div key={step} className="flex gap-5">
-                    <span className="flex-shrink-0 w-10 h-10 bg-rose/10 text-rose font-serif font-semibold text-sm rounded-full flex items-center justify-center">
+                    <span className="flex-shrink-0 w-10 h-10 bg-rose/10 text-rose font-serif text-sm rounded-full flex items-center justify-center">
                       {step}
                     </span>
                     <div>
-                      <h3 className="font-medium text-charcoal mb-1">{title}</h3>
+                      <h3 className="text-charcoal mb-1">{title}</h3>
                       <p className="text-sm text-warm-gray leading-relaxed">
                         {desc}
                       </p>
@@ -231,16 +241,16 @@ export default function AboutPage() {
 
           {/* Contact */}
           <div className="mt-16 pt-12 border-t border-rose/20">
-            <h3 className="font-serif text-xl font-semibold text-charcoal mb-8 text-center">Get in Touch</h3>
-            <div className="grid sm:grid-cols-3 gap-5 max-w-4xl mx-auto text-left">
+            <h3 className="font-serif text-xl text-charcoal mb-6 md:mb-8 text-center">Get in Touch</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 max-w-4xl mx-auto text-left items-stretch">
               <a
                 href={`mailto:${supportEmail}`}
-                className="group flex flex-col gap-2 rounded-xl border border-blush/40 bg-soft-white/90 p-5 shadow-soft hover:border-rose/40 hover:shadow-soft-lg transition-all"
+                className="group flex flex-col gap-2 rounded-xl border border-blush/40 bg-soft-white/90 p-5 shadow-soft hover:border-rose/40 hover:shadow-soft-lg transition-all min-h-[140px]"
               >
                 <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-rose/10 text-rose">
                   <Mail className="w-5 h-5" aria-hidden />
                 </span>
-                <span className="text-xs font-medium uppercase tracking-wide text-warm-gray">Email</span>
+                <span className="text-xs uppercase tracking-wide text-warm-gray">Email</span>
                 <span className="text-sm text-charcoal group-hover:text-rose transition-colors break-all">
                   {supportEmail}
                 </span>
@@ -249,19 +259,19 @@ export default function AboutPage() {
                 href={instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex flex-col gap-2 rounded-xl border border-blush/40 bg-soft-white/90 p-5 shadow-soft hover:border-rose/40 hover:shadow-soft-lg transition-all"
+                className="group flex flex-col gap-2 rounded-xl border border-blush/40 bg-soft-white/90 p-5 shadow-soft hover:border-rose/40 hover:shadow-soft-lg transition-all min-h-[140px]"
               >
                 <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-rose/10 text-rose">
                   <Instagram className="w-5 h-5" aria-hidden />
                 </span>
-                <span className="text-xs font-medium uppercase tracking-wide text-warm-gray">Instagram</span>
+                <span className="text-xs uppercase tracking-wide text-warm-gray">Instagram</span>
                 <span className="text-sm text-charcoal group-hover:text-rose transition-colors">{instagramHandle}</span>
               </a>
-              <div className="flex flex-col gap-2 rounded-xl border border-blush/40 bg-soft-white/90 p-5 shadow-soft">
+              <div className="flex flex-col gap-2 rounded-xl border border-blush/40 bg-soft-white/90 p-5 shadow-soft min-h-[140px]">
                 <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-rose/10 text-rose">
                   <MapPin className="w-5 h-5" aria-hidden />
                 </span>
-                <span className="text-xs font-medium uppercase tracking-wide text-warm-gray">Address</span>
+                <span className="text-xs uppercase tracking-wide text-warm-gray">Address</span>
                 <p className="text-sm text-charcoal leading-relaxed">{BUSINESS_LOCATION_LINE}</p>
               </div>
             </div>

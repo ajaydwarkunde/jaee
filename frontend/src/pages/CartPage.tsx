@@ -14,7 +14,18 @@ import Input from '@/components/ui/Input'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { getErrorMessage } from '@/lib/api'
 import toast from 'react-hot-toast'
-import type { AddressFormData } from '@/types'
+import type { Address, AddressFormData } from '@/types'
+
+function formatDeliveryLocation(a: Address): string {
+  const parts = [
+    a.line1,
+    a.line2,
+    [a.city, a.state].filter(Boolean).join(', ') + (a.zip ? ` - ${a.zip}` : ''),
+    a.country,
+    a.phone ? `Phone: ${a.phone}` : null,
+  ].filter(Boolean) as string[]
+  return parts.join('\n')
+}
 import { CITY_INPUT_PLACEHOLDER } from '@/config/business'
 
 export default function CartPage() {
@@ -581,63 +592,58 @@ export default function CartPage() {
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between text-warm-gray">
                     <span>Subtotal</span>
-                    <span>{formatPrice(cart.subtotal)}</span>
+                    <span className="tabular-nums">{formatPrice(cart.subtotal)}</span>
                   </div>
-                  {appliedCoupon && appliedCoupon.discountAmount && (
-                    <div className="flex justify-between text-success">
-                      <span>Discount</span>
-                      <span>-{formatPrice(appliedCoupon.discountAmount)}</span>
-                    </div>
-                  )}
-                  {cart.totalWeightKg != null && Number(cart.totalWeightKg) > 0 && (
-                    <div className="flex justify-between text-warm-gray text-sm">
-                      <span>Est. total weight</span>
-                      <span className="tabular-nums">{Number(cart.totalWeightKg).toFixed(2)} kg</span>
-                    </div>
-                  )}
                   <div className="flex justify-between text-warm-gray">
-                    <span>Shipping</span>
+                    <span>Total discount applied</span>
+                    <span className="tabular-nums text-charcoal">
+                      {discountNum > 0 ? `−${formatPrice(discountNum)}` : formatPrice(0)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-warm-gray">
+                    <span>Shipping cost</span>
                     {!selectedAddressId ? (
-                      <span className="text-xs text-warm-gray">Select address</span>
+                      <span className="text-xs">Select address</span>
                     ) : cart.freeShippingApplied ? (
                       <span className="text-success">Free</span>
                     ) : (
-                      <span>{formatPrice(shippingNum)}</span>
+                      <span className="tabular-nums">{formatPrice(shippingNum)}</span>
                     )}
                   </div>
-                  <div className="border-t border-blush pt-3 flex justify-between font-medium text-charcoal">
-                    <span>Total</span>
-                    <span className="text-lg">{formatPrice(orderTotal)}</span>
+                  <div className="border-t border-blush pt-3 flex justify-between text-charcoal">
+                    <span>Final total of the order</span>
+                    <span className="text-lg text-rose tabular-nums">{formatPrice(orderTotal)}</span>
                   </div>
                 </div>
 
-                {/* Delivery info summary */}
                 {selectedAddress && (
-                  <div className="mb-4 p-3 bg-cream rounded-lg">
-                    <p className="text-xs text-warm-gray uppercase tracking-wide mb-1">Delivering to</p>
-                    <p className="text-sm text-charcoal font-medium">{selectedAddress.line1}</p>
-                    <p className="text-xs text-warm-gray">
-                      {selectedAddress.city}{selectedAddress.zip ? ` - ${selectedAddress.zip}` : ''}
+                  <div className="mb-6 p-3 bg-cream rounded-lg">
+                    <p className="text-xs text-warm-gray uppercase tracking-wide mb-2">
+                      Delivery location (Delivering to)
+                    </p>
+                    <p className="text-sm text-charcoal whitespace-pre-line leading-relaxed">
+                      {formatDeliveryLocation(selectedAddress)}
                     </p>
                   </div>
                 )}
 
-                <Button
-                  onClick={handleCheckout}
-                  loading={checkoutLoading || verifyPaymentMutation.isPending}
-                  className="w-full"
-                  size="lg"
-                  icon={<ArrowRight className="w-5 h-5" />}
-                >
-                  Proceed to Checkout
-                </Button>
-
-                <Link
-                  to="/shop"
-                  className="block text-center text-sm text-rose hover:underline mt-4"
-                >
-                  Continue Shopping
-                </Link>
+                <div className="flex flex-row items-center justify-between gap-4">
+                  <Link
+                    to="/shop"
+                    className="text-sm text-rose hover:underline shrink-0 py-2"
+                  >
+                    Continue Shopping
+                  </Link>
+                  <Button
+                    onClick={handleCheckout}
+                    loading={checkoutLoading || verifyPaymentMutation.isPending}
+                    className="flex-1 sm:flex-none sm:min-w-[220px]"
+                    size="lg"
+                    icon={<ArrowRight className="w-5 h-5" />}
+                  >
+                    Proceed to Checkout
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
