@@ -10,6 +10,7 @@ import { useCartStore } from '@/stores/cartStore'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed'
 import { formatPrice, productDiscountPercentOff } from '@/lib/utils'
+import { optimizeImageUrl, productListingImageProps } from '@/lib/imageUrl'
 import { defaultVariantIdForProduct } from '@/lib/cartHelpers'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
@@ -370,10 +371,13 @@ function ImageGallery({
                   </>
                 ) : (
                   <img
-                    src={item.url}
+                    src={optimizeImageUrl(item.url, 1600)}
                     alt={`${productName} ${idx + 1}`}
                     className="w-full h-full object-cover pointer-events-none"
                     draggable={false}
+                    loading={idx === selectedImage ? 'eager' : 'lazy'}
+                    decoding="async"
+                    fetchPriority={idx === selectedImage ? 'high' : 'low'}
                   />
                 )}
               </div>
@@ -446,7 +450,13 @@ function ImageGallery({
                   </div>
                 </>
               ) : (
-                <img src={item.url} alt="" className="w-full h-full object-cover" />
+                <img
+                  src={optimizeImageUrl(item.url, 320)}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                />
               )}
             </button>
           ))}
@@ -1012,28 +1022,35 @@ export default function ProductPage() {
           <div className="mt-16 border-t border-blush pt-12">
             <h2 className="heading-3 text-charcoal mb-8">You May Also Like</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {relatedProducts.map((relatedProduct) => (
-                <Link
-                  key={relatedProduct.id}
-                  to={`/product/${relatedProduct.slug}`}
-                  className="group"
-                >
-                  <div className="aspect-square rounded-xl overflow-hidden bg-blush mb-3">
-                    <img
-                      src={relatedProduct.images?.[0] || 'https://images.unsplash.com/photo-1602028915047-37269d1a73f7?w=400'}
-                      alt={relatedProduct.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <h3 className="font-medium text-charcoal group-hover:text-rose transition-colors line-clamp-1">
-                    {relatedProduct.name}
-                  </h3>
-                  <p className="text-rose font-bold mt-1">{formatPrice(relatedProduct.price)}</p>
-                  {relatedProduct.stockQty <= 5 && relatedProduct.stockQty > 0 && (
-                    <p className="text-xs text-warning mt-1">Only {relatedProduct.stockQty} left!</p>
-                  )}
-                </Link>
-              ))}
+              {relatedProducts.map((relatedProduct) => {
+                const ri = productListingImageProps(relatedProduct.images?.[0])
+                return (
+                  <Link
+                    key={relatedProduct.id}
+                    to={`/product/${relatedProduct.slug}`}
+                    className="group"
+                  >
+                    <div className="aspect-square rounded-xl overflow-hidden bg-blush mb-3">
+                      <img
+                        src={ri.src}
+                        srcSet={ri.srcSet}
+                        sizes={ri.sizes}
+                        alt={relatedProduct.name}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                    <h3 className="font-medium text-charcoal group-hover:text-rose transition-colors line-clamp-1">
+                      {relatedProduct.name}
+                    </h3>
+                    <p className="text-rose font-bold mt-1">{formatPrice(relatedProduct.price)}</p>
+                    {relatedProduct.stockQty <= 5 && relatedProduct.stockQty > 0 && (
+                      <p className="text-xs text-warning mt-1">Only {relatedProduct.stockQty} left!</p>
+                    )}
+                  </Link>
+                )
+              })}
             </div>
           </div>
         )}

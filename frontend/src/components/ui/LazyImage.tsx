@@ -4,6 +4,9 @@ import { cn } from '@/lib/utils'
 interface LazyImageProps {
   src: string
   alt: string
+  /** Responsive hints — browser picks smallest suitable download when set with srcSet */
+  srcSet?: string
+  sizes?: string
   className?: string
   wrapperClassName?: string
   priority?: boolean // Load immediately (for above-the-fold images)
@@ -13,6 +16,8 @@ interface LazyImageProps {
 export default function LazyImage({
   src,
   alt,
+  srcSet,
+  sizes,
   className,
   wrapperClassName,
   priority = false,
@@ -36,7 +41,8 @@ export default function LazyImage({
         }
       },
       {
-        rootMargin: '200px', // Start loading 200px before entering viewport
+        // Smaller margin = fewer off-screen images competing for bandwidth at once
+        rootMargin: '100px',
         threshold: 0,
       }
     )
@@ -65,9 +71,12 @@ export default function LazyImage({
       {isInView && (
         <img
           src={src}
+          srcSet={srcSet}
+          sizes={sizes}
           alt={alt}
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
+          fetchPriority={priority ? 'high' : 'low'}
           onLoad={() => setIsLoaded(true)}
           className={cn(
             'transition-opacity duration-500',

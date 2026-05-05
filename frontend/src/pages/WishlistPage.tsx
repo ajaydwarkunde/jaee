@@ -12,6 +12,7 @@ import toast from 'react-hot-toast'
 import { showCartToast } from '@/components/ui/CartToast'
 import type { Product } from '@/types'
 import { defaultVariantIdForProduct } from '@/lib/cartHelpers'
+import { productListingImageProps } from '@/lib/imageUrl'
 
 export default function WishlistPage() {
   const { isAuthenticated } = useAuthStore()
@@ -99,14 +100,18 @@ export default function WishlistPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {items.map((item) => (
+            {items.map((item) => {
+              const img = productListingImageProps(item.product.images[0])
+              return (
               <div
                 key={item.id}
                 className="bg-soft-white rounded-xl shadow-soft overflow-hidden group"
               >
                 <Link to={`/product/${item.product.slug}`} className="block relative">
                   <LazyImage
-                    src={item.product.images[0] || 'https://images.unsplash.com/photo-1602523961359-24a68d4e5a9b?w=400'}
+                    src={img.src}
+                    srcSet={img.srcSet}
+                    sizes={img.sizes}
                     alt={item.product.name}
                     className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300"
                   />
@@ -157,7 +162,8 @@ export default function WishlistPage() {
                   </div>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
