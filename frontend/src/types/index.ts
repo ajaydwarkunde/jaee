@@ -62,6 +62,8 @@ export interface ProductVariant {
   productId: number
   sku: string | null
   price: number
+  /** Per-unit shipping weight (kg) */
+  weightKg?: number | null
   compareAtPrice: number | null
   discountPercent: number | null
   stockQty: number
@@ -229,7 +231,6 @@ export interface ProductFormData {
   name: string
   description: string
   price?: number
-  weightKg?: number
   compareAtPrice?: number
   currency: string
   categoryIds: number[]

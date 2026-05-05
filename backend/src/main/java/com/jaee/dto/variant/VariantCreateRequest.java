@@ -18,6 +18,9 @@ public class VariantCreateRequest {
 
     @DecimalMin(value = "0.01", message = "Compare at price must be greater than 0")
     private BigDecimal compareAtPrice;
+
+    /** Per-unit weight for shipping (kg). Optional in API; defaults to product-level weight when null. */
+    private BigDecimal weightKg;
     
     @Min(value = 0, message = "Stock quantity cannot be negative")
     private Integer stockQty = 0;

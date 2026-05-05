@@ -16,6 +16,7 @@ public class VariantDto {
     private Long productId;
     private String sku;
     private BigDecimal price;
+    private BigDecimal weightKg;
     private BigDecimal compareAtPrice;
     private Integer discountPercent;
     private Integer stockQty;
@@ -38,6 +39,7 @@ public class VariantDto {
                 .productId(variant.getProduct().getId())
                 .sku(variant.getSku())
                 .price(variant.getPrice())
+                .weightKg(variant.getWeightKg())
                 .compareAtPrice(variant.getCompareAtPrice())
                 .discountPercent(calculateDiscount(variant.getPrice(), variant.getCompareAtPrice()))
                 .stockQty(variant.getStockQty())

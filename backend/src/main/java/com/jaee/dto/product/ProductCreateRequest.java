@@ -28,7 +28,7 @@ public class ProductCreateRequest {
     @DecimalMin(value = "0.01", message = "Base cost must be greater than 0")
     private BigDecimal baseCost;
 
-    @DecimalMin(value = "0.001", message = "Weight must be positive")
+    /** Legacy fallback for shipping when variants omit weight; prefer variant-level weight. */
     private BigDecimal weightKg;
 
     @DecimalMin(value = "0.01", message = "Compare at price must be greater than 0")

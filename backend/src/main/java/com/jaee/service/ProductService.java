@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ProductService {
 
-    private static final List<String> DEFAULT_VARIANT_OPTION_NAMES = List.of("Size", "Scent");
+    private static final List<String> DEFAULT_VARIANT_OPTION_NAMES = List.of("Default");
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;

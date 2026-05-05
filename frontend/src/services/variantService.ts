@@ -4,6 +4,7 @@ import type { ApiResponse, ProductVariant } from '@/types'
 export interface VariantCreateRequest {
   sku?: string
   price: number
+  weightKg: number
   compareAtPrice?: number
   stockQty: number
   active: boolean
