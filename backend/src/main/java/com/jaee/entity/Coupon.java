@@ -40,6 +40,11 @@ public class Coupon {
 
     private Integer usageLimit;
 
+    /** When true (default), block reuse by same user — includes unpaid/pending orders so coupons cannot be stacked across retries. */
+    @Column(name = "limit_one_use_per_customer", nullable = false)
+    @Builder.Default
+    private Boolean limitOneUsePerCustomer = true;
+
     @Builder.Default
     private Integer usedCount = 0;
 

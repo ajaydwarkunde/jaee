@@ -22,6 +22,7 @@ interface CouponFormData {
   minOrderAmount: string;
   maxDiscountAmount: string;
   usageLimit: string;
+  limitOneUsePerCustomer: boolean;
   validFrom: string;
   validUntil: string;
   active: boolean;
@@ -35,6 +36,7 @@ const initialFormData: CouponFormData = {
   minOrderAmount: '',
   maxDiscountAmount: '',
   usageLimit: '',
+  limitOneUsePerCustomer: true,
   validFrom: '',
   validUntil: '',
   active: true,
@@ -108,6 +110,7 @@ export default function AdminCoupons() {
       minOrderAmount: coupon.minOrderAmount?.toString() || '',
       maxDiscountAmount: coupon.maxDiscountAmount?.toString() || '',
       usageLimit: coupon.usageLimit?.toString() || '',
+      limitOneUsePerCustomer: coupon.limitOneUsePerCustomer !== false,
       validFrom: coupon.validFrom ? formatDateForInput(coupon.validFrom) : '',
       validUntil: coupon.validUntil ? formatDateForInput(coupon.validUntil) : '',
       active: coupon.active,
@@ -132,6 +135,7 @@ export default function AdminCoupons() {
       minOrderAmount: formData.minOrderAmount ? parseFloat(formData.minOrderAmount) : undefined,
       maxDiscountAmount: formData.maxDiscountAmount ? parseFloat(formData.maxDiscountAmount) : undefined,
       usageLimit: formData.usageLimit ? parseInt(formData.usageLimit) : undefined,
+      limitOneUsePerCustomer: formData.limitOneUsePerCustomer,
       validFrom: formData.validFrom ? new Date(formData.validFrom).toISOString() : undefined,
       validUntil: formData.validUntil ? new Date(formData.validUntil).toISOString() : undefined,
       active: formData.active,
@@ -259,6 +263,7 @@ export default function AdminCoupons() {
                     <th className="px-6 py-4 text-left text-sm font-medium text-charcoal/70">Discount</th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-charcoal/70">Min Order</th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-charcoal/70">Usage</th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-charcoal/70">Per customer</th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-charcoal/70">Valid Until</th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-charcoal/70">Status</th>
                     <th className="px-6 py-4 text-right text-sm font-medium text-charcoal/70">Actions</th>
@@ -309,6 +314,11 @@ export default function AdminCoupons() {
                             <span className="text-charcoal/60">/ {coupon.usageLimit}</span>
                           )}
                         </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-charcoal/80">
+                          {coupon.limitOneUsePerCustomer !== false ? 'Once' : 'Multiple'}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
                         {coupon.validUntil ? (
@@ -462,6 +472,24 @@ export default function AdminCoupons() {
                 placeholder="Leave empty for unlimited"
                 min="0"
               />
+            </div>
+            <div className="col-span-2">
+              <label className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={formData.limitOneUsePerCustomer}
+                  onChange={(e) =>
+                    setFormData(prev => ({ ...prev, limitOneUsePerCustomer: e.target.checked }))
+                  }
+                  className="mt-1 rounded border-warm-gray/40 text-rose focus:ring-rose"
+                />
+                <span>
+                  <span className="text-sm font-medium text-charcoal block">One use per customer</span>
+                  <span className="text-xs text-charcoal/60">
+                    Off allows the same account to redeem this code multiple times (still respects overall usage limit).
+                  </span>
+                </span>
+              </label>
             </div>
             <div>
               <Input

@@ -22,6 +22,7 @@ public class CouponDto {
     private BigDecimal minOrderAmount;
     private BigDecimal maxDiscountAmount;
     private Integer usageLimit;
+    private Boolean limitOneUsePerCustomer;
     private Integer usedCount;
     private LocalDateTime validFrom;
     private LocalDateTime validUntil;
@@ -39,6 +40,7 @@ public class CouponDto {
                 .minOrderAmount(coupon.getMinOrderAmount())
                 .maxDiscountAmount(coupon.getMaxDiscountAmount())
                 .usageLimit(coupon.getUsageLimit())
+                .limitOneUsePerCustomer(coupon.getLimitOneUsePerCustomer())
                 .usedCount(coupon.getUsedCount())
                 .validFrom(coupon.getValidFrom())
                 .validUntil(coupon.getValidUntil())

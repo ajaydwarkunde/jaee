@@ -7,11 +7,13 @@ import com.jaee.dto.coupon.CouponValidationResponse;
 import com.jaee.entity.Coupon;
 import com.jaee.entity.CouponUsage;
 import com.jaee.entity.Order;
+import com.jaee.entity.Order.OrderStatus;
 import com.jaee.entity.User;
 import com.jaee.exception.BadRequestException;
 import com.jaee.exception.NotFoundException;
 import com.jaee.repository.CouponRepository;
 import com.jaee.repository.CouponUsageRepository;
+import com.jaee.repository.OrderRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,6 +27,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,6 +40,9 @@ class CouponServiceTest {
 
     @Mock
     private CouponUsageRepository couponUsageRepository;
+
+    @Mock
+    private OrderRepository orderRepository;
 
     @InjectMocks
     private CouponService couponService;
@@ -159,6 +165,8 @@ class CouponServiceTest {
 
         User user = User.builder().id(1L).build();
         when(couponUsageRepository.existsByCouponAndUser(coupon, user)).thenReturn(false);
+        when(orderRepository.existsNonCancelledOrderWithCoupon(eq(1L), eq(1L), eq(OrderStatus.CANCELLED)))
+                .thenReturn(false);
         CouponValidationResponse response = couponService.validateCoupon("save20", new BigDecimal("1000"), user);
 
         assertThat(response.isValid()).isTrue();
@@ -242,12 +250,68 @@ class CouponServiceTest {
         User user = User.builder().id(1L).build();
         when(couponRepository.findByCodeIgnoreCase("SAVE20")).thenReturn(Optional.of(coupon));
         when(couponUsageRepository.existsByCouponAndUser(coupon, user)).thenReturn(false);
+        when(orderRepository.existsNonCancelledOrderWithCoupon(eq(1L), eq(1L), eq(OrderStatus.CANCELLED)))
+                .thenReturn(false);
 
         CouponValidationResponse response = couponService.validateCoupon("SAVE20", new BigDecimal("500"), user);
 
         assertThat(response.isValid()).isFalse();
         assertThat(response.getMinOrderAmount()).isEqualByComparingTo(new BigDecimal("1000"));
         assertThat(response.getMessage()).contains("1000");
+    }
+
+    @Test
+    void validateCoupon_nonCancelledOrderWithSameCoupon_returnsInvalid() {
+        Coupon coupon = Coupon.builder()
+                .id(1L)
+                .code("SAVE20")
+                .discountType(Coupon.DiscountType.FIXED)
+                .discountValue(new BigDecimal("50"))
+                .minOrderAmount(BigDecimal.ZERO)
+                .validFrom(LocalDateTime.now().minusDays(1))
+                .validUntil(LocalDateTime.now().plusDays(30))
+                .active(true)
+                .usageLimit(100)
+                .usedCount(10)
+                .limitOneUsePerCustomer(true)
+                .build();
+
+        User user = User.builder().id(1L).build();
+        when(couponRepository.findByCodeIgnoreCase("SAVE20")).thenReturn(Optional.of(coupon));
+        when(couponUsageRepository.existsByCouponAndUser(coupon, user)).thenReturn(false);
+        when(orderRepository.existsNonCancelledOrderWithCoupon(eq(1L), eq(1L), eq(OrderStatus.CANCELLED)))
+                .thenReturn(true);
+
+        CouponValidationResponse response = couponService.validateCoupon("SAVE20", new BigDecimal("500"), user);
+
+        assertThat(response.isValid()).isFalse();
+        assertThat(response.getMessage()).contains("already applied");
+    }
+
+    @Test
+    void validateCoupon_limitOneUsePerCustomerFalse_skipsPerUserChecks() {
+        Coupon coupon = Coupon.builder()
+                .id(1L)
+                .code("LOYAL10")
+                .discountType(Coupon.DiscountType.FIXED)
+                .discountValue(new BigDecimal("10"))
+                .minOrderAmount(BigDecimal.ZERO)
+                .validFrom(LocalDateTime.now().minusDays(1))
+                .validUntil(LocalDateTime.now().plusDays(30))
+                .active(true)
+                .usageLimit(1000)
+                .usedCount(0)
+                .limitOneUsePerCustomer(false)
+                .build();
+
+        User user = User.builder().id(1L).build();
+        when(couponRepository.findByCodeIgnoreCase("LOYAL10")).thenReturn(Optional.of(coupon));
+
+        CouponValidationResponse response = couponService.validateCoupon("LOYAL10", new BigDecimal("500"), user);
+
+        assertThat(response.isValid()).isTrue();
+        verify(couponUsageRepository, never()).existsByCouponAndUser(any(), any());
+        verify(orderRepository, never()).existsNonCancelledOrderWithCoupon(any(), any(), any());
     }
 
     @Test

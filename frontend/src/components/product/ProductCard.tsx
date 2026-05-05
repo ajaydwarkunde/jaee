@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ShoppingBag, Heart, Star, Plus, Eye } from 'lucide-react'
+import { ShoppingBag, Heart, Star, Plus } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatPrice, productDiscountPercentOff } from '@/lib/utils'
 import { wishlistService } from '@/services/wishlistService'
@@ -13,12 +13,11 @@ import { productListingImageProps } from '@/lib/imageUrl'
 interface ProductCardProps {
   product: Product
   onAddToCart?: () => void
-  onQuickView?: () => void
   /** First rows load sooner for LCP on shop/home grids */
   priority?: boolean
 }
 
-export default function ProductCard({ product, onAddToCart, onQuickView, priority = false }: ProductCardProps) {
+export default function ProductCard({ product, onAddToCart, priority = false }: ProductCardProps) {
   const { src: imageSrc, srcSet, sizes } = productListingImageProps(product.images[0])
   const discountPct = productDiscountPercentOff(product)
   const hasDiscount = discountPct != null
@@ -106,15 +105,6 @@ export default function ProductCard({ product, onAddToCart, onQuickView, priorit
           >
             <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
           </button>
-          {onQuickView && (
-            <button
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onQuickView() }}
-              className="p-2 rounded-full shadow-soft bg-soft-white/90 backdrop-blur-sm hover:bg-rose hover:text-soft-white transition-colors md:opacity-0 md:group-hover:opacity-100"
-              aria-label="Quick view"
-            >
-              <Eye className="w-4 h-4" />
-            </button>
-          )}
         </div>
 
         {/* Add to cart overlay (desktop only - hidden on touch devices) */}

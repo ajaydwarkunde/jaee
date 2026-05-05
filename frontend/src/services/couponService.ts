@@ -20,6 +20,7 @@ export interface Coupon {
   minOrderAmount?: number;
   maxDiscountAmount?: number;
   usageLimit?: number;
+  limitOneUsePerCustomer?: boolean;
   usedCount: number;
   validFrom?: string;
   validUntil?: string;
@@ -36,6 +37,7 @@ export interface CouponCreateRequest {
   minOrderAmount?: number;
   maxDiscountAmount?: number;
   usageLimit?: number;
+  limitOneUsePerCustomer?: boolean;
   validFrom?: string;
   validUntil?: string;
   active?: boolean;
