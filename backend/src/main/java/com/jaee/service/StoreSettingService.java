@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,32 +37,48 @@ public class StoreSettingService {
     /**
      * Settings that may be missing from older databases — merged into admin list and created on first update.
      */
-    private static final Map<String, DefaultSettingMeta> OPTIONAL_SETTINGS = Map.of(
-        "feature_hamper_public",
-        new DefaultSettingMeta(
-            StoreSetting.SettingType.BOOLEAN,
-            "false",
-            "Show hamper store (nav, hero, gift sets, builders) on the public site"
-        ),
-        "feature_custom_candle",
-        new DefaultSettingMeta(
-            StoreSetting.SettingType.BOOLEAN,
-            "false",
-            "Show custom candle builder links and CTAs"
-        ),
-        "feature_two_stores_section",
-        new DefaultSettingMeta(
-            StoreSetting.SettingType.BOOLEAN,
-            "false",
-            "Show the “Two Stores, One Destination” section on the homepage"
-        ),
-        "whatsapp_phone",
-        new DefaultSettingMeta(
-            StoreSetting.SettingType.STRING,
-            "919404380308",
-            "Digits with country code (e.g. 919404380308). WhatsApp chat only — not shown on the storefront."
-        )
-    );
+    private static final Map<String, DefaultSettingMeta> OPTIONAL_SETTINGS;
+
+    static {
+        Map<String, DefaultSettingMeta> m = new HashMap<>();
+        m.put(
+                "feature_hamper_public",
+                new DefaultSettingMeta(
+                        StoreSetting.SettingType.BOOLEAN,
+                        "false",
+                        "Show hamper store (nav, hero, gift sets, builders) on the public site"));
+        m.put(
+                "feature_custom_candle",
+                new DefaultSettingMeta(
+                        StoreSetting.SettingType.BOOLEAN,
+                        "false",
+                        "Show custom candle builder links and CTAs"));
+        m.put(
+                "feature_two_stores_section",
+                new DefaultSettingMeta(
+                        StoreSetting.SettingType.BOOLEAN,
+                        "false",
+                        "Show the “Two Stores, One Destination” section on the homepage"));
+        m.put(
+                "whatsapp_phone",
+                new DefaultSettingMeta(
+                        StoreSetting.SettingType.STRING,
+                        "919404380308",
+                        "Digits with country code (e.g. 919404380308). WhatsApp chat only — not shown on the storefront."));
+        m.put(
+                "announcement_bar_slide_1",
+                new DefaultSettingMeta(
+                        StoreSetting.SettingType.STRING,
+                        "Use code JAAI10 for 10% off on your first order",
+                        "Top announcement bar — first slide (shown by default)"));
+        m.put(
+                "announcement_bar_slide_2",
+                new DefaultSettingMeta(
+                        StoreSetting.SettingType.STRING,
+                        "Free shipping on orders above 1499 Rs",
+                        "Top announcement bar — second slide (e.g. free shipping)"));
+        OPTIONAL_SETTINGS = Collections.unmodifiableMap(m);
+    }
 
     private record DefaultSettingMeta(StoreSetting.SettingType type, String defaultValue, String description) {}
 

@@ -30,13 +30,10 @@ export default function Footer() {
           <div className="lg:col-span-2">
             <Logo size="lg" variant="light" />
             <div className="mt-4 text-cream/70 max-w-md leading-relaxed space-y-3">
-              <p>
-                Crafted with precision and quiet luxury,
-                <br />
-                our candles and hampers embody timeless design.
-              </p>
-              <p>An experience of warmth, scent, and sophistication.</p>
-              <p>Jaai — where elegance lingers.</p>
+              <p>Designed for those who appreciate the finer details,</p>
+              <p>our candles and hampers bring warmth with intention</p>
+              <p>A subtle statement of taste, comfort, and elegance</p>
+              <p>Jaai — luxury, softly spoken</p>
             </div>
             <div className="flex gap-4 mt-6">
               <a 

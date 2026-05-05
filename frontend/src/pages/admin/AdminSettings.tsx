@@ -38,7 +38,12 @@ const SETTING_GROUPS: SettingGroup[] = [
   {
     title: 'Announcements',
     icon: <Settings className="w-5 h-5" />,
-    keys: ['announcement_enabled', 'announcement_text'],
+    keys: [
+      'announcement_enabled',
+      'announcement_text',
+      'announcement_bar_slide_1',
+      'announcement_bar_slide_2',
+    ],
   },
 ]
 
@@ -55,7 +60,9 @@ const SETTING_LABELS: Record<string, string> = {
   whatsapp_phone: 'WhatsApp (chat only, not shown on website)',
   instagram_handle: 'Instagram Handle',
   announcement_enabled: 'Show Announcement',
-  announcement_text: 'Announcement Text',
+  announcement_text: 'Announcement Text (legacy single line)',
+  announcement_bar_slide_1: 'Top bar — slide 1 (default visible)',
+  announcement_bar_slide_2: 'Top bar — slide 2 (after arrow)',
   feature_hamper_public: 'Enable hamper products & gift sets (nav, hero, shop, builders)',
   feature_custom_candle: 'Custom candle builder (links & CTAs)',
   feature_two_stores_section: '“Two Stores, One Destination” homepage section',

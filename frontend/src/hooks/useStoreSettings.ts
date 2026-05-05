@@ -7,7 +7,7 @@ const LEGACY_INSTAGRAM_HANDLES = new Set(['@jaai.studio', '@jaee.studio'])
 
 const DEFAULT_SETTINGS: StoreSettings = {
   free_shipping_enabled: 'true',
-  free_shipping_threshold: '999',
+  free_shipping_threshold: '1499',
   return_days: '7',
   return_policy_text: '7 Days Easy Returns',
   cod_enabled: 'false',
@@ -21,6 +21,8 @@ const DEFAULT_SETTINGS: StoreSettings = {
   instagram_handle: '@jaai_candle_studio',
   announcement_text: '',
   announcement_enabled: 'false',
+  announcement_bar_slide_1: 'Use code JAAI10 for 10% off on your first order',
+  announcement_bar_slide_2: 'Free shipping on orders above 1499 Rs',
   feature_hamper_public: 'false',
   feature_custom_candle: 'false',
   feature_two_stores_section: 'false',
@@ -75,6 +77,12 @@ export function useStoreSettings() {
     featureHamperPublic: getBoolValue('feature_hamper_public'),
     featureCustomCandle: getBoolValue('feature_custom_candle'),
     featureTwoStoresSection: getBoolValue('feature_two_stores_section'),
+    announcementBarSlide1:
+      getValue('announcement_bar_slide_1' as keyof StoreSettings).trim() ||
+      DEFAULT_SETTINGS.announcement_bar_slide_1,
+    announcementBarSlide2:
+      getValue('announcement_bar_slide_2' as keyof StoreSettings).trim() ||
+      DEFAULT_SETTINGS.announcement_bar_slide_2,
     /** Digits only, suitable for https://wa.me/{digits} — never show as visible text */
     whatsappPhoneDigits: (() => {
       const raw = getValue('whatsapp_phone').replace(/\D/g, '')
