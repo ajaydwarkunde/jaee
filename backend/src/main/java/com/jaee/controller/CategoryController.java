@@ -22,6 +22,13 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
+    @GetMapping("/storefront")
+    @Operation(summary = "Categories that have at least one active product (for homepage and discovery)")
+    public ResponseEntity<ApiResponse<List<CategoryDto>>> getStorefrontCategories() {
+        List<CategoryDto> categories = categoryService.getStorefrontCategories();
+        return ResponseEntity.ok(ApiResponse.success(categories));
+    }
+
     @GetMapping
     @Operation(summary = "Get all categories")
     public ResponseEntity<ApiResponse<List<CategoryDto>>> getAllCategories() {

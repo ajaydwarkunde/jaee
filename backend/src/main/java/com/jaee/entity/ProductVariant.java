@@ -31,6 +31,10 @@ public class ProductVariant {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
+    @Column(name = "sort_order", nullable = false)
+    @Builder.Default
+    private Integer sortOrder = 0;
+
     /** Billable shipping weight per unit (kg). Falls back to product weight when null. */
     @Column(name = "weight_kg", precision = 10, scale = 3)
     private BigDecimal weightKg;

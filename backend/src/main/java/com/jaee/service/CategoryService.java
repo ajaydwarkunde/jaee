@@ -7,6 +7,7 @@ import com.jaee.entity.StoreType;
 import com.jaee.exception.BadRequestException;
 import com.jaee.exception.NotFoundException;
 import com.jaee.repository.CategoryRepository;
+import com.jaee.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,12 +25,28 @@ import java.util.stream.Collectors;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
     private static final Pattern NONLATIN = Pattern.compile("[^\\w-]");
     private static final Pattern WHITESPACE = Pattern.compile("[\\s]");
 
     public List<CategoryDto> getAllCategories() {
         return categoryRepository.findAll().stream()
                 .map(CategoryDto::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<CategoryDto> getStorefrontCategories() {
+        return categoryRepository.findWithActiveProductsOrderedByName().stream()
+                .map(c -> CategoryDto.builder()
+                        .id(c.getId())
+                        .name(c.getName())
+                        .slug(c.getSlug())
+                        .description(c.getDescription())
+                        .imageUrl(c.getImageUrl())
+                        .storeType(c.getStoreType() != null ? c.getStoreType().name() : null)
+                        .productCount((int) productRepository.countActiveProductsForCategory(c.getId()))
+                        .build())
                 .collect(Collectors.toList());
     }
 

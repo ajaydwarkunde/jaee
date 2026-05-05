@@ -30,6 +30,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     
     @Query("SELECT DISTINCT p FROM Product p JOIN p.categories c WHERE p.active = true AND c.id = :categoryId")
     Page<Product> findAllActiveByCategoryId(@Param("categoryId") Long categoryId, Pageable pageable);
+
+    @Query("SELECT COUNT(DISTINCT p.id) FROM Product p JOIN p.categories c WHERE c.id = :categoryId AND p.active = true")
+    long countActiveProductsForCategory(@Param("categoryId") Long categoryId);
     
     @Query("SELECT p FROM Product p WHERE p.active = true AND " +
            "(LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +

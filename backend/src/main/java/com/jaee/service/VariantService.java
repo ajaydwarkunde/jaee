@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,10 +37,12 @@ public class VariantService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Product not found"));
 
+        int nextOrder = (int) variantRepository.countByProduct_Id(productId);
         ProductVariant variant = ProductVariant.builder()
                 .product(product)
                 .sku(request.getSku())
                 .price(request.getPrice())
+                .sortOrder(nextOrder)
                 .weightKg(resolveVariantWeight(request.getWeightKg(), product))
                 .compareAtPrice(request.getCompareAtPrice())
                 .stockQty(request.getStockQty())
@@ -60,6 +63,9 @@ public class VariantService {
 
         variant.setSku(request.getSku());
         variant.setPrice(request.getPrice());
+        if (request.getSortOrder() != null) {
+            variant.setSortOrder(request.getSortOrder());
+        }
         variant.setWeightKg(resolveVariantWeight(request.getWeightKg(), variant.getProduct()));
         variant.setCompareAtPrice(request.getCompareAtPrice());
         variant.setStockQty(request.getStockQty());
@@ -94,17 +100,22 @@ public class VariantService {
         variantRepository.deleteAllByProductId(productId);
         variantRepository.flush();
 
-        List<ProductVariant> variants = requests.stream().map(req -> ProductVariant.builder()
-                .product(product)
-                .sku(req.getSku())
-                .price(req.getPrice())
-                .compareAtPrice(req.getCompareAtPrice())
-                .stockQty(req.getStockQty())
-                .active(req.getActive() != null ? req.getActive() : true)
-                .optionValues(req.getOptionValues() != null ? req.getOptionValues() : java.util.Map.of())
-                .images(req.getImages() != null ? req.getImages() : List.of())
-                .build()
-        ).collect(Collectors.toList());
+        List<ProductVariant> variants = new ArrayList<>();
+        for (int i = 0; i < requests.size(); i++) {
+            VariantCreateRequest req = requests.get(i);
+            variants.add(ProductVariant.builder()
+                    .product(product)
+                    .sku(req.getSku())
+                    .price(req.getPrice())
+                    .sortOrder(i)
+                    .weightKg(resolveVariantWeight(req.getWeightKg(), product))
+                    .compareAtPrice(req.getCompareAtPrice())
+                    .stockQty(req.getStockQty())
+                    .active(req.getActive() != null ? req.getActive() : true)
+                    .optionValues(req.getOptionValues() != null ? req.getOptionValues() : java.util.Map.of())
+                    .images(req.getImages() != null ? req.getImages() : List.of())
+                    .build());
+        }
 
         variantRepository.saveAll(variants);
         log.info("Bulk saved {} variants for product {}", variants.size(), productId);

@@ -38,6 +38,13 @@ class SecurityIntegrationTest {
 
     @Test
     @WithAnonymousUser
+    void getStorefrontCategories_return200WithoutAuth() throws Exception {
+        mockMvc.perform(get("/categories/storefront"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithAnonymousUser
     void getStoreSettings_return200WithoutAuth() throws Exception {
         mockMvc.perform(get("/store/settings"))
                 .andExpect(status().isOk());
