@@ -147,6 +147,12 @@ export interface OrderItem {
   qty: number
   subtotal: number
   imageUrl: string | null
+  variantId?: number | null
+  variantLabel?: string | null
+  /** SKU captured at checkout */
+  sku?: string | null
+  /** Compare-at / retail (MRP) at checkout */
+  compareAtPrice?: number | null
 }
 
 export interface Order {
@@ -155,6 +161,8 @@ export interface Order {
   totalAmount: number
   shippingAmount?: number
   shippingZone?: string | null
+  discountAmount?: number | null
+  couponCode?: string | null
   currency: string
   items: OrderItem[]
   shippingAddress: string | null

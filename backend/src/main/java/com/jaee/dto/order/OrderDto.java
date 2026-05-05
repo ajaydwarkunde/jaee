@@ -86,7 +86,9 @@ public class OrderDto {
         private String imageUrl;
         private Long variantId;
         private String variantLabel;
-        
+        private String sku;
+        private BigDecimal compareAtPrice;
+
         public static OrderItemDto fromEntity(OrderItem item) {
             return OrderItemDto.builder()
                     .id(item.getId())
@@ -98,6 +100,8 @@ public class OrderDto {
                     .imageUrl(item.getImageUrl())
                     .variantId(item.getVariant() != null ? item.getVariant().getId() : null)
                     .variantLabel(item.getVariantLabel())
+                    .sku(item.getSkuSnapshot())
+                    .compareAtPrice(item.getCompareAtPriceSnapshot())
                     .build();
         }
     }

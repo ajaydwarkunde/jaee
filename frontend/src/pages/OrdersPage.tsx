@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Package, ChevronRight } from 'lucide-react'
 import { orderService } from '@/services/orderService'
 import { formatPrice, formatDate } from '@/lib/utils'
+import OrderItemsBreakdown from '@/components/order/OrderItemsBreakdown'
 import Badge from '@/components/ui/Badge'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import Button from '@/components/ui/Button'
@@ -73,40 +74,15 @@ export default function OrdersPage() {
                   </div>
                 </div>
 
-                {/* Order Items Preview */}
-                <div className="p-4">
-                  <div className="flex items-center gap-4">
-                    {/* Show first 3 items */}
-                    <div className="flex -space-x-3">
-                      {order.items.slice(0, 3).map((item, idx) => (
-                        <img
-                          key={idx}
-                          src={item.imageUrl || 'https://images.unsplash.com/photo-1602523961359-24a68d4e5a9b?w=100'}
-                          alt={item.name}
-                          className="w-12 h-12 rounded-lg border-2 border-soft-white object-cover"
-                        />
-                      ))}
-                      {order.items.length > 3 && (
-                        <div className="w-12 h-12 rounded-lg border-2 border-soft-white bg-blush flex items-center justify-center">
-                          <span className="text-xs font-medium text-charcoal">
-                            +{order.items.length - 3}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm text-charcoal">
-                        {order.items.map((item) => item.name).join(', ')}
-                      </p>
-                      <p className="text-xs text-warm-gray mt-1">
-                        {order.items.reduce((sum, item) => sum + item.qty, 0)} items
-                      </p>
-                    </div>
+                <div className="p-4 space-y-4">
+                  <OrderItemsBreakdown items={order.items} currency={order.currency} dense />
+                  <div className="flex justify-end">
                     <Link
                       to={`/orders/${order.id}`}
-                      className="text-rose hover:text-rose-dark transition-colors"
+                      className="inline-flex items-center gap-1 text-sm text-rose hover:text-rose-dark transition-colors"
                     >
-                      <ChevronRight className="w-5 h-5" />
+                      View full order
+                      <ChevronRight className="w-4 h-4" />
                     </Link>
                   </div>
                 </div>

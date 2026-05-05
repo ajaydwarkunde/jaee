@@ -47,6 +47,15 @@ export function formatDate(date: string): string {
   }).format(new Date(date))
 }
 
+/** e.g. 9 March 2026 — for receipts and WhatsApp summaries */
+export function formatOrderDateLong(date: string): string {
+  return new Intl.DateTimeFormat('en-IN', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(date))
+}
+
 export function formatDateTime(date: string): string {
   return new Intl.DateTimeFormat('en-IN', {
     day: 'numeric',

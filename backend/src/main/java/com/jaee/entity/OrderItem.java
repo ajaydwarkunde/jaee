@@ -44,6 +44,14 @@ public class OrderItem {
 
     private String imageUrl;
 
+    /** SKU captured at checkout (variant or product-level). */
+    @Column(name = "sku_snapshot", length = 120)
+    private String skuSnapshot;
+
+    /** Compare-at / MRP at checkout for retail reference. */
+    @Column(name = "compare_at_price_snapshot", precision = 10, scale = 2)
+    private BigDecimal compareAtPriceSnapshot;
+
     public BigDecimal getSubtotal() {
         return priceSnapshot.multiply(BigDecimal.valueOf(qty));
     }
