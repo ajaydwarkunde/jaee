@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ShoppingBag, Minus, Plus, Heart, Star } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatPrice, productDiscountPercentOff } from '@/lib/utils'
+import { optimizeImageUrl } from '@/lib/imageUrl'
 import { cartService } from '@/services/cartService'
 import { wishlistService } from '@/services/wishlistService'
 import { useAuthStore } from '@/stores/authStore'
@@ -87,7 +88,13 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
         {/* Image */}
         <div className="relative">
           <div className="aspect-square bg-cream rounded-lg overflow-hidden">
-            <img src={images[selectedImage]} alt={product.name} className="w-full h-full object-cover" />
+            <img
+              src={optimizeImageUrl(images[selectedImage], 960)}
+              alt={product.name}
+              className="w-full h-full object-cover"
+              decoding="async"
+              fetchPriority="high"
+            />
           </div>
           {hasDiscount && (
             <span className="absolute top-3 left-3 inline-flex items-center rounded-full bg-rose text-soft-white text-xs font-semibold px-2.5 py-1 shadow-md tabular-nums">
@@ -102,7 +109,13 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
                   onClick={() => setSelectedImage(idx)}
                   className={`w-14 h-14 rounded overflow-hidden border-2 transition-colors ${selectedImage === idx ? 'border-rose' : 'border-transparent'}`}
                 >
-                  <img src={img} alt="" className="w-full h-full object-cover" />
+                  <img
+                    src={optimizeImageUrl(img, 180)}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                  />
                 </button>
               ))}
             </div>

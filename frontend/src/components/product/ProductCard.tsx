@@ -8,15 +8,18 @@ import type { Product } from '@/types'
 import Badge from '../ui/Badge'
 import LazyImage from '../ui/LazyImage'
 import toast from 'react-hot-toast'
+import { productListingImageProps } from '@/lib/imageUrl'
 
 interface ProductCardProps {
   product: Product
   onAddToCart?: () => void
   onQuickView?: () => void
+  /** First rows load sooner for LCP on shop/home grids */
+  priority?: boolean
 }
 
-export default function ProductCard({ product, onAddToCart, onQuickView }: ProductCardProps) {
-  const imageUrl = product.images[0] || 'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=400'
+export default function ProductCard({ product, onAddToCart, onQuickView, priority = false }: ProductCardProps) {
+  const { src: imageSrc, srcSet, sizes } = productListingImageProps(product.images[0])
   const discountPct = productDiscountPercentOff(product)
   const hasDiscount = discountPct != null
   const { isAuthenticated } = useAuthStore()
@@ -65,8 +68,11 @@ export default function ProductCard({ product, onAddToCart, onQuickView }: Produ
       <div className="relative aspect-square overflow-hidden bg-cream">
         <Link to={`/product/${product.slug}`} className="block w-full h-full">
           <LazyImage
-            src={imageUrl}
+            src={imageSrc}
+            srcSet={srcSet}
+            sizes={sizes}
             alt={product.name}
+            priority={priority}
             wrapperClassName="w-full h-full"
             className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
           />

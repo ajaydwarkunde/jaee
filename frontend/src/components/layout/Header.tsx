@@ -8,6 +8,7 @@ import { cartService } from '@/services/cartService'
 import { wishlistService } from '@/services/wishlistService'
 import { productService } from '@/services/productService'
 import { formatPrice } from '@/lib/utils'
+import { optimizeImageUrl } from '@/lib/imageUrl'
 import { cn } from '@/lib/utils'
 import Button from '../ui/Button'
 import Logo from '../ui/Logo'
@@ -69,9 +70,14 @@ function SearchWithSuggestions({ query, onQueryChange, onSearch, onClose }: {
                   className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blush/50 transition-colors text-left"
                 >
                   <img
-                    src={product.images[0] || 'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=100'}
+                    src={optimizeImageUrl(
+                      product.images[0] || 'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6',
+                      160,
+                    )}
                     alt=""
                     className="w-10 h-10 rounded object-cover shrink-0"
+                    loading="lazy"
+                    decoding="async"
                   />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-rose truncate">{product.name}</p>

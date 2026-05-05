@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { optimizeImageUrl } from '@/lib/imageUrl'
 import LazyImage from './LazyImage'
 
 interface Category {
@@ -132,10 +133,11 @@ export default function CategoryCarousel({
                 className="group block relative aspect-[4/5] rounded-xl overflow-hidden shadow-soft hover:shadow-soft-lg transition-all duration-300"
               >
                 <LazyImage
-                  src={
+                  src={optimizeImageUrl(
                     category.imageUrl ||
-                    'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=400'
-                  }
+                      'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6',
+                    640,
+                  )}
                   alt={category.name}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
