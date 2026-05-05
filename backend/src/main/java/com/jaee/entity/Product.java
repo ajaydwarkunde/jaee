@@ -78,6 +78,7 @@ public class Product {
     private List<String> options = new ArrayList<>();
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sortOrder ASC, id ASC")
     @Builder.Default
     private List<ProductVariant> variants = new ArrayList<>();
 

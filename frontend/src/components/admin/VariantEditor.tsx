@@ -1,11 +1,28 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus, Trash2, Save, Loader2 } from 'lucide-react'
+import {
+  DndContext,
+  type DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { Copy, GripVertical, Plus, Trash2, Save, Loader2 } from 'lucide-react'
 import { variantService } from '@/services/variantService'
 import type { VariantCreateRequest } from '@/services/variantService'
 import Button from '@/components/ui/Button'
 import toast from 'react-hot-toast'
-import type { Product } from '@/types'
+import type { Product, ProductVariant } from '@/types'
 
 interface VariantRow {
   key: string
@@ -36,6 +53,157 @@ function newVariantRow(options: string[]): VariantRow {
   }
 }
 
+function mapApiToRows(variants: ProductVariant[]): VariantRow[] {
+  return [...variants]
+    .sort((a, b) => {
+      const ao = a.sortOrder ?? 0
+      const bo = b.sortOrder ?? 0
+      if (ao !== bo) return ao - bo
+      return a.id - b.id
+    })
+    .map(v => ({
+      key: `existing-${v.id}`,
+      sku: v.sku || '',
+      price: v.price,
+      compareAtPrice: v.compareAtPrice ?? '',
+      weightKg: v.weightKg != null && v.weightKg > 0 ? v.weightKg : 0.5,
+      stockQty: v.stockQty,
+      active: v.active,
+      optionValues: v.optionValues,
+      images: v.images,
+    }))
+}
+
+function duplicateVariantRow(row: VariantRow): VariantRow {
+  const sku = row.sku.trim()
+  return {
+    ...row,
+    key: crypto.randomUUID(),
+    sku: sku ? `${sku}-copy` : '',
+    optionValues: { ...row.optionValues },
+    images: [...row.images],
+  }
+}
+
+function SortableVariantRow({
+  row,
+  options,
+  onUpdateRow,
+  onUpdateOption,
+  onRemove,
+  onDuplicate,
+}: {
+  row: VariantRow
+  options: string[]
+  onUpdateRow: (key: string, field: string, value: unknown) => void
+  onUpdateOption: (key: string, optionName: string, value: string) => void
+  onRemove: (key: string) => void
+  onDuplicate: (key: string) => void
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: row.key,
+  })
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.82 : 1,
+    zIndex: isDragging ? 1 : undefined,
+  }
+
+  return (
+    <tr ref={setNodeRef} style={style} className="border-b border-blush/50 hover:bg-blush/20">
+      <td className="w-10 py-2 px-1 align-middle">
+        <button
+          type="button"
+          className="cursor-grab active:cursor-grabbing p-1.5 text-warm-gray hover:text-charcoal rounded-md hover:bg-blush/40"
+          {...attributes}
+          {...listeners}
+          aria-label="Drag to reorder variants"
+        >
+          <GripVertical className="w-4 h-4" />
+        </button>
+      </td>
+      {options.map(opt => (
+        <td key={opt} className="py-2 px-2">
+          <input
+            type="text"
+            value={row.optionValues[opt] || ''}
+            onChange={(e) => onUpdateOption(row.key, opt, e.target.value)}
+            placeholder={opt}
+            className="w-full px-2 py-1.5 border border-blush rounded text-sm text-charcoal bg-soft-white focus:outline-none focus:border-rose"
+          />
+        </td>
+      ))}
+      <td className="py-2 px-2">
+        <input
+          type="number"
+          step="0.01"
+          value={row.price}
+          onChange={(e) => onUpdateRow(row.key, 'price', Number(e.target.value))}
+          className="w-20 px-2 py-1.5 border border-blush rounded text-sm text-charcoal bg-soft-white focus:outline-none focus:border-rose"
+        />
+      </td>
+      <td className="py-2 px-2">
+        <input
+          type="number"
+          step="0.01"
+          value={row.compareAtPrice}
+          onChange={(e) => onUpdateRow(row.key, 'compareAtPrice', e.target.value ? Number(e.target.value) : '')}
+          placeholder="—"
+          className="w-20 px-2 py-1.5 border border-blush rounded text-sm text-charcoal bg-soft-white focus:outline-none focus:border-rose"
+        />
+      </td>
+      <td className="py-2 px-2">
+        <input
+          type="number"
+          step="0.001"
+          min={0.001}
+          value={row.weightKg}
+          onChange={(e) => onUpdateRow(row.key, 'weightKg', Number(e.target.value))}
+          title="Shipping weight per unit"
+          className="w-20 px-2 py-1.5 border border-blush rounded text-sm text-charcoal bg-soft-white focus:outline-none focus:border-rose"
+        />
+      </td>
+      <td className="py-2 px-2">
+        <input
+          type="number"
+          value={row.stockQty}
+          onChange={(e) => onUpdateRow(row.key, 'stockQty', Number(e.target.value))}
+          className="w-16 px-2 py-1.5 border border-blush rounded text-sm text-charcoal bg-soft-white focus:outline-none focus:border-rose"
+        />
+      </td>
+      <td className="py-2 px-2">
+        <input
+          type="text"
+          value={row.sku}
+          onChange={(e) => onUpdateRow(row.key, 'sku', e.target.value)}
+          placeholder="Optional"
+          className="w-24 px-2 py-1.5 border border-blush rounded text-sm text-charcoal bg-soft-white focus:outline-none focus:border-rose"
+        />
+      </td>
+      <td className="py-2 px-2 whitespace-nowrap">
+        <button
+          type="button"
+          onClick={() => onDuplicate(row.key)}
+          className="p-1.5 text-warm-gray hover:text-rose transition-colors mr-1"
+          title="Duplicate variant"
+          aria-label="Duplicate variant"
+        >
+          <Copy className="w-4 h-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => onRemove(row.key)}
+          className="p-1.5 text-warm-gray hover:text-error transition-colors"
+          aria-label="Remove variant"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </td>
+    </tr>
+  )
+}
+
 export default function VariantEditor({ product, onClose }: { product: Product; onClose: () => void }) {
   const queryClient = useQueryClient()
   const options = product.options || []
@@ -45,28 +213,24 @@ export default function VariantEditor({ product, onClose }: { product: Product; 
     queryFn: () => variantService.getVariants(product.id),
   })
 
+  const initialRows = useMemo(
+    () => (existingVariants?.length ? mapApiToRows(existingVariants) : []),
+    [existingVariants],
+  )
+
   const [rows, setRows] = useState<VariantRow[] | null>(null)
+  const variants = rows ?? initialRows
 
-  const variants = rows ?? (existingVariants || []).map(v => ({
-    key: `existing-${v.id}`,
-    sku: v.sku || '',
-    price: v.price,
-    compareAtPrice: v.compareAtPrice ?? '',
-    weightKg: v.weightKg != null && v.weightKg > 0 ? v.weightKg : 0.5,
-    stockQty: v.stockQty,
-    active: v.active,
-    optionValues: v.optionValues,
-    images: v.images,
-  } as VariantRow))
-
-  const setVariants = (v: VariantRow[]) => setRows(v)
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
 
   const bulkSaveMutation = useMutation({
     mutationFn: (data: VariantCreateRequest[]) => variantService.bulkSaveVariants(product.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['variants', product.id] })
       queryClient.invalidateQueries({ queryKey: ['admin-products'] })
-      // Public product & listing caches embed variants — refresh so the storefront shows new prices/SKU/stock.
       queryClient.invalidateQueries({ queryKey: ['product'] })
       queryClient.invalidateQueries({ queryKey: ['products'] })
       queryClient.invalidateQueries({ queryKey: ['products-on-sale'] })
@@ -79,23 +243,40 @@ export default function VariantEditor({ product, onClose }: { product: Product; 
   })
 
   const addRow = () => {
-    setVariants([...variants, newVariantRow(options)])
+    setRows([...variants, newVariantRow(options)])
   }
 
   const removeRow = (key: string) => {
-    setVariants(variants.filter(v => v.key !== key))
+    setRows(variants.filter(v => v.key !== key))
+  }
+
+  const duplicateRow = (key: string) => {
+    const src = variants.find(v => v.key === key)
+    if (!src) return
+    const copy = duplicateVariantRow(src)
+    const idx = variants.findIndex(v => v.key === key)
+    setRows([...variants.slice(0, idx + 1), copy, ...variants.slice(idx + 1)])
   }
 
   const updateRow = (key: string, field: string, value: unknown) => {
-    setVariants(variants.map(v =>
+    setRows(variants.map(v =>
       v.key === key ? { ...v, [field]: value } : v
     ))
   }
 
   const updateOptionValue = (key: string, optionName: string, value: string) => {
-    setVariants(variants.map(v =>
+    setRows(variants.map(v =>
       v.key === key ? { ...v, optionValues: { ...v.optionValues, [optionName]: value } } : v
     ))
+  }
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const oldIndex = variants.findIndex(v => v.key === active.id)
+    const newIndex = variants.findIndex(v => v.key === over.id)
+    if (oldIndex < 0 || newIndex < 0) return
+    setRows(arrayMove(variants, oldIndex, newIndex))
   }
 
   const handleSave = () => {
@@ -151,7 +332,7 @@ export default function VariantEditor({ product, onClose }: { product: Product; 
             Variants for "{product.name}"
           </h3>
           <p className="text-xs text-warm-gray mt-1">
-            Options: {options.join(', ')} · {variants.length} variant(s)
+            Options: {options.join(', ')} · {variants.length} variant(s). Drag rows to set order on the product page.
           </p>
         </div>
         <button
@@ -171,96 +352,41 @@ export default function VariantEditor({ product, onClose }: { product: Product; 
           </Button>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-blush">
-                {options.map(opt => (
-                  <th key={opt} className="text-left py-2 px-2 font-medium text-charcoal">{opt}</th>
-                ))}
-                <th className="text-left py-2 px-2 font-medium text-charcoal">Price</th>
-                <th className="text-left py-2 px-2 font-medium text-charcoal">Compare</th>
-                <th className="text-left py-2 px-2 font-medium text-charcoal whitespace-nowrap">Weight (kg)</th>
-                <th className="text-left py-2 px-2 font-medium text-charcoal">Stock</th>
-                <th className="text-left py-2 px-2 font-medium text-charcoal">SKU</th>
-                <th className="py-2 px-2"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {variants.map((v) => (
-                <tr key={v.key} className="border-b border-blush/50 hover:bg-blush/20">
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-blush">
+                  <th className="w-10 py-2 px-1" aria-hidden />
                   {options.map(opt => (
-                    <td key={opt} className="py-2 px-2">
-                      <input
-                        type="text"
-                        value={v.optionValues[opt] || ''}
-                        onChange={(e) => updateOptionValue(v.key, opt, e.target.value)}
-                        placeholder={opt}
-                        className="w-full px-2 py-1.5 border border-blush rounded text-sm text-charcoal bg-soft-white focus:outline-none focus:border-rose"
-                      />
-                    </td>
+                    <th key={opt} className="text-left py-2 px-2 font-medium text-charcoal">{opt}</th>
                   ))}
-                  <td className="py-2 px-2">
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={v.price}
-                      onChange={(e) => updateRow(v.key, 'price', Number(e.target.value))}
-                      className="w-20 px-2 py-1.5 border border-blush rounded text-sm text-charcoal bg-soft-white focus:outline-none focus:border-rose"
-                    />
-                  </td>
-                  <td className="py-2 px-2">
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={v.compareAtPrice}
-                      onChange={(e) => updateRow(v.key, 'compareAtPrice', e.target.value ? Number(e.target.value) : '')}
-                      placeholder="—"
-                      className="w-20 px-2 py-1.5 border border-blush rounded text-sm text-charcoal bg-soft-white focus:outline-none focus:border-rose"
-                    />
-                  </td>
-                  <td className="py-2 px-2">
-                    <input
-                      type="number"
-                      step="0.001"
-                      min={0.001}
-                      value={v.weightKg}
-                      onChange={(e) => updateRow(v.key, 'weightKg', Number(e.target.value))}
-                      title="Shipping weight per unit"
-                      className="w-20 px-2 py-1.5 border border-blush rounded text-sm text-charcoal bg-soft-white focus:outline-none focus:border-rose"
-                    />
-                  </td>
-                  <td className="py-2 px-2">
-                    <input
-                      type="number"
-                      value={v.stockQty}
-                      onChange={(e) => updateRow(v.key, 'stockQty', Number(e.target.value))}
-                      className="w-16 px-2 py-1.5 border border-blush rounded text-sm text-charcoal bg-soft-white focus:outline-none focus:border-rose"
-                    />
-                  </td>
-                  <td className="py-2 px-2">
-                    <input
-                      type="text"
-                      value={v.sku}
-                      onChange={(e) => updateRow(v.key, 'sku', e.target.value)}
-                      placeholder="Optional"
-                      className="w-24 px-2 py-1.5 border border-blush rounded text-sm text-charcoal bg-soft-white focus:outline-none focus:border-rose"
-                    />
-                  </td>
-                  <td className="py-2 px-2">
-                    <button
-                      type="button"
-                      onClick={() => removeRow(v.key)}
-                      className="p-1.5 text-warm-gray hover:text-error transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </td>
+                  <th className="text-left py-2 px-2 font-medium text-charcoal">Price</th>
+                  <th className="text-left py-2 px-2 font-medium text-charcoal">Compare</th>
+                  <th className="text-left py-2 px-2 font-medium text-charcoal whitespace-nowrap">Weight (kg)</th>
+                  <th className="text-left py-2 px-2 font-medium text-charcoal">Stock</th>
+                  <th className="text-left py-2 px-2 font-medium text-charcoal">SKU</th>
+                  <th className="py-2 px-2 font-medium text-charcoal text-left whitespace-nowrap">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <SortableContext items={variants.map(v => v.key)} strategy={verticalListSortingStrategy}>
+                <tbody>
+                  {variants.map((v) => (
+                    <SortableVariantRow
+                      key={v.key}
+                      row={v}
+                      options={options}
+                      onUpdateRow={updateRow}
+                      onUpdateOption={updateOptionValue}
+                      onRemove={removeRow}
+                      onDuplicate={duplicateRow}
+                    />
+                  ))}
+                </tbody>
+              </SortableContext>
+            </table>
+          </div>
+        </DndContext>
       )}
 
       <div className="flex gap-3 pt-4 border-t border-blush">

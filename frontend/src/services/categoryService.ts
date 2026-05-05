@@ -7,6 +7,12 @@ export const categoryService = {
     return response.data.data
   },
 
+  /** Categories that have at least one active product (homepage carousel, discovery). */
+  getStorefrontCategories: async (): Promise<Category[]> => {
+    const response = await api.get<ApiResponse<Category[]>>('/categories/storefront')
+    return response.data.data
+  },
+
   getCategoryBySlug: async (slug: string): Promise<Category> => {
     const response = await api.get<ApiResponse<Category>>(`/categories/${slug}`)
     return response.data.data

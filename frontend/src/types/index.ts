@@ -61,6 +61,8 @@ export interface ProductVariant {
   id: number
   productId: number
   sku: string | null
+  /** Matches admin drag-and-drop ordering when present */
+  sortOrder?: number | null
   price: number
   /** Per-unit shipping weight (kg) */
   weightKg?: number | null

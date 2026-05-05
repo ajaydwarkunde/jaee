@@ -488,7 +488,12 @@ function VariantSelector({
   onSelect: (variant: ProductVariant | null) => void
 }) {
   const options = product.options || []
-  const variants = product.variants || []
+  const variants = [...(product.variants || [])].sort((a, b) => {
+    const ao = a.sortOrder ?? 0
+    const bo = b.sortOrder ?? 0
+    if (ao !== bo) return ao - bo
+    return a.id - b.id
+  })
   const optionKeys = options.join('|')
   const [selected, setSelected] = useState<Record<string, string>>(() => {
     if (selectedVariant) return { ...selectedVariant.optionValues }

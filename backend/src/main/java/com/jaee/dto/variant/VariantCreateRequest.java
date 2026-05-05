@@ -31,4 +31,7 @@ public class VariantCreateRequest {
     private Map<String, String> optionValues;
 
     private List<String> images;
+
+    /** Display/admin ordering (optional on single-variant update). */
+    private Integer sortOrder;
 }

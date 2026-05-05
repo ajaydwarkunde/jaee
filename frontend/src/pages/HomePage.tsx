@@ -357,13 +357,11 @@ export default function HomePage() {
   })
 
   const { data: categories } = useQuery({
-    queryKey: ['categories'],
-    queryFn: categoryService.getCategories,
+    queryKey: ['categories', 'storefront'],
+    queryFn: categoryService.getStorefrontCategories,
   })
 
-  const categoryRow = categories?.filter(
-    (c) => featureHamperPublic || c.slug !== 'gift-sets'
-  )
+  const categoryRow = categories
 
   const addToCartMutation = useMutation({
     mutationFn: (product: Product) =>
