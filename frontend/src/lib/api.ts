@@ -26,11 +26,29 @@ api.interceptors.request.use(
 )
 
 // Response interceptor to handle token refresh
+/** Paths where 401 means invalid credentials / OTP — never trigger refresh or hard redirect */
+function isAnonymousAuthFailure(url: string | undefined): boolean {
+  if (!url) return false
+  return (
+    url.includes('/auth/login') ||
+    url.includes('/auth/register') ||
+    url.includes('/auth/email-otp/') ||
+    url.includes('/auth/otp/') ||
+    url.includes('/auth/forgot-password') ||
+    url.includes('/auth/reset-password')
+  )
+}
+
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
-    
+    const reqUrl = originalRequest?.url ?? ''
+
+    if (error.response?.status === 401 && isAnonymousAuthFailure(reqUrl)) {
+      return Promise.reject(error)
+    }
+
     // If 401 or 403 (token expired) and we haven't retried yet, try to refresh
     const isAuthError = error.response?.status === 401 || error.response?.status === 403
     
@@ -66,8 +84,9 @@ api.interceptors.response.use(
 )
 
 const FRIENDLY_MESSAGES: Record<string, string> = {
-  'Invalid email or password': 'The email or password you entered is incorrect. Please try again.',
-  'Invalid credentials': 'The email or password you entered is incorrect. Please try again.',
+  'Invalid email or password': 'Incorrect email address or password.',
+  'Invalid credentials': 'Incorrect email address or password.',
+  'Invalid credentials. Please check your email and password.': 'Incorrect email address or password.',
   'Bad credentials': 'The email or password you entered is incorrect. Please try again.',
   'Email is already registered': 'This email is already associated with an account. Try signing in instead.',
   'Current password is incorrect': 'The current password you entered doesn\'t match. Please try again.',
@@ -125,7 +144,7 @@ export const getErrorMessage = (error: unknown): string => {
     }
 
     if (axiosError.response?.status === 401) {
-      return 'Invalid credentials. Please check your email and password.'
+      return 'Incorrect email address or password.'
     }
     if (axiosError.response?.status === 403) {
       return 'You don\'t have permission to perform this action.'

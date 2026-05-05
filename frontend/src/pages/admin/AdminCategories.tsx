@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Pencil, Trash2, Flame, Gift } from 'lucide-react'
 import { categoryService } from '@/services/categoryService'
@@ -10,9 +10,12 @@ import Select from '@/components/ui/Select'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import toast from 'react-hot-toast'
 import type { Category, CategoryFormData } from '@/types'
+import { imageService } from '@/services/imageService'
 
 export default function AdminCategories() {
   const queryClient = useQueryClient()
+  const categoryImageInputRef = useRef<HTMLInputElement>(null)
+  const [uploadingCategoryImage, setUploadingCategoryImage] = useState(false)
   const [editCategory, setEditCategory] = useState<Category | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [deleteCategory, setDeleteCategory] = useState<Category | null>(null)
@@ -89,6 +92,22 @@ export default function AdminCategories() {
     setEditCategory(null)
     setFormData({ name: '', description: '', imageUrl: '', storeType: '' })
     setIsFormOpen(false)
+  }
+
+  const handleCategoryImageFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingCategoryImage(true)
+    try {
+      const url = await imageService.uploadImage(file, 'category')
+      setFormData((prev) => ({ ...prev, imageUrl: url }))
+      toast.success('Image uploaded')
+    } catch {
+      toast.error('Failed to upload image')
+    } finally {
+      setUploadingCategoryImage(false)
+      e.target.value = ''
+    }
   }
 
   if (isLoading) {
@@ -181,12 +200,38 @@ export default function AdminCategories() {
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
             />
-            <Input
-              label="Image URL"
-              value={formData.imageUrl}
-              onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-              placeholder="https://..."
+            <input
+              ref={categoryImageInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleCategoryImageFile}
             />
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-charcoal">Category image</label>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  loading={uploadingCategoryImage}
+                  onClick={() => categoryImageInputRef.current?.click()}
+                >
+                  Upload from device
+                </Button>
+                {formData.imageUrl ? (
+                  <span className="text-xs text-warm-gray truncate max-w-[200px]" title={formData.imageUrl}>
+                    Using uploaded URL
+                  </span>
+                ) : null}
+              </div>
+              <Input
+                label="Or paste image URL"
+                value={formData.imageUrl}
+                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                placeholder="https://..."
+              />
+            </div>
             <Select
               label="Store"
               value={formData.storeType || ''}

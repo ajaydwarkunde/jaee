@@ -1,49 +1,23 @@
 import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { Tag, Percent } from 'lucide-react'
 import { productService } from '@/services/productService'
-import { cartService } from '@/services/cartService'
-import { useAuthStore } from '@/stores/authStore'
-import { useCartStore } from '@/stores/cartStore'
 import ProductGrid from '@/components/product/ProductGrid'
 import Button from '@/components/ui/Button'
-import { getErrorMessage } from '@/lib/api'
-import toast from 'react-hot-toast'
-import { showCartToast } from '@/components/ui/CartToast'
-import type { Product } from '@/types'
-import { defaultVariantIdForProduct } from '@/lib/cartHelpers'
+import { useStoreSettings } from '@/hooks/useStoreSettings'
+import type { StoreSettings } from '@/services/settingsService'
 
 export default function SalePage() {
   const [page, setPage] = useState(0)
-  const { isAuthenticated } = useAuthStore()
-  const addToGuestCart = useCartStore((state) => state.addToGuestCart)
-  const queryClient = useQueryClient()
+  const { getValue } = useStoreSettings()
+  const saleBannerImg = getValue('sale_page_header_image_url' as keyof StoreSettings).trim()
+  const saleBannerTitle = getValue('sale_page_header_title' as keyof StoreSettings).trim()
+  const saleBannerSubtitle = getValue('sale_page_header_subtitle' as keyof StoreSettings).trim()
 
   const { data: productsData, isLoading } = useQuery({
     queryKey: ['products-on-sale', page],
     queryFn: () => productService.getOnSaleProducts(page, 12),
   })
-
-  const addToCartMutation = useMutation({
-    mutationFn: (product: Product) =>
-      cartService.addToCart(product.id, 1, defaultVariantIdForProduct(product)),
-    onSuccess: (_, product) => {
-      queryClient.invalidateQueries({ queryKey: ['cart'] })
-      showCartToast({ productName: product.name, productImage: product.images[0], price: product.price, currency: product.currency })
-    },
-    onError: (error) => {
-      toast.error(getErrorMessage(error))
-    },
-  })
-
-  const handleAddToCart = (product: Product) => {
-    if (isAuthenticated) {
-      addToCartMutation.mutate(product)
-    } else {
-      addToGuestCart(product.id, 1, defaultVariantIdForProduct(product))
-      showCartToast({ productName: product.name, productImage: product.images[0], price: product.price, currency: product.currency })
-    }
-  }
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage)
@@ -53,16 +27,34 @@ export default function SalePage() {
   return (
     <div className="min-h-screen bg-cream">
       {/* Hero Banner */}
-      <div className="bg-gradient-to-r from-rose/20 via-blush to-rose/10 py-12 md:py-16">
-        <div className="container-custom text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Tag className="w-8 h-8 text-rose" />
-            <Percent className="w-6 h-6 text-rose" />
-          </div>
-          <h1 className="heading-2 text-charcoal">Sale & Offers</h1>
-          <p className="mt-4 text-warm-gray max-w-2xl mx-auto">
-            Discover amazing deals on our premium candles and home decor. 
-            Limited time offers you don't want to miss!
+      <div
+        className={`relative py-12 md:py-16 overflow-hidden ${
+          saleBannerImg ? '' : 'bg-gradient-to-r from-rose/20 via-blush to-rose/10'
+        }`}
+      >
+        {saleBannerImg ? (
+          <>
+            <img src={saleBannerImg} alt="" className="absolute inset-0 w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-charcoal/45" />
+          </>
+        ) : null}
+        <div className="container-custom text-center relative z-10">
+          {!saleBannerImg ? (
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Tag className="w-8 h-8 text-rose" />
+              <Percent className="w-6 h-6 text-rose" />
+            </div>
+          ) : null}
+          <h1 className={`heading-2 ${saleBannerImg ? 'text-soft-white drop-shadow-sm' : 'text-charcoal'}`}>
+            {saleBannerTitle || 'Sale & Offers'}
+          </h1>
+          <p
+            className={`mt-4 max-w-2xl mx-auto ${
+              saleBannerImg ? 'text-cream/90' : 'text-warm-gray'
+            }`}
+          >
+            {saleBannerSubtitle ||
+              'Discover amazing deals on our premium candles and home decor. Limited time offers you do not want to miss!'}
           </p>
         </div>
       </div>
@@ -79,7 +71,6 @@ export default function SalePage() {
         <ProductGrid
           products={productsData?.content || []}
           loading={isLoading}
-          onAddToCart={handleAddToCart}
           emptyMessage="No sale items right now. Check back soon for amazing deals!"
         />
 

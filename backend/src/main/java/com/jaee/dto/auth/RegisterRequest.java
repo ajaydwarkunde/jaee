@@ -25,6 +25,9 @@ public class RegisterRequest {
     @Size(min = 8, max = 100, message = "Password must be between 8 and 100 characters")
     private String password;
     
-    // Firebase ID token for phone verification (optional if Firebase is disabled)
+    // Firebase ID token for phone verification (legacy; signup uses email OTP instead)
     private String firebaseToken;
+
+    /** Required for password signup — must match a code from POST /auth/email-otp/request */
+    private String emailOtp;
 }

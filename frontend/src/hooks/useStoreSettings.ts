@@ -26,6 +26,14 @@ const DEFAULT_SETTINGS: StoreSettings = {
   feature_hamper_public: 'false',
   feature_custom_candle: 'false',
   feature_two_stores_section: 'false',
+  homepage_hero_candles_image_url: '',
+  homepage_hero_hampers_image_url: '',
+  homepage_story_image_url: '',
+  shop_candles_header_image_url: '',
+  shop_candles_header_title: '',
+  sale_page_header_image_url: '',
+  sale_page_header_title: '',
+  sale_page_header_subtitle: '',
 }
 
 export function useStoreSettings() {

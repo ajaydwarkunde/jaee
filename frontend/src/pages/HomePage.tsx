@@ -1,24 +1,17 @@
 import { useState, useEffect, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowRight, Sparkles, Heart, Truck, Gift, Flame, MessageSquare } from 'lucide-react'
 import { productService } from '@/services/productService'
 import { categoryService } from '@/services/categoryService'
-import { cartService } from '@/services/cartService'
 import ProductGrid from '@/components/product/ProductGrid'
 import Button from '@/components/ui/Button'
 import LazyImage from '@/components/ui/LazyImage'
 import CategoryCarousel from '@/components/ui/CategoryCarousel'
-import { useCartStore } from '@/stores/cartStore'
-import { useAuthStore } from '@/stores/authStore'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
-import { getErrorMessage } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import toast from 'react-hot-toast'
-import { showCartToast } from '@/components/ui/CartToast'
-import FooterNewsletter from '@/components/layout/FooterNewsletter'
-import type { Product } from '@/types'
-import { defaultVariantIdForProduct } from '@/lib/cartHelpers'
+import type { StoreSettings } from '@/services/settingsService'
 import { BUSINESS_LOCATION_SHORT } from '@/config/business'
 import { candleListingFilters } from '@/lib/shopPrefetch'
 
@@ -49,8 +42,23 @@ const SEED_COMMUNITY_STORIES: CommunityStory[] = [
   },
 ]
 
+const DEFAULT_HERO_CANDLE =
+  'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=1200&auto=format&fit=crop'
+const DEFAULT_HERO_HAMPER =
+  'https://images.unsplash.com/photo-1543512214-318c7553f230?w=1200&auto=format&fit=crop'
+
 /* ─── Split Hero ─── */
-function SplitHero({ hamperEnabled }: { hamperEnabled: boolean }) {
+function SplitHero({
+  hamperEnabled,
+  candlesImageSrc,
+  hampersImageSrc,
+}: {
+  hamperEnabled: boolean
+  candlesImageSrc?: string
+  hampersImageSrc?: string
+}) {
+  const candleBg = candlesImageSrc?.trim() || DEFAULT_HERO_CANDLE
+  const hamperBg = hampersImageSrc?.trim() || DEFAULT_HERO_HAMPER
   const [hovered, setHovered] = useState<'candles' | 'hampers' | null>(null)
 
   if (!hamperEnabled) {
@@ -63,7 +71,7 @@ function SplitHero({ hamperEnabled }: { hamperEnabled: boolean }) {
           <div className="absolute inset-0 bg-gradient-to-br from-blush via-cream to-champagne" />
           <div className="absolute inset-0">
             <LazyImage
-              src="https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=1200&auto=format&fit=crop"
+              src={candleBg}
               alt="Candle collection"
               className="w-full h-full object-cover"
               priority
@@ -108,7 +116,7 @@ function SplitHero({ hamperEnabled }: { hamperEnabled: boolean }) {
         <div className="absolute inset-0 bg-gradient-to-br from-blush via-cream to-champagne" />
         <div className="absolute inset-0">
           <LazyImage
-            src="https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=1200&auto=format&fit=crop"
+            src={candleBg}
             alt="Candle collection"
             className="w-full h-full object-cover"
             priority
@@ -160,7 +168,7 @@ function SplitHero({ hamperEnabled }: { hamperEnabled: boolean }) {
         <div className="absolute inset-0 bg-gradient-to-br from-champagne via-cream to-blush" />
         <div className="absolute inset-0">
           <LazyImage
-            src="https://images.unsplash.com/photo-1543512214-318c7553f230?w=1200&auto=format&fit=crop"
+            src={hamperBg}
             alt="Gift hamper collection"
             className="w-full h-full object-cover"
             priority
@@ -345,10 +353,11 @@ function CommunityExperienceSection() {
 
 /* ─── Main Page ─── */
 export default function HomePage() {
-  const { isAuthenticated } = useAuthStore()
-  const addToGuestCart = useCartStore((state) => state.addToGuestCart)
   const queryClient = useQueryClient()
-  const { freeShippingThreshold, featureHamperPublic } = useStoreSettings()
+  const { freeShippingThreshold, featureHamperPublic, getValue } = useStoreSettings()
+  const storyImage =
+    getValue('homepage_story_image_url' as keyof StoreSettings).trim() ||
+    'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=800'
 
   const { data: featuredProducts, isLoading: productsLoading } = useQuery({
     queryKey: ['products', 'featured'],
@@ -386,34 +395,17 @@ export default function HomePage() {
     })
   }, [categories, queryClient])
 
-  const addToCartMutation = useMutation({
-    mutationFn: (product: Product) =>
-      cartService.addToCart(product.id, 1, defaultVariantIdForProduct(product)),
-    onSuccess: (_, product) => {
-      queryClient.invalidateQueries({ queryKey: ['cart'] })
-      showCartToast({ productName: product.name, productImage: product.images[0], price: product.price, currency: product.currency })
-    },
-    onError: (error) => {
-      toast.error(getErrorMessage(error))
-    },
-  })
-
-  const handleAddToCart = (product: Product) => {
-    if (isAuthenticated) {
-      addToCartMutation.mutate(product)
-    } else {
-      addToGuestCart(product.id, 1, defaultVariantIdForProduct(product))
-      showCartToast({ productName: product.name, productImage: product.images[0], price: product.price, currency: product.currency })
-    }
-  }
-
   return (
     <div className="animate-fade-in">
       {/* Cover hero */}
-      <SplitHero hamperEnabled={featureHamperPublic} />
+      <SplitHero
+        hamperEnabled={featureHamperPublic}
+        candlesImageSrc={getValue('homepage_hero_candles_image_url' as keyof StoreSettings)}
+        hampersImageSrc={getValue('homepage_hero_hampers_image_url' as keyof StoreSettings)}
+      />
 
       {/* Featured Products */}
-      <section className="py-16 md:py-24 bg-soft-white">
+      <section className="pt-4 pb-16 md:py-24 bg-soft-white">
         <div className="container-custom">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-12">
             <div>
@@ -430,7 +422,6 @@ export default function HomePage() {
           <ProductGrid
             products={featuredProducts || []}
             loading={productsLoading}
-            onAddToCart={handleAddToCart}
             priorityImageCount={12}
           />
         </div>
@@ -509,7 +500,7 @@ export default function HomePage() {
             <div className="order-1 lg:order-2">
               <div className="relative">
                 <LazyImage
-                  src="https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=800"
+                  src={storyImage}
                   alt="Jaai candle craftsmanship"
                   className="w-full rounded-xl shadow-soft-xl"
                 />
@@ -525,7 +516,6 @@ export default function HomePage() {
 
       {/* Share experience + add your story + subscribe (before global footer) */}
       <CommunityExperienceSection />
-      <FooterNewsletter />
     </div>
   )
 }

@@ -43,7 +43,7 @@ public class EmailOtpService {
     @Value("${app.otp.max-attempts:5}")
     private int maxAttempts;
 
-    @Value("${app.otp.cooldown-seconds:60}")
+    @Value("${app.otp.cooldown-seconds:15}")
     private int cooldownSeconds;
 
     @Transactional
@@ -124,6 +124,36 @@ public class EmailOtpService {
 
         log.info("Email OTP verified for: {}", maskEmail(normalizedEmail));
         return createAuthResponse(user);
+    }
+
+    /**
+     * Validates email OTP for registration (consumes code; does not issue tokens).
+     */
+    @Transactional
+    public void validateAndConsumeRegistrationOtp(String email, String otp) {
+        String normalizedEmail = email.toLowerCase().trim();
+
+        EmailOtpCode otpCode = emailOtpCodeRepository.findFirstByEmailOrderByCreatedAtDesc(normalizedEmail)
+                .orElseThrow(() -> new BadRequestException("No OTP found for this email. Please request a new one."));
+
+        if (otpCode.isExpired()) {
+            emailOtpCodeRepository.delete(otpCode);
+            throw new BadRequestException("OTP has expired. Please request a new one.");
+        }
+
+        if (otpCode.getAttempts() >= maxAttempts) {
+            emailOtpCodeRepository.delete(otpCode);
+            throw new TooManyRequestsException("Too many failed attempts. Please request a new OTP.");
+        }
+
+        if (!passwordEncoder.matches(otp, otpCode.getOtpHash())) {
+            otpCode.incrementAttempts();
+            emailOtpCodeRepository.save(otpCode);
+            throw new BadRequestException("Invalid OTP. " + (maxAttempts - otpCode.getAttempts()) + " attempts remaining.");
+        }
+
+        emailOtpCodeRepository.delete(otpCode);
+        log.info("Email OTP consumed for registration: {}", maskEmail(normalizedEmail));
     }
 
     private String generateOtp() {

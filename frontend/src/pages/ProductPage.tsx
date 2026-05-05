@@ -10,7 +10,7 @@ import { useCartStore } from '@/stores/cartStore'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed'
 import { formatPrice, productDiscountPercentOff } from '@/lib/utils'
-import { optimizeImageUrl, productListingImageProps } from '@/lib/imageUrl'
+import { optimizeImageUrl, PRODUCT_GRID_IMAGE_CLASS, productListingImageProps } from '@/lib/imageUrl'
 import { defaultVariantIdForProduct } from '@/lib/cartHelpers'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
@@ -1038,7 +1038,7 @@ export default function ProductPage() {
                         alt={relatedProduct.name}
                         loading="lazy"
                         decoding="async"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        className={`${PRODUCT_GRID_IMAGE_CLASS} rounded-xl`}
                       />
                     </div>
                     <h3 className="font-medium text-charcoal group-hover:text-rose transition-colors line-clamp-1">

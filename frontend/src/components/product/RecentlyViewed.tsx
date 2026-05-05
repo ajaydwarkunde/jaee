@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { Clock } from 'lucide-react'
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed'
 import { formatPrice } from '@/lib/utils'
-import { productListingImageProps } from '@/lib/imageUrl'
+import { PRODUCT_GRID_IMAGE_CLASS, productListingImageProps } from '@/lib/imageUrl'
 
 interface RecentlyViewedProps {
   excludeProductId?: number
@@ -41,7 +41,7 @@ export default function RecentlyViewed({ excludeProductId, maxItems = 4 }: Recen
                   alt={item.name}
                   loading="lazy"
                   decoding="async"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  className={`${PRODUCT_GRID_IMAGE_CLASS} group-hover:opacity-95`}
                 />
               </div>
               <h3 className="font-serif text-lg font-semibold text-rose group-hover:opacity-90 transition-opacity line-clamp-1 tracking-tight">

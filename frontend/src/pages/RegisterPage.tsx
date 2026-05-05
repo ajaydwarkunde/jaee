@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Eye, EyeOff, ArrowLeft } from 'lucide-react'
+import { Eye, EyeOff, ArrowLeft, Mail } from 'lucide-react'
 import { authService } from '@/services/authService'
 import { cartService } from '@/services/cartService'
 import { useAuthStore } from '@/stores/authStore'
@@ -13,7 +13,6 @@ import { getErrorMessage } from '@/lib/api'
 import { signInWithGoogle, signOutFirebase } from '@/lib/firebase'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
-import PhoneVerification from '@/components/auth/PhoneVerification'
 import toast from 'react-hot-toast'
 import Logo from '@/components/ui/Logo'
 
@@ -41,6 +40,9 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [step, setStep] = useState<Step>('details')
   const [formData, setFormData] = useState<RegisterForm | null>(null)
+  const [otp, setOtp] = useState(['', '', '', '', '', ''])
+  const [otpError, setOtpError] = useState<string | null>(null)
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   const [googleLoading, setGoogleLoading] = useState(false)
   const handleGoogleSignUp = async () => {
@@ -74,85 +76,127 @@ export default function RegisterPage() {
   })
 
   const registerMutation = useMutation({
-    mutationFn: (data: { formData: RegisterForm; firebaseToken: string }) => 
+    mutationFn: (data: RegisterForm & { emailOtp: string }) =>
       authService.register({
-        name: data.formData.name,
-        email: data.formData.email,
-        mobileNumber: data.formData.mobileNumber,
-        password: data.formData.password,
-        firebaseToken: data.firebaseToken,
+        name: data.name,
+        email: data.email,
+        mobileNumber: data.mobileNumber,
+        password: data.password,
+        emailOtp: data.emailOtp,
       }),
     onSuccess: async (data) => {
-      // Sign out from Firebase (we only used it for phone verification)
-      await signOutFirebase()
-      
       login(data.user, data.accessToken, data.refreshToken)
       toast.success('Account created successfully!')
-      
-      // Merge guest cart
+
       if (guestCart.length > 0) {
         try {
           await cartService.mergeCart(guestCart)
           clearGuestCart()
           queryClient.invalidateQueries({ queryKey: ['cart'] })
         } catch {
-          // Cart merge failed silently
+          /* silent */
         }
       }
-      
+
       navigate('/')
     },
     onError: (error) => {
       toast.error(getErrorMessage(error))
-      // Go back to details step on error
-      setStep('details')
+      setStep('verify')
     },
   })
 
-  // Handle form submission - move to verification step
-  const handleFormSubmit = (data: RegisterForm) => {
-    // Format phone number
+  const handleFormSubmit = async (data: RegisterForm) => {
     const formattedData = {
       ...data,
-      mobileNumber: data.mobileNumber.startsWith('+') 
-        ? data.mobileNumber 
+      mobileNumber: data.mobileNumber.startsWith('+')
+        ? data.mobileNumber
         : `+91${data.mobileNumber}`,
     }
     setFormData(formattedData)
-    setStep('verify')
+    try {
+      await authService.requestEmailOtp(formattedData.email)
+      toast.success('Verification code sent to your email.')
+      setOtp(['', '', '', '', '', ''])
+      setOtpError(null)
+      setStep('verify')
+      setTimeout(() => inputRefs.current[0]?.focus(), 100)
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
   }
 
-  // Handle phone verification complete
-  const handlePhoneVerified = (firebaseToken: string) => {
+  const handleOtpChange = (index: number, value: string) => {
+    setOtpError(null)
+    if (value.length > 1) {
+      const digits = value.replace(/\D/g, '').slice(0, 6)
+      const newOtp = [...otp]
+      digits.split('').forEach((digit, i) => {
+        if (index + i < 6) newOtp[index + i] = digit
+      })
+      setOtp(newOtp)
+      const nextIndex = Math.min(index + digits.length, 5)
+      inputRefs.current[nextIndex]?.focus()
+    } else {
+      const newOtp = [...otp]
+      newOtp[index] = value.replace(/\D/g, '')
+      setOtp(newOtp)
+      if (value && index < 5) inputRefs.current[index + 1]?.focus()
+    }
+  }
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus()
+    }
+  }
+
+  const handleCompleteRegistration = () => {
     if (!formData) return
-    registerMutation.mutate({ formData, firebaseToken })
+    const otpString = otp.join('')
+    if (otpString.length !== 6) {
+      setOtpError('Please enter the complete 6-digit code')
+      return
+    }
+    registerMutation.mutate({ ...formData, emailOtp: otpString })
   }
 
-  // Go back to details step
+  const handleResendOtp = async () => {
+    if (!formData) return
+    try {
+      await authService.requestEmailOtp(formData.email)
+      toast.success('New code sent.')
+      setOtp(['', '', '', '', '', ''])
+      setOtpError(null)
+      inputRefs.current[0]?.focus()
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
+  }
+
   const handleBack = () => {
     setStep('details')
+    setOtpError(null)
   }
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center bg-gradient-to-br from-blush via-cream to-champagne py-12 px-4">
       <div className="w-full max-w-md">
         <div className="bg-soft-white rounded-2xl shadow-soft-xl p-8">
-          {/* Header */}
           <div className="text-center mb-8">
             <Link to="/" className="inline-block">
               <Logo size="lg" className="mx-auto" linkTo={false} />
             </Link>
             <h1 className="heading-4 text-charcoal mt-4">
-              {step === 'details' ? 'Create Account' : 'Verify Phone'}
+              {step === 'details' ? 'Create Account' : 'Verify your email'}
             </h1>
             <p className="text-warm-gray mt-2">
-              {step === 'details' 
-                ? 'Join the Jaai community' 
-                : 'One last step to secure your account'}
+              {step === 'details'
+                ? 'Join the Jaai community'
+                : 'Enter the code we sent to your inbox'}
             </p>
           </div>
 
-          {/* Step indicator */}
           <div className="flex items-center justify-center gap-2 mb-6">
             <div className={`w-3 h-3 rounded-full ${step === 'details' ? 'bg-rose' : 'bg-rose/30'}`} />
             <div className="w-8 h-0.5 bg-rose/30" />
@@ -161,7 +205,6 @@ export default function RegisterPage() {
 
           {step === 'details' && (
             <>
-              {/* Form */}
               <form onSubmit={form.handleSubmit(handleFormSubmit)}>
                 <div className="space-y-4">
                   <Input
@@ -215,15 +258,11 @@ export default function RegisterPage() {
                   />
                 </div>
 
-                <Button
-                  type="submit"
-                  className="w-full mt-6"
-                >
+                <Button type="submit" className="w-full mt-6">
                   Continue
                 </Button>
               </form>
 
-              {/* Divider */}
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-warm-gray/20" />
@@ -233,7 +272,6 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* Google Sign-Up */}
               <button
                 type="button"
                 onClick={handleGoogleSignUp}
@@ -253,7 +291,6 @@ export default function RegisterPage() {
                 Sign up with Google
               </button>
 
-              {/* Footer */}
               <div className="mt-6 text-center">
                 <p className="text-warm-gray">
                   Already have an account?{' '}
@@ -267,8 +304,8 @@ export default function RegisterPage() {
 
           {step === 'verify' && formData && (
             <>
-              {/* Back button */}
               <button
+                type="button"
                 onClick={handleBack}
                 className="flex items-center gap-1 text-warm-gray hover:text-charcoal mb-4 text-sm"
               >
@@ -276,18 +313,57 @@ export default function RegisterPage() {
                 Back to details
               </button>
 
-              {/* Phone verification */}
-              <PhoneVerification
-                phoneNumber={formData.mobileNumber}
-                onVerified={handlePhoneVerified}
-                onCancel={handleBack}
-              />
+              <p className="text-sm text-warm-gray text-center mb-6 flex items-center justify-center gap-2">
+                <Mail className="w-4 h-4 shrink-0" />
+                Code sent to <span className="font-medium text-charcoal">{formData.email}</span>
+              </p>
 
-              {registerMutation.isPending && (
-                <div className="mt-4 text-center text-sm text-warm-gray">
-                  Creating your account...
-                </div>
+              <div className="flex justify-center gap-2 mb-4">
+                {otp.map((digit, index) => (
+                  <input
+                    key={index}
+                    ref={(el) => {
+                      inputRefs.current[index] = el
+                    }}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={digit}
+                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                    className="w-11 h-12 text-center text-xl font-semibold border-2 border-warm-gray/30 rounded-lg focus:border-rose focus:ring-2 focus:ring-rose/20 outline-none transition-all bg-soft-white"
+                    disabled={registerMutation.isPending}
+                  />
+                ))}
+              </div>
+
+              {otpError && (
+                <p className="text-red-500 text-sm text-center mb-4">{otpError}</p>
               )}
+
+              <Button
+                type="button"
+                onClick={handleCompleteRegistration}
+                loading={registerMutation.isPending}
+                disabled={otp.join('').length !== 6}
+                className="w-full mb-4"
+              >
+                Create account
+              </Button>
+
+              <div className="flex justify-center gap-4 text-sm">
+                <button
+                  type="button"
+                  onClick={() => void handleResendOtp()}
+                  disabled={registerMutation.isPending}
+                  className="text-rose hover:underline"
+                >
+                  Resend code
+                </button>
+                <button type="button" onClick={handleBack} className="text-warm-gray hover:underline">
+                  Change email
+                </button>
+              </div>
             </>
           )}
         </div>
