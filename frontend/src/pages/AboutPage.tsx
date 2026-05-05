@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Heart, Leaf, Sparkles, Star, ArrowRight, Instagram, Mail } from 'lucide-react'
+import { Heart, Leaf, Sparkles, Star, ArrowRight, Instagram, Mail, MapPin } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import LazyImage from '@/components/ui/LazyImage'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
@@ -40,69 +40,37 @@ export default function AboutPage() {
   return (
     <div className="animate-fade-in">
       {/* Hero */}
-      <section className="relative py-20 md:py-32 bg-gradient-to-br from-blush via-cream to-champagne overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-10 right-20 w-72 h-72 bg-rose/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-10 left-10 w-80 h-80 bg-champagne/60 rounded-full blur-3xl" />
+      <section className="relative min-h-[260px] md:min-h-[340px] flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0">
+          <LazyImage
+            src="https://images.unsplash.com/photo-1596436889106-bbdff866e9b2?w=1920&auto=format&fit=crop&q=80"
+            alt=""
+            className="w-full h-full object-cover min-h-[260px] md:min-h-[340px]"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-charcoal/55 via-charcoal/45 to-charcoal/65" />
         </div>
-        <div className="container-custom relative z-10 text-center">
-          <h1 className="heading-1 text-charcoal max-w-3xl mx-auto">About Jaai</h1>
+        <div className="container-custom relative z-10 text-center py-16 md:py-24">
+          <h1 className="heading-1 text-soft-white max-w-3xl mx-auto drop-shadow-md">Our Story</h1>
         </div>
       </section>
 
       {/* Our Story */}
       <section className="py-16 md:py-24 bg-cream">
         <div className="container-custom max-w-3xl mx-auto">
-          <h2 className="heading-2 text-charcoal mb-10 text-center md:text-left">Our Story</h2>
-          <div className="space-y-6 text-warm-gray leading-relaxed text-base md:text-lg">
-            <p className="text-charcoal font-medium">
-              Jaai began with a simple intention—
-              <br />
-              to create something that feels gentle, intentional, and quietly luxurious.
-            </p>
-            <p>
-              In a world that rarely pauses, Jaai was imagined as a way to slow down.
-              To transform everyday spaces into something softer, calmer, more personal.
-            </p>
-            <p>
-              At its core, Jaai is built on purity and detail.
-              Each candle is crafted using high-quality soy wax—chosen for its clean burn, long-lasting nature,
-              and sustainable origin. Every element is considered, not just for how it looks, but for how it feels.
-            </p>
-            <p className="text-charcoal font-medium">
-              Because Jaai is not just about candles—
-              <br />
-              it&apos;s about the atmosphere they create.
-            </p>
-            <p>
-              A warm glow at the end of a long day.
-              <br />
-              A scent that lingers gently in the background.
-              <br />
-              A space that feels like your own, without trying too hard.
-            </p>
-            <p>
-              The fragrances are curated to be subtle yet memorable—never overpowering, always intentional. The
-              design remains minimal, allowing the experience to speak for itself.
-            </p>
-            <p>
-              Jaai is for those who find beauty in quiet moments.
-              In soft lighting, clean aesthetics, and the feeling of being at ease.
-            </p>
+          <div className="space-y-5 text-warm-gray leading-relaxed text-base md:text-lg">
             <p className="text-charcoal">
-              It is not about excess.
-              <br />
-              It is about presence.
+              Not just candles, but a feeling of warmth, comfort, and calm.
             </p>
             <p>
-              A small ritual, repeated daily—
-              <br />
-              that turns a house into something more.
+              Jaai was created from the idea of slowing down and enjoying life&apos;s quiet moments. In a world that
+              always feels busy, we wanted to make something that helps you pause and feel at peace. Every candle is
+              made with pure soy wax and crafted to feel clean, soft, and luxurious.
             </p>
-            <p className="text-charcoal font-serif text-xl pt-4 border-t border-blush">
-              This is Jaai.
-              <br />
-              And this is just the beginning.
+            <p>
+              For us, candles are more than just fragrance. They are about cozy evenings, chai breaks, soft music,
+              and the little moments that make life feel special. Jaai is for people who find beauty in simple
+              things.
             </p>
           </div>
         </div>
@@ -263,28 +231,40 @@ export default function AboutPage() {
 
           {/* Contact */}
           <div className="mt-16 pt-12 border-t border-rose/20">
-            <h3 className="font-serif text-xl font-semibold text-charcoal mb-4">
-              Get in Touch
-            </h3>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-warm-gray">
+            <h3 className="font-serif text-xl font-semibold text-charcoal mb-8 text-center">Get in Touch</h3>
+            <div className="grid sm:grid-cols-3 gap-5 max-w-4xl mx-auto text-left">
               <a
                 href={`mailto:${supportEmail}`}
-                className="flex items-center gap-2 hover:text-rose transition-colors"
+                className="group flex flex-col gap-2 rounded-xl border border-blush/40 bg-soft-white/90 p-5 shadow-soft hover:border-rose/40 hover:shadow-soft-lg transition-all"
               >
-                <Mail className="w-4 h-4" />
-                {supportEmail}
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-rose/10 text-rose">
+                  <Mail className="w-5 h-5" aria-hidden />
+                </span>
+                <span className="text-xs font-medium uppercase tracking-wide text-warm-gray">Email</span>
+                <span className="text-sm text-charcoal group-hover:text-rose transition-colors break-all">
+                  {supportEmail}
+                </span>
               </a>
               <a
                 href={instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 hover:text-rose transition-colors"
+                className="group flex flex-col gap-2 rounded-xl border border-blush/40 bg-soft-white/90 p-5 shadow-soft hover:border-rose/40 hover:shadow-soft-lg transition-all"
               >
-                <Instagram className="w-4 h-4" />
-                {instagramHandle}
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-rose/10 text-rose">
+                  <Instagram className="w-5 h-5" aria-hidden />
+                </span>
+                <span className="text-xs font-medium uppercase tracking-wide text-warm-gray">Instagram</span>
+                <span className="text-sm text-charcoal group-hover:text-rose transition-colors">{instagramHandle}</span>
               </a>
+              <div className="flex flex-col gap-2 rounded-xl border border-blush/40 bg-soft-white/90 p-5 shadow-soft">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-rose/10 text-rose">
+                  <MapPin className="w-5 h-5" aria-hidden />
+                </span>
+                <span className="text-xs font-medium uppercase tracking-wide text-warm-gray">Address</span>
+                <p className="text-sm text-charcoal leading-relaxed">{BUSINESS_LOCATION_LINE}</p>
+              </div>
             </div>
-            <p className="text-sm text-warm-gray/70 mt-3">{BUSINESS_LOCATION_LINE}</p>
           </div>
         </div>
       </section>

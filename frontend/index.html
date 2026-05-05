@@ -18,10 +18,15 @@
       (function() {
         var t = localStorage.getItem('jaai-theme');
         var m = document.querySelector('meta[name="theme-color"]');
-        if (t === 'dark') {
+        var mobile = window.matchMedia('(max-width: 767px)').matches;
+        if (mobile && !t) {
+          document.documentElement.classList.remove('dark');
+          if (m) m.setAttribute('content', '#E9868B');
+        } else if (t === 'dark') {
           document.documentElement.classList.add('dark');
           if (m) m.setAttribute('content', '#1A1216');
         } else {
+          document.documentElement.classList.remove('dark');
           if (m) m.setAttribute('content', '#E9868B');
         }
       })();

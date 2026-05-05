@@ -7,6 +7,14 @@ const STORAGE_KEY = 'jaai-theme'
 function getInitialTheme(): Theme {
   if (typeof window === 'undefined') return 'light'
   const stored = localStorage.getItem(STORAGE_KEY) as Theme | null
+  const mobile = window.matchMedia('(max-width: 767px)').matches
+  // Mobile defaults to light until the user explicitly chooses a theme
+  if (mobile && stored !== 'dark' && stored !== 'light') {
+    return 'light'
+  }
+  if (mobile && !stored) {
+    return 'light'
+  }
   if (stored === 'light' || stored === 'dark') return stored
   return 'light'
 }
