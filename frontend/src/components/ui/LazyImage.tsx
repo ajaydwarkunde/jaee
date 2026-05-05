@@ -41,8 +41,8 @@ export default function LazyImage({
         }
       },
       {
-        // Smaller margin = fewer off-screen images competing for bandwidth at once
-        rootMargin: '220px',
+        // Start loading before cards enter the viewport so scrolling feels instant
+        rootMargin: '520px',
         threshold: 0,
       }
     )
@@ -76,7 +76,7 @@ export default function LazyImage({
           alt={alt}
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
-          fetchPriority={priority ? 'high' : 'low'}
+          fetchPriority={priority ? 'high' : 'auto'}
           onLoad={() => setIsLoaded(true)}
           className={cn(
             'transition-opacity duration-300',

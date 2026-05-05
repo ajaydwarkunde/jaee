@@ -1,6 +1,7 @@
 package com.jaee.repository;
 
 import com.jaee.entity.Order;
+import com.jaee.entity.Order.OrderStatus;
 import com.jaee.entity.StoreType;
 import com.jaee.entity.User;
 import org.springframework.data.domain.Page;
@@ -38,6 +39,13 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     
     // Count by status for dashboard
     long countByStatus(Order.OrderStatus status);
+
+    /** Pending/paid/etc. orders reserve single-use coupons until cancelled */
+    @Query("SELECT CASE WHEN COUNT(o) > 0 THEN true ELSE false END FROM Order o WHERE o.user.id = :userId AND o.coupon.id = :couponId AND o.status <> :cancelled")
+    boolean existsNonCancelledOrderWithCoupon(
+            @Param("userId") Long userId,
+            @Param("couponId") Long couponId,
+            @Param("cancelled") OrderStatus cancelled);
 
     // Store-level analytics: revenue and item count by store type for paid/shipped/fulfilled orders
     @Query("""

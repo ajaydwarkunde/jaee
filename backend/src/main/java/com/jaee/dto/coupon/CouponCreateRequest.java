@@ -28,6 +28,9 @@ public class CouponCreateRequest {
     private BigDecimal maxDiscountAmount;
     
     private Integer usageLimit;
+
+    /** When true, each customer may use this coupon only once (also blocked while a non-cancelled order holds it). Default true on server if omitted. */
+    private Boolean limitOneUsePerCustomer;
     
     private LocalDateTime validFrom;
     

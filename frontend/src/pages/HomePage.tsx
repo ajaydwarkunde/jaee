@@ -6,7 +6,6 @@ import { productService } from '@/services/productService'
 import { categoryService } from '@/services/categoryService'
 import { cartService } from '@/services/cartService'
 import ProductGrid from '@/components/product/ProductGrid'
-import QuickViewModal from '@/components/product/QuickViewModal'
 import Button from '@/components/ui/Button'
 import LazyImage from '@/components/ui/LazyImage'
 import CategoryCarousel from '@/components/ui/CategoryCarousel'
@@ -346,7 +345,6 @@ function CommunityExperienceSection() {
 
 /* ─── Main Page ─── */
 export default function HomePage() {
-  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null)
   const { isAuthenticated } = useAuthStore()
   const addToGuestCart = useCartStore((state) => state.addToGuestCart)
   const queryClient = useQueryClient()
@@ -433,14 +431,7 @@ export default function HomePage() {
             products={featuredProducts || []}
             loading={productsLoading}
             onAddToCart={handleAddToCart}
-            onQuickView={setQuickViewProduct}
             priorityImageCount={12}
-          />
-
-          <QuickViewModal
-            product={quickViewProduct}
-            isOpen={!!quickViewProduct}
-            onClose={() => setQuickViewProduct(null)}
           />
         </div>
       </section>

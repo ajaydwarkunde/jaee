@@ -20,6 +20,21 @@ export function optimizeImageUrl(
       url.searchParams.set('q', String(Math.min(100, Math.max(50, quality))))
       return url.toString()
     }
+    // Supabase Storage: image transformation (enable in project Storage settings if 400s)
+    if (host.includes('supabase.co') && url.pathname.includes('/storage/v1/render/image/public/')) {
+      url.searchParams.set('width', String(Math.min(Math.max(maxWidth, 64), 2000)))
+      url.searchParams.set('quality', String(Math.min(100, Math.max(50, quality))))
+      return url.toString()
+    }
+    if (host.includes('supabase.co') && url.pathname.includes('/storage/v1/object/public/')) {
+      url.pathname = url.pathname.replace(
+        '/storage/v1/object/public/',
+        '/storage/v1/render/image/public/',
+      )
+      url.searchParams.set('width', String(Math.min(Math.max(maxWidth, 64), 2000)))
+      url.searchParams.set('quality', String(Math.min(100, Math.max(50, quality))))
+      return url.toString()
+    }
   } catch {
     return s
   }
@@ -44,6 +59,16 @@ export function productListingImageProps(rawUrl: string | null | undefined): {
   try {
     const url = new URL(fallback)
     if (url.hostname.includes('unsplash.com')) {
+      const s320 = optimizeImageUrl(fallback, 320)
+      const s480 = optimizeImageUrl(fallback, 480)
+      const s640 = optimizeImageUrl(fallback, 640)
+      return {
+        src: s480,
+        srcSet: `${s320} 320w, ${s480} 480w, ${s640} 640w`,
+        sizes: LISTING_SIZES,
+      }
+    }
+    if (url.hostname.includes('supabase.co')) {
       const s320 = optimizeImageUrl(fallback, 320)
       const s480 = optimizeImageUrl(fallback, 480)
       const s640 = optimizeImageUrl(fallback, 640)

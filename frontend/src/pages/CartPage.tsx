@@ -532,8 +532,8 @@ export default function CartPage() {
             </div>
 
             {/* Order Summary */}
-            <div className="lg:col-span-1">
-              <div className="bg-soft-white rounded-xl p-6 shadow-soft sticky top-24">
+            <div className="lg:col-span-1 min-w-0">
+              <div className="bg-soft-white rounded-xl p-6 shadow-soft sticky top-24 overflow-hidden">
                 <h2 className="font-serif text-xl font-medium text-charcoal mb-6">
                   Order Summary
                 </h2>
@@ -611,13 +611,13 @@ export default function CartPage() {
                     )}
                   </div>
                   <div className="border-t border-blush pt-3 flex justify-between text-charcoal">
-                    <span>Final total of the order</span>
+                    <span>Total cost</span>
                     <span className="text-lg text-rose tabular-nums">{formatPrice(orderTotal)}</span>
                   </div>
                 </div>
 
                 {selectedAddress && (
-                  <div className="mb-6 p-3 bg-cream rounded-lg">
+                  <div className="mb-6 mt-2 p-3 bg-cream rounded-lg">
                     <p className="text-xs text-warm-gray uppercase tracking-wide mb-2">
                       Delivery location (Delivering to)
                     </p>
@@ -627,17 +627,17 @@ export default function CartPage() {
                   </div>
                 )}
 
-                <div className="flex flex-row items-center justify-between gap-4">
+                <div className="mt-6 pt-4 border-t border-blush/40 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between w-full min-w-0">
                   <Link
                     to="/shop"
-                    className="text-sm text-rose hover:underline shrink-0 py-2"
+                    className="text-sm text-rose hover:underline shrink-0 py-1 order-2 sm:order-1 text-center sm:text-left"
                   >
                     Continue Shopping
                   </Link>
                   <Button
                     onClick={handleCheckout}
                     loading={checkoutLoading || verifyPaymentMutation.isPending}
-                    className="flex-1 sm:flex-none sm:min-w-[220px]"
+                    className="w-full sm:w-auto sm:min-w-[200px] shrink-0 order-1 sm:order-2"
                     size="lg"
                     icon={<ArrowRight className="w-5 h-5" />}
                   >

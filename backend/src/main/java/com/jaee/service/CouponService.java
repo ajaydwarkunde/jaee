@@ -8,11 +8,13 @@ import com.jaee.entity.Coupon;
 import com.jaee.entity.Coupon.DiscountType;
 import com.jaee.entity.CouponUsage;
 import com.jaee.entity.Order;
+import com.jaee.entity.Order.OrderStatus;
 import com.jaee.entity.User;
 import com.jaee.exception.BadRequestException;
 import com.jaee.exception.NotFoundException;
 import com.jaee.repository.CouponRepository;
 import com.jaee.repository.CouponUsageRepository;
+import com.jaee.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -30,6 +32,7 @@ public class CouponService {
 
     private final CouponRepository couponRepository;
     private final CouponUsageRepository couponUsageRepository;
+    private final OrderRepository orderRepository;
 
     @Transactional(readOnly = true)
     public PageResponse<CouponDto> getAllCoupons(int page, int size) {
@@ -59,6 +62,7 @@ public class CouponService {
                 .minOrderAmount(request.getMinOrderAmount() != null ? request.getMinOrderAmount() : BigDecimal.ZERO)
                 .maxDiscountAmount(request.getMaxDiscountAmount())
                 .usageLimit(request.getUsageLimit())
+                .limitOneUsePerCustomer(request.getLimitOneUsePerCustomer() != null ? request.getLimitOneUsePerCustomer() : true)
                 .validFrom(request.getValidFrom())
                 .validUntil(request.getValidUntil())
                 .active(request.getActive() != null ? request.getActive() : true)
@@ -87,6 +91,9 @@ public class CouponService {
         coupon.setMinOrderAmount(request.getMinOrderAmount());
         coupon.setMaxDiscountAmount(request.getMaxDiscountAmount());
         coupon.setUsageLimit(request.getUsageLimit());
+        if (request.getLimitOneUsePerCustomer() != null) {
+            coupon.setLimitOneUsePerCustomer(request.getLimitOneUsePerCustomer());
+        }
         coupon.setValidFrom(request.getValidFrom());
         coupon.setValidUntil(request.getValidUntil());
         coupon.setActive(request.getActive());
@@ -129,13 +136,23 @@ public class CouponService {
                     .build();
         }
 
-        // Check if user already used this coupon
-        if (user != null && couponUsageRepository.existsByCouponAndUser(coupon, user)) {
-            return CouponValidationResponse.builder()
-                    .valid(false)
-                    .code(coupon.getCode())
-                    .message("You have already used this coupon")
-                    .build();
+        // Per-customer limits (single-use / first-order style): usage row OR any non-cancelled order with this coupon
+        // (coupon_usages are written after payment — pending checkout used to bypass this; orders catch that gap.)
+        if (user != null && Boolean.TRUE.equals(coupon.getLimitOneUsePerCustomer())) {
+            if (couponUsageRepository.existsByCouponAndUser(coupon, user)) {
+                return CouponValidationResponse.builder()
+                        .valid(false)
+                        .code(coupon.getCode())
+                        .message("You have already used this coupon")
+                        .build();
+            }
+            if (orderRepository.existsNonCancelledOrderWithCoupon(user.getId(), coupon.getId(), OrderStatus.CANCELLED)) {
+                return CouponValidationResponse.builder()
+                        .valid(false)
+                        .code(coupon.getCode())
+                        .message("This coupon is already applied to an order. Cancel that order or complete checkout once.")
+                        .build();
+            }
         }
 
         // Check minimum order amount

@@ -6,7 +6,6 @@ interface ProductGridProps {
   products: Product[]
   loading?: boolean
   onAddToCart?: (product: Product) => void
-  onQuickView?: (product: Product) => void
   emptyMessage?: string
   /** First N product images get higher fetch priority (default ~1–2 rows) */
   priorityImageCount?: number
@@ -16,7 +15,6 @@ export default function ProductGrid({
   products, 
   loading, 
   onAddToCart,
-  onQuickView,
   emptyMessage = 'No products found',
   priorityImageCount = 8,
 }: ProductGridProps) {
@@ -40,7 +38,6 @@ export default function ProductGrid({
           product={product}
           priority={index < priorityImageCount}
           onAddToCart={onAddToCart ? () => onAddToCart(product) : undefined}
-          onQuickView={onQuickView ? () => onQuickView(product) : undefined}
         />
       ))}
     </div>
