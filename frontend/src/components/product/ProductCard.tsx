@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ShoppingBag, Heart, Star, Plus } from 'lucide-react'
+import { Heart, Star } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatPrice, productDiscountPercentOff } from '@/lib/utils'
 import { wishlistService } from '@/services/wishlistService'
@@ -8,16 +8,15 @@ import type { Product } from '@/types'
 import Badge from '../ui/Badge'
 import LazyImage from '../ui/LazyImage'
 import toast from 'react-hot-toast'
-import { productListingImageProps } from '@/lib/imageUrl'
+import { PRODUCT_GRID_IMAGE_CLASS, productListingImageProps } from '@/lib/imageUrl'
 
 interface ProductCardProps {
   product: Product
-  onAddToCart?: () => void
   /** First rows load sooner for LCP on shop/home grids */
   priority?: boolean
 }
 
-export default function ProductCard({ product, onAddToCart, priority = false }: ProductCardProps) {
+export default function ProductCard({ product, priority = false }: ProductCardProps) {
   const { src: imageSrc, srcSet, sizes } = productListingImageProps(product.images[0])
   const discountPct = productDiscountPercentOff(product)
   const hasDiscount = discountPct != null
@@ -73,7 +72,7 @@ export default function ProductCard({ product, onAddToCart, priority = false }: 
             alt={product.name}
             priority={priority}
             wrapperClassName="w-full h-full"
-            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+            className={PRODUCT_GRID_IMAGE_CLASS}
           />
         </Link>
         
@@ -107,21 +106,6 @@ export default function ProductCard({ product, onAddToCart, priority = false }: 
           </button>
         </div>
 
-        {/* Add to cart overlay (desktop only - hidden on touch devices) */}
-        {product.inStock && onAddToCart && (
-          <div className="hidden md:block absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-            <button
-              onClick={(e) => {
-                e.preventDefault()
-                onAddToCart()
-              }}
-              className="w-full py-2.5 bg-rose text-soft-white text-sm font-medium rounded-lg hover:bg-rose-dark transition-colors flex items-center justify-center gap-2"
-            >
-              <ShoppingBag className="w-4 h-4" />
-              Add to Cart
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Info */}
@@ -142,36 +126,21 @@ export default function ProductCard({ product, onAddToCart, priority = false }: 
             <span className="text-xs text-warm-gray">({product.reviewCount})</span>
           </div>
         )}
-        <div className="mt-2 flex items-center justify-between gap-2">
-          <div className="flex flex-col min-w-0 gap-0.5">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-lg font-semibold text-rose tabular-nums">
-                {formatPrice(Number(product.price), product.currency)}
-              </span>
-              {hasDiscount && product.compareAtPrice != null && (
-                <span className="text-sm text-warm-gray line-through tabular-nums">
-                  {formatPrice(Number(product.compareAtPrice), product.currency)}
-                </span>
-              )}
-            </div>
-            {hasDiscount && (
-              <span className="text-sm font-semibold text-rose tabular-nums">
-                {discountPct}% off
+        <div className="mt-2 flex flex-col min-w-0 gap-0.5">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-lg font-semibold text-rose tabular-nums">
+              {formatPrice(Number(product.price), product.currency)}
+            </span>
+            {hasDiscount && product.compareAtPrice != null && (
+              <span className="text-sm text-warm-gray line-through tabular-nums">
+                {formatPrice(Number(product.compareAtPrice), product.currency)}
               </span>
             )}
           </div>
-          {product.inStock && onAddToCart && (
-            <button
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                onAddToCart()
-              }}
-              className="md:hidden p-2 bg-rose text-soft-white rounded-full hover:bg-rose-dark transition-colors shrink-0"
-              aria-label="Add to cart"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
+          {hasDiscount && (
+            <span className="text-sm font-semibold text-rose tabular-nums">
+              {discountPct}% off
+            </span>
           )}
         </div>
       </Link>

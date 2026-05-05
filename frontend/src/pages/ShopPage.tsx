@@ -1,29 +1,23 @@
 import { useState, useEffect } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { SlidersHorizontal, X } from 'lucide-react'
 import { productService } from '@/services/productService'
 import { categoryService } from '@/services/categoryService'
-import { cartService } from '@/services/cartService'
-import { useAuthStore } from '@/stores/authStore'
-import { useCartStore } from '@/stores/cartStore'
+import { useStoreSettings } from '@/hooks/useStoreSettings'
 import ProductGrid from '@/components/product/ProductGrid'
 import Button from '@/components/ui/Button'
 import Select from '@/components/ui/Select'
 import Input from '@/components/ui/Input'
-import { getErrorMessage } from '@/lib/api'
-import toast from 'react-hot-toast'
-import { showCartToast } from '@/components/ui/CartToast'
-import type { FilterOptions, Product, ProductFilters } from '@/types'
-import { defaultVariantIdForProduct } from '@/lib/cartHelpers'
+import type { FilterOptions, ProductFilters } from '@/types'
+import type { StoreSettings } from '@/services/settingsService'
 export default function ShopPage() {
   const { categorySlug } = useParams()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { isAuthenticated } = useAuthStore()
-  const addToGuestCart = useCartStore((state) => state.addToGuestCart)
   const queryClient = useQueryClient()
+  const { getValue } = useStoreSettings()
 
   useEffect(() => {
     void import('./HomePage')
@@ -115,27 +109,8 @@ export default function ShopPage() {
       !categoryFetchError) ||
     productsLoading
 
-  // Add to cart mutation
-  const addToCartMutation = useMutation({
-    mutationFn: (product: Product) =>
-      cartService.addToCart(product.id, 1, defaultVariantIdForProduct(product)),
-    onSuccess: (_, product) => {
-      queryClient.invalidateQueries({ queryKey: ['cart'] })
-      showCartToast({ productName: product.name, productImage: product.images[0], price: product.price, currency: product.currency })
-    },
-    onError: (error) => {
-      toast.error(getErrorMessage(error))
-    },
-  })
-
-  const handleAddToCart = (product: Product) => {
-    if (isAuthenticated) {
-      addToCartMutation.mutate(product)
-    } else {
-      addToGuestCart(product.id, 1, defaultVariantIdForProduct(product))
-      showCartToast({ productName: product.name, productImage: product.images[0], price: product.price, currency: product.currency })
-    }
-  }
+  const candlesHeaderImg = getValue('shop_candles_header_image_url' as keyof StoreSettings).trim()
+  const candlesHeaderTitle = getValue('shop_candles_header_title' as keyof StoreSettings).trim()
 
   const handleFilterChange = (key: keyof ProductFilters, value: string | number | undefined) => {
     setFilters((prev) => ({ ...prev, [key]: value, page: 0 }))
@@ -174,13 +149,37 @@ export default function ShopPage() {
   return (
     <div className="min-h-screen bg-cream">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blush to-champagne py-12 md:py-16">
-        <div className="container-custom text-center">
-          <h1 className="heading-2 text-charcoal">
-            {currentCategory?.name || 'All Products'}
+      <div
+        className={`relative py-12 md:py-16 overflow-hidden ${
+          categorySlug === 'candles' && candlesHeaderImg ? '' : 'bg-gradient-to-r from-blush to-champagne'
+        }`}
+      >
+        {categorySlug === 'candles' && candlesHeaderImg ? (
+          <>
+            <img
+              src={candlesHeaderImg}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-charcoal/45" />
+          </>
+        ) : null}
+        <div className="container-custom text-center relative z-10">
+          <h1
+            className={`heading-2 ${
+              categorySlug === 'candles' && candlesHeaderImg ? 'text-soft-white drop-shadow-sm' : 'text-charcoal'
+            }`}
+          >
+            {categorySlug === 'candles' && candlesHeaderTitle
+              ? candlesHeaderTitle
+              : currentCategory?.name || 'All Products'}
           </h1>
           {currentCategory?.description && (
-            <p className="mt-4 text-warm-gray max-w-2xl mx-auto">
+            <p
+              className={`mt-4 max-w-2xl mx-auto ${
+                categorySlug === 'candles' && candlesHeaderImg ? 'text-cream/90' : 'text-warm-gray'
+              }`}
+            >
               {currentCategory.description}
             </p>
           )}
@@ -377,7 +376,6 @@ export default function ShopPage() {
             <ProductGrid
               products={productsData?.content || []}
               loading={gridLoading}
-              onAddToCart={handleAddToCart}
               emptyMessage="No products found. Try adjusting your filters."
               priorityImageCount={12}
             />

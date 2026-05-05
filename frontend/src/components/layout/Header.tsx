@@ -294,7 +294,6 @@ export default function Header() {
               >
                 {({ isActive }) => (
                   <>
-                    <Flame className="w-3.5 h-3.5" />
                     Candles
                     <ChevronDown className={cn('w-3 h-3 transition-transform', activeDropdown === 'candles' && 'rotate-180')} />
                     <span className={cn('absolute bottom-0.5 left-1/2 -translate-x-1/2 h-0.5 rounded-full bg-rose transition-all duration-300', isActive ? 'w-4' : 'w-0')} />
@@ -522,7 +521,7 @@ export default function Header() {
                   onClick={() => setMobileExpanded(mobileExpanded === 'candles' ? null : 'candles')}
                   className="w-full flex items-center justify-between py-2.5 px-3 text-base font-medium text-charcoal rounded-lg hover:bg-blush/40 transition-all"
                 >
-                  <span className="flex items-center gap-2"><Flame className="w-4 h-4 text-rose" /> Candles</span>
+                  <span>Candles</span>
                   <ChevronDown className={cn('w-4 h-4 transition-transform', mobileExpanded === 'candles' && 'rotate-180')} />
                 </button>
                 {mobileExpanded === 'candles' && (

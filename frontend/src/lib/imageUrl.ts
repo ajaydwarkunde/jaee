@@ -44,6 +44,10 @@ export function optimizeImageUrl(
 /** Matches ProductCard grid: 2 cols mobile → 3 tablet → 4 desktop */
 const LISTING_SIZES = '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw'
 
+/** Product grids / recently viewed: letterboxed fit so the full product is visible (not tight crop). */
+export const PRODUCT_GRID_IMAGE_CLASS =
+  'w-full h-full object-contain object-center p-3 sm:p-4 bg-cream transition-opacity duration-300 group-hover:opacity-95'
+
 const DEFAULT_CARD_FALLBACK =
   'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?auto=format&fit=crop&w=480&q=78'
 

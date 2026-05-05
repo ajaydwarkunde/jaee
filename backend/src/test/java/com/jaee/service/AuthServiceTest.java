@@ -51,23 +51,27 @@ class AuthServiceTest {
     @Mock
     private FirebaseService firebaseService;
 
+    @Mock
+    private EmailOtpService emailOtpService;
+
     @InjectMocks
     private AuthService authService;
 
     @Test
-    void registerSuccessWhenFirebaseDisabled() {
-        when(firebaseService.isEnabled()).thenReturn(false);
+    void registerSuccessWithEmailOtp() {
         when(userRepository.existsByEmail("user@example.com")).thenReturn(false);
         when(userRepository.findByMobileNumber("+919876543210")).thenReturn(Optional.empty());
         when(passwordEncoder.encode("password123")).thenReturn("encoded");
         when(jwtService.getRefreshExpirationMs()).thenReturn(604800000L);
         when(jwtService.generateAccessToken(any(User.class))).thenReturn("access-token");
+        doNothing().when(emailOtpService).validateAndConsumeRegistrationOtp(anyString(), anyString());
 
         RegisterRequest request = new RegisterRequest();
         request.setName("Test User");
         request.setEmail("user@example.com");
         request.setMobileNumber("+919876543210");
         request.setPassword("password123");
+        request.setEmailOtp("123456");
 
         AuthResponse response = authService.register(request);
 
@@ -80,6 +84,7 @@ class AuthServiceTest {
         assertEquals("+919876543210", response.getUser().getMobileNumber());
         assertEquals("USER", response.getUser().getRole());
         verify(userRepository).save(any(User.class));
+        verify(emailOtpService).validateAndConsumeRegistrationOtp("user@example.com", "123456");
     }
 
     @Test

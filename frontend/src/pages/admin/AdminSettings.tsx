@@ -4,7 +4,7 @@ import { settingsService, StoreSetting } from '@/services/settingsService'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
-import { Save, Settings, Truck, RefreshCw, MessageSquare, ArrowLeft, Flag } from 'lucide-react'
+import { Save, Settings, Truck, RefreshCw, MessageSquare, ArrowLeft, Flag, ImageIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
@@ -45,6 +45,20 @@ const SETTING_GROUPS: SettingGroup[] = [
       'announcement_bar_slide_2',
     ],
   },
+  {
+    title: 'Site imagery & headers',
+    icon: <ImageIcon className="w-5 h-5" />,
+    keys: [
+      'homepage_hero_candles_image_url',
+      'homepage_hero_hampers_image_url',
+      'homepage_story_image_url',
+      'shop_candles_header_image_url',
+      'shop_candles_header_title',
+      'sale_page_header_image_url',
+      'sale_page_header_title',
+      'sale_page_header_subtitle',
+    ],
+  },
 ]
 
 const SETTING_LABELS: Record<string, string> = {
@@ -66,6 +80,14 @@ const SETTING_LABELS: Record<string, string> = {
   feature_hamper_public: 'Enable hamper products & gift sets (nav, hero, shop, builders)',
   feature_custom_candle: 'Custom candle builder (links & CTAs)',
   feature_two_stores_section: '“Two Stores, One Destination” homepage section',
+  homepage_hero_candles_image_url: 'Homepage hero — candles background image URL',
+  homepage_hero_hampers_image_url: 'Homepage hero — hampers background image URL',
+  homepage_story_image_url: 'Homepage “Our Story” section image URL',
+  shop_candles_header_image_url: 'Candles shop header background image URL',
+  shop_candles_header_title: 'Candles shop header title (optional override)',
+  sale_page_header_image_url: 'Sale page hero background image URL',
+  sale_page_header_title: 'Sale page hero title (optional)',
+  sale_page_header_subtitle: 'Sale page hero subtitle (optional)',
 }
 
 export default function AdminSettings() {

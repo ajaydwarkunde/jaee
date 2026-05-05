@@ -107,13 +107,14 @@ export default function WishlistPage() {
                 key={item.id}
                 className="bg-soft-white rounded-xl shadow-soft overflow-hidden group"
               >
-                <Link to={`/product/${item.product.slug}`} className="block relative">
+                <Link to={`/product/${item.product.slug}`} className="block relative aspect-square bg-cream overflow-hidden">
                   <LazyImage
                     src={img.src}
                     srcSet={img.srcSet}
                     sizes={img.sizes}
                     alt={item.product.name}
-                    className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300"
+                    wrapperClassName="absolute inset-0"
+                    className="w-full h-full object-contain object-center p-3 bg-cream transition-opacity group-hover:opacity-95"
                   />
                   {item.product.compareAtPrice && item.product.compareAtPrice > item.product.price && (
                     <span className="absolute top-3 left-3 bg-rose text-soft-white text-xs font-semibold px-2 py-1 rounded-full">
