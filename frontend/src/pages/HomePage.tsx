@@ -471,22 +471,24 @@ export default function HomePage() {
             <div className="order-2 lg:order-1">
               <span className="text-rose text-sm font-medium uppercase tracking-wide">Our Story</span>
               <p className="font-serif text-xl md:text-2xl text-charcoal leading-snug mt-4 mb-6">
-                <span className="text-rose font-semibold">Not just candles</span>
-                {' '}
-                — a quiet ritual of warmth, memory, and presence.
+                <span className="text-rose font-semibold">
+                  Not just candles, but a feeling of warmth, comfort, and calm.
+                </span>
               </p>
-              <div className="space-y-5 text-warm-gray leading-relaxed mb-8">
+              <div className="space-y-4 text-warm-gray leading-relaxed mb-8">
                 <p>
-                  Jaai was born from a simple feeling — the comfort of slowing down. Each candle is crafted with
-                  pure soy wax, designed to feel soft, clean, and consciously luxurious — for late-night thoughts,
-                  chai breaks, and the spaces in between.
+                  Jaai was created from the idea of slowing down and enjoying life&apos;s quiet moments. In a world
+                  that always feels busy, we wanted to make something that helps you pause and feel at peace. Every
+                  candle is made with pure soy wax and crafted to feel clean, soft, and luxurious.
                 </p>
                 <p>
-                  Jaai is for those who romanticize life in the smallest ways.
+                  For us, candles are more than just fragrance. They are about cozy evenings, chai breaks, soft
+                  music, and the little moments that make life feel special. Jaai is for people who find beauty in
+                  simple things.
                 </p>
               </div>
               <Link to="/about">
-                <Button variant="secondary">Read Our Whole Story</Button>
+                <Button variant="secondary">Read Our Full Story</Button>
               </Link>
             </div>
             <div className="order-1 lg:order-2">
