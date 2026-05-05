@@ -7,6 +7,7 @@ import com.jaee.entity.Order;
 import com.jaee.entity.Order.OrderStatus;
 import com.jaee.entity.StoreType;
 import com.jaee.entity.User;
+import com.jaee.exception.BadRequestException;
 import com.jaee.exception.NotFoundException;
 import com.jaee.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -76,16 +79,42 @@ public class OrderService {
     }
     
     @Transactional
-    public OrderDto updateOrderStatus(Long orderId, String newStatus) {
+    public OrderDto updateOrderStatus(Long orderId, String newStatus, String customStatus, boolean updateCustomLabel) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NotFoundException("Order not found"));
-        
+
         OrderStatus status = OrderStatus.valueOf(newStatus.toUpperCase());
         order.setStatus(status);
-        
-        log.info("Order {} status updated to {}", orderId, status);
-        
+
+        if (updateCustomLabel) {
+            if (customStatus == null || customStatus.isBlank()) {
+                order.setCustomStatus(null);
+            } else {
+                order.setCustomStatus(customStatus.trim());
+            }
+        }
+
+        log.info("Order {} status updated to {}, custom={}", orderId, status, order.getCustomStatus());
+
         Order saved = orderRepository.save(order);
+        return OrderDto.fromEntity(saved);
+    }
+
+    @Transactional
+    public OrderDto appendInternalNote(Long orderId, String note) {
+        if (note == null || note.isBlank()) {
+            throw new BadRequestException("Note cannot be empty");
+        }
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException("Order not found"));
+
+        String ts = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(LocalDateTime.now());
+        String line = "[" + ts + "] " + note.trim();
+        String existing = order.getInternalNotes();
+        order.setInternalNotes(existing == null || existing.isBlank() ? line : existing + "\n" + line);
+
+        Order saved = orderRepository.save(order);
+        log.info("Order {} internal note appended", orderId);
         return OrderDto.fromEntity(saved);
     }
     

@@ -44,14 +44,47 @@ public class OrderDto {
     private Long userId;
     private String userName;
     private Integer itemCount;
+
+    /** Sum of line totals before discount and shipping. */
+    private BigDecimal itemsSubtotal;
+
+    /** Sum of line weights (kg) when snapshots exist. */
+    private BigDecimal totalWeightKg;
+
+    /** Preset workflow status + optional admin label. */
+    private String customStatus;
+    private String internalNotes;
+
+    /** Primary label for badges: customStatus if set, else workflow status. */
+    private String displayStatus;
     
     public static OrderDto fromEntity(Order order) {
+        List<OrderItem> items = order.getItems() != null ? order.getItems() : List.of();
+        BigDecimal itemsSubtotal = items.stream()
+                .map(OrderItem::getSubtotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalWeightKg = BigDecimal.ZERO;
+        boolean anyWeight = false;
+        for (OrderItem it : items) {
+            if (it.getWeightKgSnapshot() != null && it.getWeightKgSnapshot().compareTo(BigDecimal.ZERO) > 0) {
+                anyWeight = true;
+                totalWeightKg = totalWeightKg.add(
+                        it.getWeightKgSnapshot().multiply(BigDecimal.valueOf(it.getQty())));
+            }
+        }
+
+        String custom = order.getCustomStatus();
+        String display = (custom != null && !custom.isBlank())
+                ? custom.trim()
+                : order.getStatus().name();
+
         return OrderDto.builder()
                 .id(order.getId())
                 .status(order.getStatus().name())
                 .totalAmount(order.getTotalAmount())
                 .currency(order.getCurrency())
-                .items(order.getItems().stream()
+                .items(items.stream()
                         .map(OrderItemDto::fromEntity)
                         .collect(Collectors.toList()))
                 .shippingAddress(order.getShippingAddress())
@@ -68,7 +101,12 @@ public class OrderDto {
                 .carrier(order.getCarrier())
                 .userId(order.getUser() != null ? order.getUser().getId() : null)
                 .userName(order.getUser() != null ? order.getUser().getName() : null)
-                .itemCount(order.getItems() != null ? order.getItems().size() : 0)
+                .itemCount(items.size())
+                .itemsSubtotal(itemsSubtotal)
+                .totalWeightKg(anyWeight ? totalWeightKg : null)
+                .customStatus(custom)
+                .internalNotes(order.getInternalNotes())
+                .displayStatus(display)
                 .build();
     }
     
@@ -88,8 +126,15 @@ public class OrderDto {
         private String variantLabel;
         private String sku;
         private BigDecimal compareAtPrice;
+        private BigDecimal unitWeightKg;
+        private BigDecimal lineWeightKg;
 
         public static OrderItemDto fromEntity(OrderItem item) {
+            BigDecimal unitW = item.getWeightKgSnapshot();
+            BigDecimal lineW = null;
+            if (unitW != null && item.getQty() != null) {
+                lineW = unitW.multiply(BigDecimal.valueOf(item.getQty()));
+            }
             return OrderItemDto.builder()
                     .id(item.getId())
                     .productId(item.getProduct() != null ? item.getProduct().getId() : null)
@@ -102,6 +147,8 @@ public class OrderDto {
                     .variantLabel(item.getVariantLabel())
                     .sku(item.getSkuSnapshot())
                     .compareAtPrice(item.getCompareAtPriceSnapshot())
+                    .unitWeightKg(unitW)
+                    .lineWeightKg(lineW)
                     .build();
         }
     }

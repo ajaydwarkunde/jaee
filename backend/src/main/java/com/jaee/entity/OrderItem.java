@@ -52,6 +52,10 @@ public class OrderItem {
     @Column(name = "compare_at_price_snapshot", precision = 10, scale = 2)
     private BigDecimal compareAtPriceSnapshot;
 
+    /** Unit weight (kg) at checkout for shipping / admin totals. */
+    @Column(name = "weight_kg_snapshot", precision = 10, scale = 3)
+    private BigDecimal weightKgSnapshot;
+
     public BigDecimal getSubtotal() {
         return priceSnapshot.multiply(BigDecimal.valueOf(qty));
     }

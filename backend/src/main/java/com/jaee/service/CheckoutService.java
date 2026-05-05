@@ -430,6 +430,7 @@ public class CheckoutService {
                 compareAt = product.getCompareAtPrice();
             }
             String skuSnap = variant != null ? variant.getSku() : null;
+            BigDecimal unitWeightKg = resolveUnitWeightKg(variant, product);
 
             OrderItem orderItem = OrderItem.builder()
                     .product(product)
@@ -441,11 +442,24 @@ public class CheckoutService {
                     .imageUrl(img)
                     .skuSnapshot(skuSnap)
                     .compareAtPriceSnapshot(compareAt)
+                    .weightKgSnapshot(unitWeightKg)
                     .build();
             order.addItem(orderItem);
         }
 
         return orderRepository.save(order);
+    }
+
+    private static BigDecimal resolveUnitWeightKg(ProductVariant variant, Product product) {
+        if (variant != null && variant.getWeightKg() != null
+                && variant.getWeightKg().compareTo(BigDecimal.ZERO) > 0) {
+            return variant.getWeightKg();
+        }
+        if (product != null && product.getWeightKg() != null
+                && product.getWeightKg().compareTo(BigDecimal.ZERO) > 0) {
+            return product.getWeightKg();
+        }
+        return null;
     }
 
     private static String resolveCartLineImage(CartItem cartItem) {

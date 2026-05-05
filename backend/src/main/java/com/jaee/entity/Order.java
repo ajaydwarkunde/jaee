@@ -81,6 +81,14 @@ public class Order {
 
     private LocalDateTime paidAt;
 
+    /** Optional admin-facing label when preset statuses are not enough (per order). */
+    @Column(name = "custom_status")
+    private String customStatus;
+
+    /** Internal notes for staff; plain text, timestamp-prefixed lines. */
+    @Column(name = "internal_notes", columnDefinition = "TEXT")
+    private String internalNotes;
+
     public void addItem(OrderItem item) {
         items.add(item);
         item.setOrder(this);

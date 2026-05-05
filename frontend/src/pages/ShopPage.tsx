@@ -17,13 +17,10 @@ import toast from 'react-hot-toast'
 import { showCartToast } from '@/components/ui/CartToast'
 import type { FilterOptions, Product, ProductFilters } from '@/types'
 import { defaultVariantIdForProduct } from '@/lib/cartHelpers'
-import { useStoreSettings } from '@/hooks/useStoreSettings'
-
 export default function ShopPage() {
   const { categorySlug } = useParams()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-  const { featureHamperPublic } = useStoreSettings()
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null)
 
@@ -45,21 +42,21 @@ export default function ShopPage() {
     pageSize: 12,
   })
 
-  // Get categories
+  // Categories that currently have active products (same discovery as homepage Shop by Category)
   const { data: categories } = useQuery({
-    queryKey: ['categories'],
-    queryFn: categoryService.getCategories,
+    queryKey: ['categories', 'storefront'],
+    queryFn: categoryService.getStorefrontCategories,
   })
 
-  const shopCategories = categories?.filter(
-    (c) => featureHamperPublic || c.slug !== 'gift-sets'
-  )
+  const shopCategories = categories
 
   useEffect(() => {
-    if (!featureHamperPublic && categorySlug === 'gift-sets') {
+    if (!categorySlug || !shopCategories?.length) return
+    const exists = shopCategories.some((c) => c.slug === categorySlug)
+    if (!exists) {
       navigate('/shop', { replace: true })
     }
-  }, [featureHamperPublic, categorySlug, navigate])
+  }, [categorySlug, shopCategories, navigate])
 
   // Get available filter options (colors, sizes)
   const { data: filterOptions } = useQuery<FilterOptions>({
