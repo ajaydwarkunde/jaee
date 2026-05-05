@@ -627,22 +627,22 @@ export default function CartPage() {
                   </div>
                 )}
 
-                <div className="mt-6 pt-4 border-t border-blush/40 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between w-full min-w-0">
-                  <Link
-                    to="/shop"
-                    className="text-sm text-rose hover:underline shrink-0 py-1 order-2 sm:order-1 text-center sm:text-left"
-                  >
-                    Continue Shopping
-                  </Link>
+                <div className="mt-6 pt-4 border-t border-blush/40 flex flex-col gap-3 w-full min-w-0 max-w-full">
                   <Button
                     onClick={handleCheckout}
                     loading={checkoutLoading || verifyPaymentMutation.isPending}
-                    className="w-full sm:w-auto sm:min-w-[200px] shrink-0 order-1 sm:order-2"
+                    className="w-full max-w-full min-w-0 justify-center shrink-0"
                     size="lg"
                     icon={<ArrowRight className="w-5 h-5" />}
                   >
                     Proceed to Checkout
                   </Button>
+                  <Link
+                    to="/shop"
+                    className="text-sm text-rose hover:underline py-1 text-center sm:text-left shrink-0"
+                  >
+                    Continue Shopping
+                  </Link>
                 </div>
               </div>
             </div>
