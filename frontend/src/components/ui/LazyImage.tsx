@@ -42,7 +42,7 @@ export default function LazyImage({
       },
       {
         // Smaller margin = fewer off-screen images competing for bandwidth at once
-        rootMargin: '100px',
+        rootMargin: '220px',
         threshold: 0,
       }
     )
@@ -79,7 +79,7 @@ export default function LazyImage({
           fetchPriority={priority ? 'high' : 'low'}
           onLoad={() => setIsLoaded(true)}
           className={cn(
-            'transition-opacity duration-500',
+            'transition-opacity duration-300',
             isLoaded ? 'opacity-100' : 'opacity-0',
             className
           )}
