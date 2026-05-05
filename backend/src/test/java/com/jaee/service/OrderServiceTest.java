@@ -102,7 +102,7 @@ class OrderServiceTest {
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
         when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        OrderDto result = orderService.updateOrderStatus(1L, "PAID");
+        OrderDto result = orderService.updateOrderStatus(1L, "PAID", null, false);
 
         assertThat(order.getStatus()).isEqualTo(Order.OrderStatus.PAID);
         assertThat(result).isNotNull();
@@ -113,7 +113,7 @@ class OrderServiceTest {
     void updateOrderStatusNotFoundThrowsNotFoundException() {
         when(orderRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> orderService.updateOrderStatus(999L, "PAID"))
+        assertThatThrownBy(() -> orderService.updateOrderStatus(999L, "PAID", null, false))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("Order not found");
 

@@ -17,6 +17,7 @@ import com.jaee.service.CouponService;
 import com.jaee.service.OrderService;
 import com.jaee.service.ProductService;
 import com.jaee.service.VariantService;
+import com.jaee.exception.BadRequestException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -171,14 +172,30 @@ public class AdminController {
     }
     
     @PatchMapping("/orders/{orderId}/status")
-    @Operation(summary = "Update order status")
+    @Operation(summary = "Update order status (optional customStatus label for this order)")
     public ResponseEntity<ApiResponse<OrderDto>> updateOrderStatus(
             @PathVariable Long orderId,
             @RequestBody Map<String, String> request
     ) {
         String newStatus = request.get("status");
-        OrderDto order = orderService.updateOrderStatus(orderId, newStatus);
+        if (newStatus == null || newStatus.isBlank()) {
+            throw new BadRequestException("status is required");
+        }
+        boolean touchCustom = request.containsKey("customStatus");
+        String customStatus = request.get("customStatus");
+        OrderDto order = orderService.updateOrderStatus(orderId, newStatus, customStatus, touchCustom);
         return ResponseEntity.ok(ApiResponse.success("Order status updated", order));
+    }
+
+    @PostMapping("/orders/{orderId}/notes")
+    @Operation(summary = "Append an internal admin note to an order")
+    public ResponseEntity<ApiResponse<OrderDto>> appendOrderNote(
+            @PathVariable Long orderId,
+            @RequestBody Map<String, String> body
+    ) {
+        String note = body != null ? body.get("note") : null;
+        OrderDto order = orderService.appendInternalNote(orderId, note);
+        return ResponseEntity.ok(ApiResponse.success("Note saved", order));
     }
 
     @PatchMapping("/orders/{orderId}/tracking")

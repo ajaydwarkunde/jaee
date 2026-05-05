@@ -157,12 +157,22 @@ export interface OrderItem {
   sku?: string | null
   /** Compare-at / retail (MRP) at checkout */
   compareAtPrice?: number | null
+  /** Per-unit weight (kg) at checkout */
+  unitWeightKg?: number | null
+  /** unit × qty */
+  lineWeightKg?: number | null
 }
 
 export interface Order {
   id: number
   status: 'PENDING' | 'PAID' | 'CANCELLED' | 'SHIPPED' | 'FULFILLED'
+  /** Badge label: custom admin label when set */
+  displayStatus?: string
+  customStatus?: string | null
+  internalNotes?: string | null
   totalAmount: number
+  itemsSubtotal?: number
+  totalWeightKg?: number | null
   shippingAmount?: number
   shippingZone?: string | null
   discountAmount?: number | null

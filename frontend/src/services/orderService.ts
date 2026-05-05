@@ -56,8 +56,16 @@ export const orderService = {
     return response.data.data
   },
   
-  updateOrderStatus: async (orderId: number, status: string): Promise<Order> => {
-    const response = await api.patch<ApiResponse<Order>>(`/admin/orders/${orderId}/status`, { status })
+  updateOrderStatus: async (
+    orderId: number,
+    body: { status: string; customStatus?: string },
+  ): Promise<Order> => {
+    const response = await api.patch<ApiResponse<Order>>(`/admin/orders/${orderId}/status`, body)
+    return response.data.data
+  },
+
+  appendOrderNote: async (orderId: number, note: string): Promise<Order> => {
+    const response = await api.post<ApiResponse<Order>>(`/admin/orders/${orderId}/notes`, { note })
     return response.data.data
   },
 
