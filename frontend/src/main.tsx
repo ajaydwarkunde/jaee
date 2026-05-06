@@ -6,6 +6,9 @@ import { Toaster, ToastBar, toast as hotToast } from 'react-hot-toast'
 import { X } from 'lucide-react'
 import App from './App'
 import './index.css'
+import { registerSW } from 'virtual:pwa-register'
+
+registerSW({ immediate: true })
 
 const queryClient = new QueryClient({
   defaultOptions: {
