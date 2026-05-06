@@ -52,6 +52,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/categories/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/store/settings").permitAll()
+                .requestMatchers(HttpMethod.GET, "/community/experiences").permitAll()
                 .requestMatchers("/newsletter/**").permitAll()
                 .requestMatchers("/stock-notifications/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/custom-candles").permitAll()

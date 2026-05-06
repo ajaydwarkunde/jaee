@@ -11,6 +11,7 @@ import Select from '@/components/ui/Select'
 import Input from '@/components/ui/Input'
 import type { FilterOptions, ProductFilters } from '@/types'
 import type { StoreSettings } from '@/services/settingsService'
+import { shopIndexListingFilters } from '@/lib/shopPrefetch'
 export default function ShopPage() {
   const { categorySlug } = useParams()
   const navigate = useNavigate()
@@ -27,19 +28,13 @@ export default function ShopPage() {
     })
   }, [queryClient])
 
-  // Filter state
-  const [filters, setFilters] = useState<ProductFilters>({
-    categoryId: undefined,
-    minPrice: undefined,
-    maxPrice: undefined,
+  // Filter state — base shape must match `shopIndexListingFilters()` for React Query prefetch hits
+  const [filters, setFilters] = useState<ProductFilters>(() => ({
+    ...shopIndexListingFilters(),
     search: searchParams.get('search') || undefined,
     color: searchParams.get('color') || undefined,
     size: searchParams.get('size') || undefined,
-    sortBy: 'newest',
-    sortDir: 'desc',
-    page: 0,
-    pageSize: 12,
-  })
+  }))
 
   // Categories that currently have active products (same discovery as homepage Shop by Category)
   const { data: categories } = useQuery({

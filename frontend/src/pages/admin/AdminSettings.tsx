@@ -21,6 +21,15 @@ const SETTING_GROUPS: SettingGroup[] = [
     keys: ['feature_hamper_public', 'feature_custom_candle', 'feature_two_stores_section'],
   },
   {
+    title: 'Community stories',
+    icon: <MessageSquare className="w-5 h-5" />,
+    keys: [
+      'community_experience_enabled',
+      'community_experience_require_login',
+      'community_experience_auto_approve',
+    ],
+  },
+  {
     title: 'Shipping',
     icon: <Truck className="w-5 h-5" />,
     keys: ['free_shipping_enabled', 'free_shipping_threshold', 'shipping_charges', 'estimated_delivery_days'],
@@ -80,6 +89,9 @@ const SETTING_LABELS: Record<string, string> = {
   feature_hamper_public: 'Enable hamper products & gift sets (nav, hero, shop, builders)',
   feature_custom_candle: 'Custom candle builder (links & CTAs)',
   feature_two_stores_section: '“Two Stores, One Destination” homepage section',
+  community_experience_enabled: 'Show “Share Your Experience” on homepage',
+  community_experience_require_login: 'Require sign-in to post a story',
+  community_experience_auto_approve: 'Auto-approve new stories (skip moderation queue)',
   homepage_hero_candles_image_url: 'Homepage hero — candles background image URL',
   homepage_hero_hampers_image_url: 'Homepage hero — hampers background image URL',
   homepage_story_image_url: 'Homepage “Our Story” section image URL',

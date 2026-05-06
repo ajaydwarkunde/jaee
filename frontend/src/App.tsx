@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import { Suspense, lazy } from 'react'
 import Layout from './components/layout/Layout'
+import ScrollToTop from './components/ScrollToTop'
 import LoadingSpinner from './components/ui/LoadingSpinner'
 import ErrorBoundary from './components/ErrorBoundary'
 import ProtectedRoute from './components/auth/ProtectedRoute'
@@ -32,6 +33,7 @@ const AdminCoupons = lazy(() => import('./pages/admin/AdminCoupons'))
 const AdminCustomCandles = lazy(() => import('./pages/admin/AdminCustomCandles'))
 const AdminGiftHampers = lazy(() => import('./pages/admin/AdminGiftHampers'))
 const AdminBuilderOptions = lazy(() => import('./pages/admin/AdminBuilderOptions'))
+const AdminCommunityExperiences = lazy(() => import('./pages/admin/AdminCommunityExperiences'))
 const SalePage = lazy(() => import('./pages/SalePage'))
 const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage'))
 const WishlistPage = lazy(() => import('./pages/WishlistPage'))
@@ -45,6 +47,7 @@ const SplashDemoPage = lazy(() => import('./pages/SplashDemoPage'))
 function App() {
   return (
     <ErrorBoundary>
+    <ScrollToTop />
     <Suspense fallback={<LoadingSpinner fullScreen />}>
       <Routes>
         <Route path="/" element={<Layout />}>
@@ -102,6 +105,7 @@ function App() {
             <Route path="custom-candles" element={<AdminCustomCandles />} />
             <Route path="gift-hampers" element={<AdminGiftHampers />} />
             <Route path="builder-options" element={<AdminBuilderOptions />} />
+            <Route path="community-experiences" element={<AdminCommunityExperiences />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>
 

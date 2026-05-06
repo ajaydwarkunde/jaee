@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Package, Tag, ShoppingBag, ShoppingCart, Settings, Percent, Flame, Gift, Sliders, TrendingUp, Award } from 'lucide-react'
+import { Package, Tag, ShoppingBag, ShoppingCart, Settings, Percent, Flame, Gift, Sliders, TrendingUp, Award, MessageSquare } from 'lucide-react'
 import { productService } from '@/services/productService'
 import { categoryService } from '@/services/categoryService'
 import { orderService } from '@/services/orderService'
 import type { StoreSales } from '@/services/orderService'
 import { api } from '@/lib/api'
+import { communityExperienceService } from '@/services/communityExperienceService'
 import { formatPrice } from '@/lib/utils'
 import Card, { CardContent, CardTitle } from '@/components/ui/Card'
 
@@ -114,8 +115,14 @@ export default function AdminDashboard() {
     queryFn: () => api.get('/gift-hampers/admin/all').then(res => res.data.data as unknown[]),
   })
 
+  const { data: communityStories } = useQuery({
+    queryKey: ['admin-community-experiences'],
+    queryFn: communityExperienceService.adminList,
+  })
+
   const pendingCandles = (customCandles || []).filter((c: any) => c.status === 'PENDING').length
   const pendingHampers = (giftHampers || []).filter((h: any) => h.status === 'PENDING').length
+  const pendingCommunity = (communityStories || []).filter((s) => s.status === 'PENDING').length
 
   const candleSales = storeSales?.find(s => s.storeType === 'CANDLE')
   const hamperSales = storeSales?.find(s => s.storeType === 'HAMPER')
@@ -258,6 +265,27 @@ export default function AdminDashboard() {
               <p className="mb-4">Manage discount coupons</p>
               <Link to="/admin/coupons" className="text-rose hover:underline font-medium">
                 Manage Coupons &rarr;
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardTitle className="flex items-center gap-2">
+              <MessageSquare className="w-5 h-5" />
+              Community stories
+              {pendingCommunity > 0 && (
+                <span className="ml-auto px-2 py-0.5 bg-warning/10 text-warning text-xs font-bold rounded-full">
+                  {pendingCommunity} pending
+                </span>
+              )}
+            </CardTitle>
+            <CardContent>
+              <p className="mb-4">Moderate homepage “Share Your Experience” submissions</p>
+              <Link
+                to="/admin/community-experiences"
+                className="text-rose hover:underline font-medium"
+              >
+                Manage stories &rarr;
               </Link>
             </CardContent>
           </Card>
