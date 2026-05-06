@@ -11,6 +11,7 @@ import { useStoreSettings } from '@/hooks/useStoreSettings'
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed'
 import { formatPrice, productDiscountPercentOff } from '@/lib/utils'
 import { optimizeImageUrl, PRODUCT_GRID_IMAGE_CLASS, productListingImageProps } from '@/lib/imageUrl'
+import { prefetchProductBySlug } from '@/lib/shopPrefetch'
 import { defaultVariantIdForProduct } from '@/lib/cartHelpers'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
@@ -177,7 +178,12 @@ function FrequentlyBoughtTogether({ product, onAddToCart }: { product: Product; 
           {relatedProducts.filter(p => p.inStock).map((p) => (
             <div key={p.id} className="flex items-center gap-3 md:gap-4">
               <span className="text-2xl text-warm-gray font-light">+</span>
-              <Link to={`/product/${p.slug}`} className="w-24 h-24 rounded-lg overflow-hidden border border-blush hover:border-rose transition-colors shrink-0 bg-soft-white">
+              <Link
+                to={`/product/${p.slug}`}
+                className="w-24 h-24 rounded-lg overflow-hidden border border-blush hover:border-rose transition-colors shrink-0 bg-soft-white"
+                onMouseEnter={() => void prefetchProductBySlug(queryClient, p.slug)}
+                onFocus={() => void prefetchProductBySlug(queryClient, p.slug)}
+              >
                 <img src={optimizeImageUrl(p.images[0], 200) || 'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?auto=format&fit=max&w=200&q=78'} alt={p.name} className="w-full h-full object-contain object-center p-1" />
               </Link>
             </div>
@@ -1029,6 +1035,8 @@ export default function ProductPage() {
                     key={relatedProduct.id}
                     to={`/product/${relatedProduct.slug}`}
                     className="group"
+                    onMouseEnter={() => void prefetchProductBySlug(queryClient, relatedProduct.slug)}
+                    onFocus={() => void prefetchProductBySlug(queryClient, relatedProduct.slug)}
                   >
                     <div className="relative aspect-square rounded-xl overflow-hidden bg-blush mb-3">
                       <img

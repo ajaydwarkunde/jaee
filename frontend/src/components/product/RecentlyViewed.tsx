@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import { Clock } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed'
+import { prefetchProductBySlug } from '@/lib/shopPrefetch'
 import { formatPrice } from '@/lib/utils'
 import { PRODUCT_GRID_IMAGE_CLASS, productListingImageProps } from '@/lib/imageUrl'
 
@@ -10,6 +12,7 @@ interface RecentlyViewedProps {
 }
 
 export default function RecentlyViewed({ excludeProductId, maxItems = 4 }: RecentlyViewedProps) {
+  const queryClient = useQueryClient()
   const { getItemsExcluding } = useRecentlyViewed()
   
   const items = getItemsExcluding(excludeProductId).slice(0, maxItems)
@@ -32,6 +35,8 @@ export default function RecentlyViewed({ excludeProductId, maxItems = 4 }: Recen
               key={item.id}
               to={`/product/${item.slug}`}
               className="group"
+              onMouseEnter={() => void prefetchProductBySlug(queryClient, item.slug)}
+              onFocus={() => void prefetchProductBySlug(queryClient, item.slug)}
             >
               <div className="relative aspect-square rounded-xl overflow-hidden bg-blush mb-3">
                 <img
