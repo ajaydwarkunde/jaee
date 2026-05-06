@@ -1,5 +1,7 @@
 package com.jaee.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jaee.entity.Order;
 import com.jaee.entity.OrderItem;
 import com.jaee.entity.Product;
@@ -14,12 +16,18 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Slf4j
 public class EmailService {
 
     private final OkHttpClient httpClient;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${app.email.api-key:}")
     private String apiKey;
@@ -45,34 +53,26 @@ public class EmailService {
     }
 
     /**
-     * Send email using Resend HTTP API
+     * Send email using Resend HTTP API.
+     *
+     * @return empty if sent successfully; otherwise a reason suitable for logs or (in some cases) showing the user
      */
-    public boolean sendEmail(String toEmail, String subject, String htmlContent) {
+    public Optional<String> sendEmailOrError(String toEmail, String subject, String htmlContent) {
         if (!emailEnabled || apiKey == null || apiKey.isBlank()) {
             log.info("Email disabled or API key not configured. Would send to: {} subject: {}", toEmail, subject);
-            return false;
+            return Optional.of(
+                    "Email is not configured. Set RESEND_API_KEY and EMAIL_FROM (verified domain) on the server.");
         }
 
         try {
-            String jsonBody = String.format("""
-                {
-                    "from": "%s <%s>",
-                    "to": ["%s"],
-                    "subject": "%s",
-                    "html": %s
-                }
-                """,
-                fromName,
-                fromEmail,
-                toEmail,
-                subject,
-                escapeJsonString(htmlContent)
-            );
+            Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("from", fromName + " <" + fromEmail + ">");
+            payload.put("to", List.of(toEmail));
+            payload.put("subject", subject);
+            payload.put("html", htmlContent);
+            String jsonBody = objectMapper.writeValueAsString(payload);
 
-            RequestBody body = RequestBody.create(
-                    jsonBody,
-                    MediaType.parse("application/json")
-            );
+            RequestBody body = RequestBody.create(jsonBody, MediaType.parse("application/json"));
 
             Request request = new Request.Builder()
                     .url("https://api.resend.com/emails")
@@ -84,30 +84,60 @@ public class EmailService {
             try (Response response = httpClient.newCall(request).execute()) {
                 if (response.isSuccessful()) {
                     log.info("Email sent successfully to {}", toEmail);
-                    return true;
-                } else {
-                    String responseBody = response.body() != null ? response.body().string() : "No response body";
-                    log.error("Failed to send email. Status: {}, Response: {}", response.code(), responseBody);
-                    return false;
+                    return Optional.empty();
                 }
+                String responseBody = response.body() != null ? response.body().string() : "";
+                log.error(
+                        "Failed to send email to {}. Status: {}, Response: {}",
+                        toEmail,
+                        response.code(),
+                        responseBody);
+                return Optional.of(resendFailureMessage(response.code(), responseBody));
             }
         } catch (IOException e) {
             log.error("Failed to send email to {}: {}", toEmail, e.getMessage());
-            return false;
+            return Optional.of("Could not reach the email service. Please try again later.");
         }
     }
 
     /**
-     * Escape string for JSON
+     * Send email using Resend HTTP API (legacy boolean result).
      */
-    private String escapeJsonString(String input) {
-        return "\"" + input
-                .replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t")
-                + "\"";
+    public boolean sendEmail(String toEmail, String subject, String htmlContent) {
+        return sendEmailOrError(toEmail, subject, htmlContent).isEmpty();
+    }
+
+    private String resendFailureMessage(int code, String body) {
+        String apiMsg = parseResendJsonMessage(body);
+        if (apiMsg != null) {
+            String lower = apiMsg.toLowerCase(Locale.ROOT);
+            if (lower.contains("only send") && lower.contains("your own email")) {
+                return "This email setup can only deliver to the provider's test address. "
+                        + "Verify a domain in Resend and set EMAIL_FROM to an address on that domain.";
+            }
+            if (lower.contains("domain") && (lower.contains("verif") || lower.contains("not verified"))) {
+                return "Outgoing email domain is not verified. Add DNS records in Resend and use EMAIL_FROM on that domain.";
+            }
+            if (apiMsg.length() <= 240) {
+                return apiMsg;
+            }
+        }
+        return "The email could not be sent (HTTP " + code + "). Please try again later.";
+    }
+
+    private String parseResendJsonMessage(String json) {
+        if (json == null || json.isBlank()) {
+            return null;
+        }
+        try {
+            JsonNode n = objectMapper.readTree(json);
+            if (n.hasNonNull("message")) {
+                return n.get("message").asText();
+            }
+        } catch (Exception ignored) {
+            // not JSON
+        }
+        return null;
     }
 
     /**
