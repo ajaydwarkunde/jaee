@@ -171,14 +171,14 @@ function FrequentlyBoughtTogether({ product, onAddToCart }: { product: Product; 
       <div className="bg-soft-white rounded-xl p-6 shadow-soft">
         <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 mb-6">
           {/* Current product */}
-          <div className="w-24 h-24 rounded-lg overflow-hidden border-2 border-rose shrink-0">
-            <img src={product.images[0] || 'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=200'} alt={product.name} className="w-full h-full object-cover" />
+          <div className="w-24 h-24 rounded-lg overflow-hidden border-2 border-rose shrink-0 bg-soft-white">
+            <img src={optimizeImageUrl(product.images[0], 200) || 'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?auto=format&fit=max&w=200&q=78'} alt={product.name} className="w-full h-full object-contain object-center p-1" />
           </div>
           {relatedProducts.filter(p => p.inStock).map((p) => (
             <div key={p.id} className="flex items-center gap-3 md:gap-4">
               <span className="text-2xl text-warm-gray font-light">+</span>
-              <Link to={`/product/${p.slug}`} className="w-24 h-24 rounded-lg overflow-hidden border border-blush hover:border-rose transition-colors shrink-0">
-                <img src={p.images[0] || 'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=200'} alt={p.name} className="w-full h-full object-cover" />
+              <Link to={`/product/${p.slug}`} className="w-24 h-24 rounded-lg overflow-hidden border border-blush hover:border-rose transition-colors shrink-0 bg-soft-white">
+                <img src={optimizeImageUrl(p.images[0], 200) || 'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?auto=format&fit=max&w=200&q=78'} alt={p.name} className="w-full h-full object-contain object-center p-1" />
               </Link>
             </div>
           ))}
@@ -334,7 +334,7 @@ function ImageGallery({
                     <video
                       ref={(el) => { if (el) videoRefs.current.set(idx, el); else videoRefs.current.delete(idx) }}
                       src={item.url}
-                      className="w-full h-full object-cover pointer-events-none"
+                      className="w-full h-full object-contain object-center bg-soft-white pointer-events-none"
                       muted={mutedVideo}
                       playsInline
                       loop
@@ -373,7 +373,7 @@ function ImageGallery({
                   <img
                     src={optimizeImageUrl(item.url, 1600)}
                     alt={`${productName} ${idx + 1}`}
-                    className="w-full h-full object-cover pointer-events-none"
+                    className="w-full h-full object-contain object-center bg-soft-white pointer-events-none"
                     draggable={false}
                     loading={idx === selectedImage ? 'eager' : 'lazy'}
                     decoding="async"
@@ -438,13 +438,13 @@ function ImageGallery({
             <button
               key={idx}
               onClick={() => { goTo(idx); onSelect(idx) }}
-              className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors relative ${
+              className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors relative bg-soft-white ${
                 selectedImage === idx ? 'border-rose' : 'border-transparent hover:border-blush'
               }`}
             >
               {item.type === 'video' ? (
                 <>
-                  <video src={item.url} className="w-full h-full object-cover" muted preload="metadata" />
+                  <video src={item.url} className="w-full h-full object-contain object-center bg-soft-white" muted preload="metadata" />
                   <div className="absolute inset-0 flex items-center justify-center bg-charcoal/30">
                     <Play className="w-4 h-4 text-soft-white" fill="currentColor" />
                   </div>
@@ -453,7 +453,7 @@ function ImageGallery({
                 <img
                   src={optimizeImageUrl(item.url, 320)}
                   alt=""
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain object-center p-0.5"
                   loading="lazy"
                   decoding="async"
                 />
