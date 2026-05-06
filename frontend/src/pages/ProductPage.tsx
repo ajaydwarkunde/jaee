@@ -632,7 +632,38 @@ export default function ProductPage() {
   const { isAuthenticated } = useAuthStore()
   const addToGuestCart = useCartStore((state) => state.addToGuestCart)
   const queryClient = useQueryClient()
-  const { freeShippingThreshold, returnDays } = useStoreSettings()
+  const { freeShippingThreshold, returnDays, returnPolicyEnabled, returnPolicyText } =
+    useStoreSettings()
+
+  const productTrustFeatures = useMemo(() => {
+    const rows: { icon: typeof Truck; title: string; desc: string }[] = [
+      {
+        icon: Truck,
+        title: 'Free Shipping',
+        desc: `On orders over ₹${freeShippingThreshold}`,
+      },
+    ]
+    if (returnPolicyEnabled) {
+      rows.push({
+        icon: RotateCcw,
+        title: 'Easy Returns',
+        desc:
+          returnPolicyText.trim() ||
+          `${returnDays}-day return policy`,
+      })
+    }
+    rows.push({
+      icon: Shield,
+      title: 'Secure Payment',
+      desc: '100% secure checkout',
+    })
+    return rows
+  }, [
+    freeShippingThreshold,
+    returnDays,
+    returnPolicyEnabled,
+    returnPolicyText,
+  ])
   const { addProduct: addToRecentlyViewed } = useRecentlyViewed()
 
   const { data: product, isLoading, error } = useQuery({
@@ -953,11 +984,7 @@ export default function ProductPage() {
 
             {/* Features */}
             <div className="border-t border-blush pt-8 space-y-4">
-              {[
-                { icon: Truck, title: 'Free Shipping', desc: `On orders over ₹${freeShippingThreshold}` },
-                { icon: RotateCcw, title: 'Easy Returns', desc: `${returnDays}-day return policy` },
-                { icon: Shield, title: 'Secure Payment', desc: '100% secure checkout' },
-              ].map(({ icon: Icon, title, desc }) => (
+              {productTrustFeatures.map(({ icon: Icon, title, desc }) => (
                 <div key={title} className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-rose/10 rounded-full flex items-center justify-center">
                     <Icon className="w-5 h-5 text-rose" />

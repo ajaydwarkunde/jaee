@@ -12,6 +12,7 @@ export interface StoreSettings {
   free_shipping_enabled: string
   free_shipping_threshold: string
   return_days: string
+  return_policy_enabled: string
   return_policy_text: string
   cod_enabled: string
   cod_charges: string
