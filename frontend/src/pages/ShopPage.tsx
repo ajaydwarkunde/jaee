@@ -106,6 +106,21 @@ export default function ShopPage() {
 
   const candlesHeaderImg = getValue('shop_candles_header_image_url' as keyof StoreSettings).trim()
   const candlesHeaderTitle = getValue('shop_candles_header_title' as keyof StoreSettings).trim()
+  const shopIndexHeaderImg = getValue('shop_index_header_image_url' as keyof StoreSettings).trim()
+  const shopIndexHeaderTitle = getValue('shop_index_header_title' as keyof StoreSettings).trim()
+
+  const isShopIndex = !categorySlug
+  const useShopIndexHero = isShopIndex && Boolean(shopIndexHeaderImg)
+  const useCandlesHero = categorySlug === 'candles' && Boolean(candlesHeaderImg)
+  const shopHeroImageSrc = useShopIndexHero ? shopIndexHeaderImg : candlesHeaderImg
+  const hasShopHeroImage = useShopIndexHero || useCandlesHero
+
+  const shopHeaderTitle =
+    isShopIndex && shopIndexHeaderTitle
+      ? shopIndexHeaderTitle
+      : categorySlug === 'candles' && candlesHeaderTitle
+        ? candlesHeaderTitle
+        : currentCategory?.name || 'All Products'
 
   const handleFilterChange = (key: keyof ProductFilters, value: string | number | undefined) => {
     setFilters((prev) => ({ ...prev, [key]: value, page: 0 }))
@@ -146,13 +161,13 @@ export default function ShopPage() {
       {/* Header */}
       <div
         className={`relative py-12 md:py-16 overflow-hidden ${
-          categorySlug === 'candles' && candlesHeaderImg ? '' : 'bg-gradient-to-r from-blush to-champagne'
+          hasShopHeroImage ? '' : 'bg-gradient-to-r from-blush to-champagne'
         }`}
       >
-        {categorySlug === 'candles' && candlesHeaderImg ? (
+        {hasShopHeroImage ? (
           <>
             <img
-              src={candlesHeaderImg}
+              src={shopHeroImageSrc}
               alt=""
               className="absolute inset-0 w-full h-full object-cover"
             />
@@ -162,17 +177,15 @@ export default function ShopPage() {
         <div className="container-custom text-center relative z-10">
           <h1
             className={`heading-2 ${
-              categorySlug === 'candles' && candlesHeaderImg ? 'text-soft-white drop-shadow-sm' : 'text-charcoal'
+              hasShopHeroImage ? 'text-soft-white drop-shadow-sm' : 'text-charcoal'
             }`}
           >
-            {categorySlug === 'candles' && candlesHeaderTitle
-              ? candlesHeaderTitle
-              : currentCategory?.name || 'All Products'}
+            {shopHeaderTitle}
           </h1>
           {currentCategory?.description && (
             <p
               className={`mt-4 max-w-2xl mx-auto ${
-                categorySlug === 'candles' && candlesHeaderImg ? 'text-cream/90' : 'text-warm-gray'
+                hasShopHeroImage ? 'text-cream/90' : 'text-warm-gray'
               }`}
             >
               {currentCategory.description}

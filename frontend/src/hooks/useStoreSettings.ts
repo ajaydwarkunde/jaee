@@ -38,6 +38,12 @@ const DEFAULT_SETTINGS: StoreSettings = {
   community_experience_enabled: 'true',
   community_experience_require_login: 'true',
   community_experience_auto_approve: 'false',
+  about_page_header_image_url: '',
+  about_page_header_title: '',
+  about_story_image_url: '',
+  about_process_image_url: '',
+  shop_index_header_image_url: '',
+  shop_index_header_title: '',
 }
 
 export function useStoreSettings() {

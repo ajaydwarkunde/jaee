@@ -33,17 +33,19 @@ export default function Footer() {
           }
         >
           <div className="sm:col-span-2 lg:col-span-1">
-            <Logo size="lg" variant="light" />
-            <p className="mt-4 text-cream/75 leading-relaxed max-w-sm">
+            <div className="inline-flex rounded-2xl bg-cream px-5 py-4 shadow-soft ring-1 ring-white/10">
+              <Logo size="lg" variant="brand" linkTo="/" className="h-11 md:h-12 w-auto brightness-0" />
+            </div>
+            <p className="mt-5 text-cream leading-relaxed max-w-sm font-normal">
               Luxury candles and gifts — handcrafted with care in India.
             </p>
           </div>
 
           <div>
-            <h4 className="font-serif text-base font-medium text-soft-white mb-4 tracking-wide">Get in Touch</h4>
-            <ul className="space-y-3 text-cream/80">
+            <h4 className="font-serif text-base font-semibold text-cream mb-4 tracking-wide">Get in Touch</h4>
+            <ul className="space-y-3 text-cream">
               <li>
-                <a href={`mailto:${supportEmail}`} className="hover:text-rose transition-colors">
+                <a href={`mailto:${supportEmail}`} className="hover:text-rose transition-colors underline-offset-2 hover:underline">
                   {supportEmail}
                 </a>
               </li>
@@ -52,41 +54,41 @@ export default function Footer() {
                   href={instagramUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 hover:text-rose transition-colors"
+                  className="inline-flex items-center gap-2 hover:text-rose transition-colors underline-offset-2 hover:underline"
                 >
-                  <Instagram className="w-4 h-4 shrink-0" />
+                  <Instagram className="w-4 h-4 shrink-0 opacity-95" />
                   {instagramHandle}
                 </a>
               </li>
-              <li className="text-cream/70 leading-snug">{BUSINESS_LOCATION_LINE}</li>
+              <li className="leading-snug text-cream/95">{BUSINESS_LOCATION_LINE}</li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-serif text-base font-medium text-soft-white mb-4 tracking-wide">Quick Links</h4>
+            <h4 className="font-serif text-base font-semibold text-cream mb-4 tracking-wide">Quick Links</h4>
             <ul className="space-y-3">
               {quickLinks.map((link) => (
                 <li key={link.to}>
-                  <Link to={link.to} className="text-cream/80 hover:text-rose transition-colors">
+                  <Link to={link.to} className="text-cream hover:text-rose transition-colors underline-offset-2 hover:underline">
                     {link.label}
                   </Link>
                 </li>
               ))}
               <li>
-                <a href={`mailto:${supportEmail}`} className="text-cream/80 hover:text-rose transition-colors">
+                <a href={`mailto:${supportEmail}`} className="text-cream hover:text-rose transition-colors underline-offset-2 hover:underline">
                   Contact Us
                 </a>
               </li>
               {featureCustomCandle ? (
                 <li>
-                  <Link to="/custom-candle" className="text-cream/80 hover:text-rose transition-colors">
+                  <Link to="/custom-candle" className="text-cream hover:text-rose transition-colors underline-offset-2 hover:underline">
                     Custom Candle
                   </Link>
                 </li>
               ) : null}
               {featureHamperPublic ? (
                 <li>
-                  <Link to="/shop/gift-sets" className="text-cream/80 hover:text-rose transition-colors">
+                  <Link to="/shop/gift-sets" className="text-cream hover:text-rose transition-colors underline-offset-2 hover:underline">
                     Gift Hampers
                   </Link>
                 </li>
@@ -96,15 +98,15 @@ export default function Footer() {
 
           {featureHamperPublic ? (
             <div>
-              <h4 className="font-serif text-base font-medium text-soft-white mb-4 tracking-wide">Hamper Store</h4>
+              <h4 className="font-serif text-base font-semibold text-cream mb-4 tracking-wide">Hamper Store</h4>
               <ul className="space-y-3">
                 <li>
-                  <Link to="/shop/gift-sets" className="text-cream/80 hover:text-rose transition-colors">
+                  <Link to="/shop/gift-sets" className="text-cream hover:text-rose transition-colors underline-offset-2 hover:underline">
                     Shop Hampers
                   </Link>
                 </li>
                 <li>
-                  <Link to="/custom-hamper" className="text-cream/80 hover:text-rose transition-colors">
+                  <Link to="/custom-hamper" className="text-cream hover:text-rose transition-colors underline-offset-2 hover:underline">
                     Build a Hamper
                   </Link>
                 </li>
@@ -113,8 +115,8 @@ export default function Footer() {
           ) : null}
         </div>
 
-        <div className="mt-12 pt-8 border-t border-cream/15 text-center">
-          <p className="text-sm text-cream/55">&copy; {currentYear} Jaai. All rights reserved.</p>
+        <div className="mt-12 pt-8 border-t border-cream/25 text-center">
+          <p className="text-sm text-cream/80">&copy; {currentYear} Jaai. All rights reserved.</p>
         </div>
       </div>
     </footer>

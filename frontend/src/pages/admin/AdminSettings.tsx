@@ -67,11 +67,23 @@ const SETTING_GROUPS: SettingGroup[] = [
       'homepage_hero_candles_image_url',
       'homepage_hero_hampers_image_url',
       'homepage_story_image_url',
+      'shop_index_header_image_url',
+      'shop_index_header_title',
       'shop_candles_header_image_url',
       'shop_candles_header_title',
       'sale_page_header_image_url',
       'sale_page_header_title',
       'sale_page_header_subtitle',
+    ],
+  },
+  {
+    title: 'About page',
+    icon: <ImageIcon className="w-5 h-5" />,
+    keys: [
+      'about_page_header_image_url',
+      'about_page_header_title',
+      'about_story_image_url',
+      'about_process_image_url',
     ],
   },
 ]
@@ -107,6 +119,12 @@ const SETTING_LABELS: Record<string, string> = {
   sale_page_header_image_url: 'Sale page hero background image URL',
   sale_page_header_title: 'Sale page hero title (optional)',
   sale_page_header_subtitle: 'Sale page hero subtitle (optional)',
+  shop_index_header_image_url: 'Shop page (/shop) header background image URL',
+  shop_index_header_title: 'Shop page header title (all products; blank = “All Products”)',
+  about_page_header_image_url: 'About page hero background image URL',
+  about_page_header_title: 'About page hero title (blank = “Our Story”)',
+  about_story_image_url: 'About page — story image beside Our Story (square works best)',
+  about_process_image_url: 'About page — Our Process section image URL',
 }
 
 export default function AdminSettings() {
