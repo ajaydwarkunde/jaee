@@ -1030,7 +1030,7 @@ export default function ProductPage() {
                     to={`/product/${relatedProduct.slug}`}
                     className="group"
                   >
-                    <div className="aspect-square rounded-xl overflow-hidden bg-blush mb-3">
+                    <div className="relative aspect-square rounded-xl overflow-hidden bg-blush mb-3">
                       <img
                         src={ri.src}
                         srcSet={ri.srcSet}

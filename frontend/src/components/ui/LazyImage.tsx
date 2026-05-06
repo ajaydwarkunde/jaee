@@ -55,7 +55,7 @@ export default function LazyImage({
   }, [priority])
 
   return (
-    <div ref={imgRef} className={cn('relative overflow-hidden', wrapperClassName)}>
+    <div ref={imgRef} className={cn('relative h-full min-h-0 w-full overflow-hidden', wrapperClassName)}>
       {/* Skeleton/Blur placeholder */}
       {!isLoaded && (
         <div

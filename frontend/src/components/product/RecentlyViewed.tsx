@@ -33,7 +33,7 @@ export default function RecentlyViewed({ excludeProductId, maxItems = 4 }: Recen
               to={`/product/${item.slug}`}
               className="group"
             >
-              <div className="aspect-square rounded-xl overflow-hidden bg-blush mb-3">
+              <div className="relative aspect-square rounded-xl overflow-hidden bg-blush mb-3">
                 <img
                   src={img.src}
                   srcSet={img.srcSet}
