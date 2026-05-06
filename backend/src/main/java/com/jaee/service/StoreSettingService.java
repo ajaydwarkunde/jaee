@@ -101,6 +101,28 @@ public class StoreSettingService {
                         StoreSetting.SettingType.BOOLEAN,
                         "true",
                         "Show return policy in product page trust badges"));
+        m.put(
+                "about_page_header_image_url",
+                new DefaultSettingMeta(StoreSetting.SettingType.STRING, "", "About page hero background image URL"));
+        m.put(
+                "about_page_header_title",
+                new DefaultSettingMeta(
+                        StoreSetting.SettingType.STRING, "", "About page hero title (blank = default)"));
+        m.put(
+                "about_story_image_url",
+                new DefaultSettingMeta(
+                        StoreSetting.SettingType.STRING, "", "About page — image beside Our Story section"));
+        m.put(
+                "about_process_image_url",
+                new DefaultSettingMeta(StoreSetting.SettingType.STRING, "", "About page — Our Process section image"));
+        m.put(
+                "shop_index_header_image_url",
+                new DefaultSettingMeta(
+                        StoreSetting.SettingType.STRING, "", "Shop index (/shop) header background image URL"));
+        m.put(
+                "shop_index_header_title",
+                new DefaultSettingMeta(
+                        StoreSetting.SettingType.STRING, "", "Shop index header title (blank = All Products)"));
         OPTIONAL_SETTINGS = Collections.unmodifiableMap(m);
     }
 
