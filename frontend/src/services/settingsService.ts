@@ -29,6 +29,9 @@ export interface StoreSettings {
   feature_hamper_public: string
   feature_custom_candle: string
   feature_two_stores_section: string
+  community_experience_enabled: string
+  community_experience_require_login: string
+  community_experience_auto_approve: string
   [key: string]: string
 }
 

@@ -34,6 +34,9 @@ const DEFAULT_SETTINGS: StoreSettings = {
   sale_page_header_image_url: '',
   sale_page_header_title: '',
   sale_page_header_subtitle: '',
+  community_experience_enabled: 'true',
+  community_experience_require_login: 'true',
+  community_experience_auto_approve: 'false',
 }
 
 export function useStoreSettings() {
@@ -85,6 +88,8 @@ export function useStoreSettings() {
     featureHamperPublic: getBoolValue('feature_hamper_public'),
     featureCustomCandle: getBoolValue('feature_custom_candle'),
     featureTwoStoresSection: getBoolValue('feature_two_stores_section'),
+    communityExperienceEnabled: getBoolValue('community_experience_enabled'),
+    communityExperienceRequireLogin: getBoolValue('community_experience_require_login'),
     announcementBarSlide1:
       getValue('announcement_bar_slide_1' as keyof StoreSettings).trim() ||
       DEFAULT_SETTINGS.announcement_bar_slide_1,

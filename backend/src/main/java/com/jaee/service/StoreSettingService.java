@@ -77,6 +77,24 @@ public class StoreSettingService {
                         StoreSetting.SettingType.STRING,
                         "Free shipping on orders above 1499 Rs",
                         "Top announcement bar — second slide (e.g. free shipping)"));
+        m.put(
+                "community_experience_enabled",
+                new DefaultSettingMeta(
+                        StoreSetting.SettingType.BOOLEAN,
+                        "true",
+                        "Show “Share Your Experience” on the homepage"));
+        m.put(
+                "community_experience_require_login",
+                new DefaultSettingMeta(
+                        StoreSetting.SettingType.BOOLEAN,
+                        "true",
+                        "Require sign-in to post an experience"));
+        m.put(
+                "community_experience_auto_approve",
+                new DefaultSettingMeta(
+                        StoreSetting.SettingType.BOOLEAN,
+                        "false",
+                        "Auto-approve new posts (otherwise pending moderation)"));
         OPTIONAL_SETTINGS = Collections.unmodifiableMap(m);
     }
 
