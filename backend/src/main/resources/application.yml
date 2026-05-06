@@ -49,6 +49,9 @@ app:
     callback-url: ${RAZORPAY_CALLBACK_URL:http://localhost:5173/order-success}
     test-mode: ${RAZORPAY_TEST_MODE:true}  # Set to false when using real keys
 
+  # Email uses Resend (https://resend.com). Set RESEND_API_KEY and use EMAIL_FROM on a verified domain
+  # (e.g. noreply@yourdomain.com). The default onboarding@resend.dev only delivers to limited test
+  # recipients until you add DNS records for your own domain — otherwise OTPs fail for other addresses.
   email:
     from: ${EMAIL_FROM:onboarding@resend.dev}
     from-name: ${EMAIL_FROM_NAME:Jaai}

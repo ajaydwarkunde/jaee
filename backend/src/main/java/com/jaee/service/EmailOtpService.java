@@ -74,13 +74,21 @@ public class EmailOtpService {
                 .build();
         emailOtpCodeRepository.save(otpCode);
 
-        boolean sent = emailService.sendEmail(normalizedEmail, "Your Jaai Login Code: " + otp, buildOtpEmailHtml(otp));
+        emailService
+                .sendEmailOrError(
+                        normalizedEmail,
+                        "Your Jaai verification code",
+                        buildOtpEmailHtml(otp))
+                .ifPresent(
+                        msg -> {
+                            log.warn(
+                                    "Email OTP send failed for {}: {}",
+                                    maskEmail(normalizedEmail),
+                                    msg);
+                            throw new BadRequestException(msg);
+                        });
 
-        if (sent) {
-            log.info("Email OTP sent to: {}", maskEmail(normalizedEmail));
-        } else {
-            log.warn("Email OTP could not be sent to: {}", maskEmail(normalizedEmail));
-        }
+        log.info("Email OTP sent to: {}", maskEmail(normalizedEmail));
     }
 
     @Transactional
