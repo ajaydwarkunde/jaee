@@ -37,7 +37,13 @@ const SETTING_GROUPS: SettingGroup[] = [
   {
     title: 'Returns & COD',
     icon: <RefreshCw className="w-5 h-5" />,
-    keys: ['return_days', 'return_policy_text', 'cod_enabled', 'cod_charges'],
+    keys: [
+      'return_policy_enabled',
+      'return_days',
+      'return_policy_text',
+      'cod_enabled',
+      'cod_charges',
+    ],
   },
   {
     title: 'Contact & Social',
@@ -75,6 +81,7 @@ const SETTING_LABELS: Record<string, string> = {
   free_shipping_threshold: 'Free Shipping Min Order (₹)',
   shipping_charges: 'Standard Shipping (₹)',
   estimated_delivery_days: 'Estimated Delivery Days',
+  return_policy_enabled: 'Show return policy on product pages',
   return_days: 'Return Period (days)',
   return_policy_text: 'Return Policy Text',
   cod_enabled: 'Cash on Delivery',

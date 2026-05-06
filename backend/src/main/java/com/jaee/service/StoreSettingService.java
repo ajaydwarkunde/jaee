@@ -95,6 +95,12 @@ public class StoreSettingService {
                         StoreSetting.SettingType.BOOLEAN,
                         "false",
                         "Auto-approve new posts (otherwise pending moderation)"));
+        m.put(
+                "return_policy_enabled",
+                new DefaultSettingMeta(
+                        StoreSetting.SettingType.BOOLEAN,
+                        "true",
+                        "Show return policy in product page trust badges"));
         OPTIONAL_SETTINGS = Collections.unmodifiableMap(m);
     }
 
