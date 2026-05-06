@@ -1,6 +1,7 @@
 /**
  * Ensures product/listing images request reasonable dimensions instead of full originals.
- * Unsplash honors `w`, `q`, `auto=format`, `fit=crop` — without these, the CDN may serve very large files.
+ * Unsplash: `fit=max` keeps the full frame inside `w` (no side-crop). `fit=crop` would zoom/crop like cover.
+ * Supabase render: `resize=contain` avoids cover-style crops when only width is set.
  */
 
 export function optimizeImageUrl(
@@ -15,7 +16,7 @@ export function optimizeImageUrl(
     const host = url.hostname.toLowerCase()
     if (host === 'images.unsplash.com' || host === 'plus.unsplash.com') {
       url.searchParams.set('auto', 'format')
-      url.searchParams.set('fit', 'crop')
+      url.searchParams.set('fit', 'max')
       url.searchParams.set('w', String(Math.min(Math.max(maxWidth, 64), 4096)))
       url.searchParams.set('q', String(Math.min(100, Math.max(50, quality))))
       return url.toString()
@@ -24,6 +25,7 @@ export function optimizeImageUrl(
     if (host.includes('supabase.co') && url.pathname.includes('/storage/v1/render/image/public/')) {
       url.searchParams.set('width', String(Math.min(Math.max(maxWidth, 64), 2000)))
       url.searchParams.set('quality', String(Math.min(100, Math.max(50, quality))))
+      url.searchParams.set('resize', 'contain')
       return url.toString()
     }
     if (host.includes('supabase.co') && url.pathname.includes('/storage/v1/object/public/')) {
@@ -33,6 +35,7 @@ export function optimizeImageUrl(
       )
       url.searchParams.set('width', String(Math.min(Math.max(maxWidth, 64), 2000)))
       url.searchParams.set('quality', String(Math.min(100, Math.max(50, quality))))
+      url.searchParams.set('resize', 'contain')
       return url.toString()
     }
   } catch {
@@ -49,7 +52,7 @@ export const PRODUCT_GRID_IMAGE_CLASS =
   'w-full h-full object-contain object-center p-3 sm:p-4 bg-cream transition-opacity duration-300 group-hover:opacity-95'
 
 const DEFAULT_CARD_FALLBACK =
-  'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?auto=format&fit=crop&w=480&q=78'
+  'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?auto=format&fit=max&w=480&q=78'
 
 /**
  * Responsive sources for product grids — cuts bytes on HiDPI without changing layout.
