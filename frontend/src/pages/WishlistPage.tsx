@@ -13,6 +13,7 @@ import { showCartToast } from '@/components/ui/CartToast'
 import type { Product } from '@/types'
 import { defaultVariantIdForProduct } from '@/lib/cartHelpers'
 import { PRODUCT_GRID_IMAGE_CLASS, productListingImageProps } from '@/lib/imageUrl'
+import { prefetchProductBySlug } from '@/lib/shopPrefetch'
 
 export default function WishlistPage() {
   const { isAuthenticated } = useAuthStore()
@@ -107,7 +108,12 @@ export default function WishlistPage() {
                 key={item.id}
                 className="bg-soft-white rounded-xl shadow-soft overflow-hidden group"
               >
-                <Link to={`/product/${item.product.slug}`} className="block relative aspect-square bg-cream overflow-hidden">
+                <Link
+                  to={`/product/${item.product.slug}`}
+                  className="block relative aspect-square bg-cream overflow-hidden"
+                  onMouseEnter={() => void prefetchProductBySlug(queryClient, item.product.slug)}
+                  onFocus={() => void prefetchProductBySlug(queryClient, item.product.slug)}
+                >
                   <LazyImage
                     src={img.src}
                     srcSet={img.srcSet}
@@ -127,6 +133,8 @@ export default function WishlistPage() {
                   <Link
                     to={`/product/${item.product.slug}`}
                     className="font-serif text-lg font-semibold text-rose hover:opacity-90 transition-opacity line-clamp-1 tracking-tight"
+                    onMouseEnter={() => void prefetchProductBySlug(queryClient, item.product.slug)}
+                    onFocus={() => void prefetchProductBySlug(queryClient, item.product.slug)}
                   >
                     {item.product.name}
                   </Link>

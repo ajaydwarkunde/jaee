@@ -27,6 +27,7 @@ function formatDeliveryLocation(a: Address): string {
   return parts.join('\n')
 }
 import { CITY_INPUT_PLACEHOLDER } from '@/config/business'
+import { prefetchProductBySlug } from '@/lib/shopPrefetch'
 
 export default function CartPage() {
   const navigate = useNavigate()
@@ -323,7 +324,12 @@ export default function CartPage() {
                   key={item.id}
                   className="flex gap-4 bg-soft-white rounded-lg p-4 shadow-soft"
                 >
-                  <Link to={`/product/${item.productSlug}`} className="flex-shrink-0">
+                  <Link
+                    to={`/product/${item.productSlug}`}
+                    className="flex-shrink-0"
+                    onMouseEnter={() => void prefetchProductBySlug(queryClient, item.productSlug)}
+                    onFocus={() => void prefetchProductBySlug(queryClient, item.productSlug)}
+                  >
                     <img
                       src={item.productImage || 'https://images.unsplash.com/photo-1602523961359-24a68d4e5a9b?w=200'}
                       alt={item.productName}
@@ -331,9 +337,11 @@ export default function CartPage() {
                     />
                   </Link>
                   <div className="flex-1 min-w-0">
-                    <Link 
+                    <Link
                       to={`/product/${item.productSlug}`}
                       className="font-serif text-lg font-semibold text-rose hover:opacity-90 transition-opacity line-clamp-1 tracking-tight"
+                      onMouseEnter={() => void prefetchProductBySlug(queryClient, item.productSlug)}
+                      onFocus={() => void prefetchProductBySlug(queryClient, item.productSlug)}
                     >
                       {item.productName}
                     </Link>

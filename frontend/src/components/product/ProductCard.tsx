@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Heart, Star } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { prefetchProductBySlug } from '@/lib/shopPrefetch'
 import { formatPrice, productDiscountPercentOff } from '@/lib/utils'
 import { wishlistService } from '@/services/wishlistService'
 import { useAuthStore } from '@/stores/authStore'
@@ -60,8 +61,15 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
     toggleWishlistMutation.mutate()
   }
 
+  const warmProductNav = () => void prefetchProductBySlug(queryClient, product.slug)
+
   return (
-    <div className="group bg-soft-white rounded-lg overflow-hidden shadow-soft hover:shadow-soft-md transition-all duration-300">
+    <div
+      className="group bg-soft-white rounded-lg overflow-hidden shadow-soft hover:shadow-soft-md transition-all duration-300"
+      onMouseEnter={warmProductNav}
+      onFocusCapture={warmProductNav}
+      onTouchStart={warmProductNav}
+    >
       {/* Image container */}
       <div className="relative aspect-square overflow-hidden bg-cream">
         <Link to={`/product/${product.slug}`} className="block w-full h-full">
