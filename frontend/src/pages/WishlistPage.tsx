@@ -12,7 +12,7 @@ import toast from 'react-hot-toast'
 import { showCartToast } from '@/components/ui/CartToast'
 import type { Product } from '@/types'
 import { defaultVariantIdForProduct } from '@/lib/cartHelpers'
-import { productListingImageProps } from '@/lib/imageUrl'
+import { PRODUCT_GRID_IMAGE_CLASS, productListingImageProps } from '@/lib/imageUrl'
 
 export default function WishlistPage() {
   const { isAuthenticated } = useAuthStore()
@@ -114,7 +114,7 @@ export default function WishlistPage() {
                     sizes={img.sizes}
                     alt={item.product.name}
                     wrapperClassName="absolute inset-0"
-                    className="w-full h-full object-contain object-center p-3 bg-cream transition-opacity group-hover:opacity-95"
+                    className={PRODUCT_GRID_IMAGE_CLASS}
                   />
                   {item.product.compareAtPrice && item.product.compareAtPrice > item.product.price && (
                     <span className="absolute top-3 left-3 bg-rose text-soft-white text-xs font-semibold px-2 py-1 rounded-full">

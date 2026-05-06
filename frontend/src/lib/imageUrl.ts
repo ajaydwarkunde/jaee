@@ -1,7 +1,8 @@
 /**
  * Ensures product/listing images request reasonable dimensions instead of full originals.
  * Unsplash: `fit=max` keeps the full frame inside `w` (no side-crop). `fit=crop` would zoom/crop like cover.
- * Supabase render: `resize=contain` avoids cover-style crops when only width is set.
+ * Supabase render: `resize=contain` needs both width and height so the edge fits the bitmap
+ * inside a square bounds (width-only + contain has produced tall cropped strips in practice).
  */
 
 export function optimizeImageUrl(
@@ -21,9 +22,11 @@ export function optimizeImageUrl(
       url.searchParams.set('q', String(Math.min(100, Math.max(50, quality))))
       return url.toString()
     }
+    const supabaseDim = String(Math.min(Math.max(maxWidth, 64), 2000))
     // Supabase Storage: image transformation (enable in project Storage settings if 400s)
     if (host.includes('supabase.co') && url.pathname.includes('/storage/v1/render/image/public/')) {
-      url.searchParams.set('width', String(Math.min(Math.max(maxWidth, 64), 2000)))
+      url.searchParams.set('width', supabaseDim)
+      url.searchParams.set('height', supabaseDim)
       url.searchParams.set('quality', String(Math.min(100, Math.max(50, quality))))
       url.searchParams.set('resize', 'contain')
       return url.toString()
@@ -33,7 +36,8 @@ export function optimizeImageUrl(
         '/storage/v1/object/public/',
         '/storage/v1/render/image/public/',
       )
-      url.searchParams.set('width', String(Math.min(Math.max(maxWidth, 64), 2000)))
+      url.searchParams.set('width', supabaseDim)
+      url.searchParams.set('height', supabaseDim)
       url.searchParams.set('quality', String(Math.min(100, Math.max(50, quality))))
       url.searchParams.set('resize', 'contain')
       return url.toString()
@@ -49,7 +53,7 @@ const LISTING_SIZES = '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw'
 
 /** Product grids / recently viewed: letterboxed fit so the full product is visible (not tight crop). */
 export const PRODUCT_GRID_IMAGE_CLASS =
-  'w-full h-full object-contain object-center p-3 sm:p-4 bg-cream transition-opacity duration-300 group-hover:opacity-95'
+  'absolute inset-0 h-full w-full max-h-full max-w-full object-contain object-center p-3 sm:p-4 bg-cream transition-opacity duration-300 group-hover:opacity-95'
 
 const DEFAULT_CARD_FALLBACK =
   'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?auto=format&fit=max&w=480&q=78'
