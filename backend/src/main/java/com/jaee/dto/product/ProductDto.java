@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,6 +50,14 @@ public class ProductDto {
                 .intValue();
     }
 
+    /** Detach Hibernate element-collection bags so JSON serialization never touches lazy proxies. */
+    private static List<String> copyUrlList(List<String> urls) {
+        if (urls == null || urls.isEmpty()) {
+            return List.of();
+        }
+        return new ArrayList<>(urls);
+    }
+
     public static ProductDto fromEntity(Product product) {
         return ProductDto.builder()
                 .id(product.getId())
@@ -66,9 +75,9 @@ public class ProductDto {
                 .categoryNames(product.getCategories() != null
                         ? product.getCategories().stream().map(Category::getName).collect(Collectors.toList())
                         : List.of())
-                .images(product.getImages())
-                .videos(product.getVideos())
-                .options(product.getOptions())
+                .images(copyUrlList(product.getImages()))
+                .videos(copyUrlList(product.getVideos()))
+                .options(copyUrlList(product.getOptions()))
                 .variants(product.getVariants() != null
                         ? product.getVariants().stream().map(VariantDto::fromEntity).collect(Collectors.toList())
                         : List.of())
@@ -102,7 +111,7 @@ public class ProductDto {
                 .categoryNames(product.getCategories() != null
                         ? product.getCategories().stream().map(Category::getName).collect(Collectors.toList())
                         : List.of())
-                .images(product.getImages())
+                .images(copyUrlList(product.getImages()))
                 .videos(List.of())
                 .options(List.of())
                 .variants(List.of())
