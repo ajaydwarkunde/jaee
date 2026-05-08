@@ -227,7 +227,6 @@ public class CheckoutService {
         order.setStatus(Order.OrderStatus.PENDING);
         order.setPaidAt(null);
         order.setRazorpayPaymentId(null);
-        order.setUpdatedAt(LocalDateTime.now());
 
         long amountInPaise = order.getTotalAmount()
                 .multiply(BigDecimal.valueOf(100))
