@@ -8,6 +8,10 @@ import com.jaee.entity.Product;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailAuthenticationException;
+import org.springframework.mail.MailException;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +25,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 
 @Service
 @Slf4j
@@ -32,6 +37,9 @@ public class EmailService {
     @Value("${app.email.api-key:}")
     private String apiKey;
 
+    @Value("${app.email.provider:resend}")
+    private String emailProvider;
+
     @Value("${app.email.from}")
     private String fromEmail;
 
@@ -40,6 +48,24 @@ public class EmailService {
 
     @Value("${app.email.enabled:true}")
     private boolean emailEnabled;
+
+    @Value("${app.email.smtp-host:smtp-relay.brevo.com}")
+    private String smtpHost;
+
+    @Value("${app.email.smtp-port:587}")
+    private int smtpPort;
+
+    @Value("${app.email.smtp-username:}")
+    private String smtpUsername;
+
+    @Value("${app.email.smtp-password:}")
+    private String smtpPassword;
+
+    @Value("${app.email.smtp-starttls:true}")
+    private boolean smtpStartTls;
+
+    @Value("${app.email.smtp-ssl:false}")
+    private boolean smtpSsl;
 
     @Value("${app.cors.allowed-origins:http://localhost:5173}")
     private String frontendUrl;
@@ -53,17 +79,31 @@ public class EmailService {
     }
 
     /**
-     * Send email using Resend HTTP API.
+     * Send email using the configured provider (Resend API or SMTP/Brevo).
      *
      * @return empty if sent successfully; otherwise a reason suitable for logs or (in some cases) showing the user
      */
     public Optional<String> sendEmailOrError(String toEmail, String subject, String htmlContent) {
-        if (!emailEnabled || apiKey == null || apiKey.isBlank()) {
-            log.info("Email disabled or API key not configured. Would send to: {} subject: {}", toEmail, subject);
+        if (!emailEnabled) {
+            log.info("Email disabled. Would send to: {} subject: {}", toEmail, subject);
+            return Optional.of("Email is disabled on this server.");
+        }
+        String provider = emailProvider == null ? "resend" : emailProvider.trim().toLowerCase(Locale.ROOT);
+        return switch (provider) {
+            case "smtp", "brevo", "brevo-smtp" -> sendViaSmtp(toEmail, subject, htmlContent);
+            case "resend", "" -> sendViaResend(toEmail, subject, htmlContent);
+            default -> {
+                log.warn("Unknown email provider '{}', falling back to Resend", provider);
+                yield sendViaResend(toEmail, subject, htmlContent);
+            }
+        };
+    }
+
+    private Optional<String> sendViaResend(String toEmail, String subject, String htmlContent) {
+        if (apiKey == null || apiKey.isBlank()) {
             return Optional.of(
                     "Email is not configured. Set RESEND_API_KEY and EMAIL_FROM (verified domain) on the server.");
         }
-
         try {
             Map<String, Object> payload = new LinkedHashMap<>();
             payload.put("from", fromName + " <" + fromEmail + ">");
@@ -100,8 +140,51 @@ public class EmailService {
         }
     }
 
+    private Optional<String> sendViaSmtp(String toEmail, String subject, String htmlContent) {
+        if (fromEmail == null || fromEmail.isBlank()) {
+            return Optional.of("EMAIL_FROM is missing. Set it to your verified Brevo sender email.");
+        }
+        if (smtpUsername == null || smtpUsername.isBlank() || smtpPassword == null || smtpPassword.isBlank()) {
+            return Optional.of("SMTP credentials are missing. Set EMAIL_SMTP_USERNAME and EMAIL_SMTP_PASSWORD.");
+        }
+        try {
+            JavaMailSenderImpl sender = new JavaMailSenderImpl();
+            sender.setHost(smtpHost);
+            sender.setPort(smtpPort);
+            sender.setUsername(smtpUsername);
+            sender.setPassword(smtpPassword);
+            sender.setDefaultEncoding("UTF-8");
+
+            Properties props = sender.getJavaMailProperties();
+            props.put("mail.transport.protocol", "smtp");
+            props.put("mail.smtp.auth", "true");
+            props.put("mail.smtp.starttls.enable", String.valueOf(smtpStartTls));
+            props.put("mail.smtp.ssl.enable", String.valueOf(smtpSsl));
+            props.put("mail.debug", "false");
+
+            var message = sender.createMimeMessage();
+            var helper = new MimeMessageHelper(message, "UTF-8");
+            helper.setFrom(fromEmail, fromName);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+            sender.send(message);
+            log.info("Email sent successfully to {} via SMTP provider", toEmail);
+            return Optional.empty();
+        } catch (MailAuthenticationException e) {
+            log.error("SMTP authentication failed: {}", e.getMessage());
+            return Optional.of("SMTP authentication failed. Check Brevo username/password.");
+        } catch (MailException e) {
+            log.error("SMTP send failed for {}: {}", toEmail, e.getMessage());
+            return Optional.of("Could not send email using SMTP. Please verify Brevo SMTP settings.");
+        } catch (Exception e) {
+            log.error("Unexpected SMTP error for {}: {}", toEmail, e.getMessage());
+            return Optional.of("Could not send email using SMTP. Please try again later.");
+        }
+    }
+
     /**
-     * Send email using Resend HTTP API (legacy boolean result).
+     * Legacy boolean convenience wrapper around {@link #sendEmailOrError(String, String, String)}.
      */
     public boolean sendEmail(String toEmail, String subject, String htmlContent) {
         return sendEmailOrError(toEmail, subject, htmlContent).isEmpty();

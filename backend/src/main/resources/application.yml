@@ -49,14 +49,22 @@ app:
     callback-url: ${RAZORPAY_CALLBACK_URL:http://localhost:5173/order-success}
     test-mode: ${RAZORPAY_TEST_MODE:true}  # Set to false when using real keys
 
-  # Email uses Resend (https://resend.com). Set RESEND_API_KEY and use EMAIL_FROM on a verified domain
-  # (e.g. noreply@yourdomain.com). The default onboarding@resend.dev only delivers to limited test
-  # recipients until you add DNS records for your own domain — otherwise OTPs fail for other addresses.
+  # Email providers:
+  # - resend (default): requires RESEND_API_KEY
+  # - brevo-smtp / smtp: requires EMAIL_SMTP_* credentials (smtp-relay.brevo.com)
+  # Always use EMAIL_FROM on a verified sender/domain for production delivery.
   email:
+    provider: ${EMAIL_PROVIDER:resend}
     from: ${EMAIL_FROM:onboarding@resend.dev}
     from-name: ${EMAIL_FROM_NAME:Jaai}
     enabled: ${EMAIL_ENABLED:true}
     api-key: ${RESEND_API_KEY:}
+    smtp-host: ${EMAIL_SMTP_HOST:smtp-relay.brevo.com}
+    smtp-port: ${EMAIL_SMTP_PORT:587}
+    smtp-username: ${EMAIL_SMTP_USERNAME:}
+    smtp-password: ${EMAIL_SMTP_PASSWORD:}
+    smtp-starttls: ${EMAIL_SMTP_STARTTLS:true}
+    smtp-ssl: ${EMAIL_SMTP_SSL:false}
 
   sms:
     provider: ${SMS_PROVIDER:twilio}
