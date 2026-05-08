@@ -33,6 +33,10 @@ export const orderService = {
     const response = await api.get<ApiResponse<Order>>(`/orders/razorpay/${razorpayOrderId}`)
     return response.data.data
   },
+
+  restoreToCart: async (orderId: number): Promise<void> => {
+    await api.post<ApiResponse<void>>(`/orders/${orderId}/restore-to-cart`)
+  },
   
   // Admin methods
   getAllOrders: async (params: { status?: string; page?: number; size?: number } = {}): Promise<PageResponse<Order>> => {

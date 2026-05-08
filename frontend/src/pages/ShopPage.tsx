@@ -12,6 +12,7 @@ import Input from '@/components/ui/Input'
 import type { FilterOptions, ProductFilters } from '@/types'
 import type { StoreSettings } from '@/services/settingsService'
 import { shopIndexListingFilters } from '@/lib/shopPrefetch'
+import { cmsHeroImageProps } from '@/lib/imageUrl'
 export default function ShopPage() {
   const { categorySlug } = useParams()
   const navigate = useNavigate()
@@ -122,6 +123,11 @@ export default function ShopPage() {
         ? candlesHeaderTitle
         : currentCategory?.name || 'All Products'
 
+  const shopHeroBannerProps =
+    hasShopHeroImage && shopHeroImageSrc
+      ? cmsHeroImageProps(shopHeroImageSrc, 'shopHeader')
+      : null
+
   const handleFilterChange = (key: keyof ProductFilters, value: string | number | undefined) => {
     setFilters((prev) => ({ ...prev, [key]: value, page: 0 }))
   }
@@ -164,12 +170,16 @@ export default function ShopPage() {
           hasShopHeroImage ? '' : 'bg-gradient-to-r from-blush to-champagne'
         }`}
       >
-        {hasShopHeroImage ? (
+        {hasShopHeroImage && shopHeroBannerProps ? (
           <>
             <img
-              src={shopHeroImageSrc}
+              src={shopHeroBannerProps.src}
+              srcSet={shopHeroBannerProps.srcSet}
+              sizes={shopHeroBannerProps.sizes}
               alt=""
               className="absolute inset-0 w-full h-full object-cover"
+              decoding="async"
+              fetchPriority="high"
             />
             <div className="absolute inset-0 bg-charcoal/45" />
           </>

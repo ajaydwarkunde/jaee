@@ -19,6 +19,7 @@ import {
   communityExperienceService,
   type CommunityExperience,
 } from '@/services/communityExperienceService'
+import { cmsHeroImageProps, cmsSectionImageProps } from '@/lib/imageUrl'
 
 const DEFAULT_HERO_CANDLE =
   'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=1200&auto=format&fit=crop'
@@ -37,6 +38,8 @@ function SplitHero({
 }) {
   const candleBg = candlesImageSrc?.trim() || DEFAULT_HERO_CANDLE
   const hamperBg = hampersImageSrc?.trim() || DEFAULT_HERO_HAMPER
+  const candleHero = cmsHeroImageProps(candleBg, hamperEnabled ? 'split' : 'full')
+  const hamperHero = cmsHeroImageProps(hamperBg, 'split')
   const [hovered, setHovered] = useState<'candles' | 'hampers' | null>(null)
 
   if (!hamperEnabled) {
@@ -49,7 +52,9 @@ function SplitHero({
           <div className="absolute inset-0 bg-gradient-to-br from-blush via-cream to-champagne" />
           <div className="absolute inset-0">
             <LazyImage
-              src={candleBg}
+              src={candleHero.src}
+              srcSet={candleHero.srcSet}
+              sizes={candleHero.sizes}
               alt="Candle collection"
               className="w-full h-full object-cover"
               priority
@@ -94,7 +99,9 @@ function SplitHero({
         <div className="absolute inset-0 bg-gradient-to-br from-blush via-cream to-champagne" />
         <div className="absolute inset-0">
           <LazyImage
-            src={candleBg}
+            src={candleHero.src}
+            srcSet={candleHero.srcSet}
+            sizes={candleHero.sizes}
             alt="Candle collection"
             className="w-full h-full object-cover"
             priority
@@ -146,7 +153,9 @@ function SplitHero({
         <div className="absolute inset-0 bg-gradient-to-br from-champagne via-cream to-blush" />
         <div className="absolute inset-0">
           <LazyImage
-            src={hamperBg}
+            src={hamperHero.src}
+            srcSet={hamperHero.srcSet}
+            sizes={hamperHero.sizes}
             alt="Gift hamper collection"
             className="w-full h-full object-cover"
             priority
@@ -519,9 +528,10 @@ export default function HomePage() {
   const queryClient = useQueryClient()
   const featuredSectionRef = useRef<HTMLElement>(null)
   const { freeShippingThreshold, featureHamperPublic, getValue } = useStoreSettings()
-  const storyImage =
+  const storyImageRaw =
     getValue('homepage_story_image_url' as keyof StoreSettings).trim() ||
     'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=800'
+  const storyImageProps = cmsSectionImageProps(storyImageRaw)
 
   const { data: featuredProducts, isLoading: productsLoading } = useQuery({
     queryKey: ['products', 'featured'],
@@ -613,7 +623,7 @@ export default function HomePage() {
           <ProductGrid
             products={featuredProducts || []}
             loading={productsLoading}
-            priorityImageCount={12}
+            priorityImageCount={4}
           />
         </div>
       </section>
@@ -691,7 +701,9 @@ export default function HomePage() {
             <div className="order-1 lg:order-2">
               <div className="relative">
                 <LazyImage
-                  src={storyImage}
+                  src={storyImageProps.src}
+                  srcSet={storyImageProps.srcSet}
+                  sizes={storyImageProps.sizes}
                   alt="Jaai candle craftsmanship"
                   className="w-full rounded-xl shadow-soft-xl"
                 />

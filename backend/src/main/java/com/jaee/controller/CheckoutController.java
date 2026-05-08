@@ -58,6 +58,16 @@ public class CheckoutController {
         return ResponseEntity.ok(ApiResponse.success("Payment verified successfully", result));
     }
 
+    @PostMapping("/retry-order/{orderId}")
+    @Operation(summary = "Retry payment for an existing pending/cancelled order")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> retryOrderPayment(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long orderId
+    ) throws RazorpayException {
+        Map<String, Object> orderData = checkoutService.createRetryOrder(user, orderId);
+        return ResponseEntity.ok(ApiResponse.success("Retry payment order created", orderData));
+    }
+
     @Data
     public static class PaymentVerificationRequest {
         @NotBlank(message = "Razorpay order ID is required")

@@ -6,18 +6,46 @@ function fmtKg(kg: number | null | undefined): string {
   return `${kg.toFixed(3)} kg`
 }
 
+function normalizeVariantLabel(label?: string | null): string | null {
+  if (!label) return null
+  return label.replace(/^size:\s*/i, '').trim() || null
+}
+
+function getCustomerDisplay(item: OrderItem): { product: string; skuVariant: string } {
+  const rawName = (item.name || '').trim()
+  const baseName = rawName.split('—')[0]?.trim() || rawName
+  const nameParts = baseName.split(' - ').map((p) => p.trim()).filter(Boolean)
+
+  const product = nameParts[0] || rawName
+  const descriptorFromName = nameParts.length > 1 ? nameParts.slice(1).join(' - ') : null
+  const normalizedVariant = normalizeVariantLabel(item.variantLabel)
+
+  const descriptor = descriptorFromName && normalizedVariant
+    ? `${descriptorFromName} - ${normalizedVariant}`
+    : descriptorFromName || normalizedVariant
+
+  const skuParts = [item.sku, descriptor].filter(Boolean)
+  return {
+    product,
+    skuVariant: skuParts.length > 0 ? skuParts.join(' · ') : '—',
+  }
+}
+
 /** Customer + admin: consistent item-level order breakdown. */
 export default function OrderItemsBreakdown({
   items,
   currency,
   dense = false,
   showWeights = false,
+  customerFriendlyNames = false,
 }: {
   items: OrderItem[]
   currency: string
   dense?: boolean
   /** Admin: show per-line and captured weights when available */
   showWeights?: boolean
+  /** Customer pages: split product and variant into cleaner columns */
+  customerFriendlyNames?: boolean
 }) {
   const th = dense ? 'p-2.5' : 'p-3'
   const td = dense ? 'p-2.5' : 'p-3'
@@ -42,12 +70,14 @@ export default function OrderItemsBreakdown({
           </tr>
         </thead>
         <tbody>
-          {items.map((item) => (
-            <tr key={item.id} className="border-t border-blush/80 align-top">
-              <td className={`${td} text-charcoal`}>{item.name}</td>
-              <td className={`${td} text-warm-gray`}>
-                {[item.sku, item.variantLabel].filter(Boolean).join(' · ') || '—'}
-              </td>
+          {items.map((item) => {
+            const display = customerFriendlyNames
+              ? getCustomerDisplay(item)
+              : { product: item.name, skuVariant: [item.sku, item.variantLabel].filter(Boolean).join(' · ') || '—' }
+            return (
+              <tr key={item.id} className="border-t border-blush/80 align-top">
+                <td className={`${td} text-charcoal`}>{display.product}</td>
+                <td className={`${td} text-warm-gray`}>{display.skuVariant}</td>
               <td className={`${td} text-right tabular-nums`}>{item.qty}</td>
               {showWeights && (
                 <td className={`${td} text-right tabular-nums text-warm-gray`}>{fmtKg(item.unitWeightKg)}</td>
@@ -64,8 +94,9 @@ export default function OrderItemsBreakdown({
               <td className={`${td} text-right tabular-nums text-charcoal`}>
                 {formatPrice(item.subtotal, currency)}
               </td>
-            </tr>
-          ))}
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>

@@ -5,11 +5,19 @@ import com.jaee.dto.common.PageResponse;
 import com.jaee.dto.order.OrderDto;
 import com.jaee.entity.Order;
 import com.jaee.entity.Order.OrderStatus;
+import com.jaee.entity.Cart;
+import com.jaee.entity.CartItem;
+import com.jaee.entity.OrderItem;
+import com.jaee.entity.Product;
+import com.jaee.entity.ProductVariant;
 import com.jaee.entity.StoreType;
 import com.jaee.entity.User;
 import com.jaee.exception.BadRequestException;
 import com.jaee.exception.NotFoundException;
+import com.jaee.repository.CartItemRepository;
+import com.jaee.repository.CartRepository;
 import com.jaee.repository.OrderRepository;
+import com.jaee.util.VariantLabelFormatter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -30,6 +38,8 @@ import java.util.stream.Collectors;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final CartRepository cartRepository;
+    private final CartItemRepository cartItemRepository;
 
     @Transactional(readOnly = true)
     public PageResponse<OrderDto> getUserOrders(User user, int page, int size) {
@@ -50,6 +60,72 @@ public class OrderService {
         Order order = orderRepository.findByRazorpayOrderIdWithItems(razorpayOrderId)
                 .orElseThrow(() -> new NotFoundException("Order not found"));
         return OrderDto.fromEntity(order);
+    }
+
+    @Transactional
+    public void restoreOrderToCart(User user, Long orderId) {
+        Order order = orderRepository.findByIdAndUserWithItems(orderId, user)
+                .orElseThrow(() -> new NotFoundException("Order not found"));
+
+        if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.CANCELLED) {
+            throw new BadRequestException("Only pending or cancelled orders can be modified");
+        }
+        if (order.getItems() == null || order.getItems().isEmpty()) {
+            throw new BadRequestException("This order has no items");
+        }
+
+        Cart cart = cartRepository.findByUserWithItems(user)
+                .orElseGet(() -> cartRepository.save(Cart.builder().user(user).build()));
+
+        if (cart.getItems() != null && !cart.getItems().isEmpty()) {
+            cartItemRepository.deleteByCart(cart);
+            cart.getItems().clear();
+        }
+
+        int added = 0;
+        for (OrderItem oi : order.getItems()) {
+            Product product = oi.getProduct();
+            if (product == null || !Boolean.TRUE.equals(product.getActive())) {
+                continue;
+            }
+
+            ProductVariant variant = oi.getVariant();
+            if (variant != null && !Boolean.TRUE.equals(variant.getActive())) {
+                continue;
+            }
+
+            int available = variant != null
+                    ? (variant.getStockQty() != null ? variant.getStockQty() : 0)
+                    : (product.getStockQty() != null ? product.getStockQty() : 0);
+            int qtyToAdd = Math.min(oi.getQty(), available);
+            if (qtyToAdd <= 0) {
+                continue;
+            }
+
+            String variantLabel = variant != null ? VariantLabelFormatter.format(variant) : null;
+            CartItem line = CartItem.builder()
+                    .cart(cart)
+                    .product(product)
+                    .variant(variant)
+                    .variantLabel(variantLabel)
+                    .qty(qtyToAdd)
+                    .unitPriceSnapshot(variant != null ? variant.getPrice() : product.getPrice())
+                    .build();
+            cart.addItem(line);
+            cartItemRepository.save(line);
+            added++;
+        }
+
+        if (added == 0) {
+            throw new BadRequestException("None of the order items are currently available");
+        }
+
+        if (order.getStatus() == OrderStatus.PENDING) {
+            order.setStatus(OrderStatus.CANCELLED);
+            orderRepository.save(order);
+        }
+
+        log.info("Order {} restored to cart for user {} with {} item lines", orderId, user.getId(), added);
     }
     
     // ============================================

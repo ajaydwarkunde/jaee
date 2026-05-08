@@ -50,4 +50,12 @@ export const checkoutService = {
     const response = await api.post<ApiResponse<PaymentVerificationResult>>('/checkout/verify-payment', data)
     return response.data.data
   },
+
+  /**
+   * Create payment order for retrying an existing PENDING/CANCELLED order.
+   */
+  retryOrderPayment: async (orderId: number): Promise<RazorpayOrderData> => {
+    const response = await api.post<ApiResponse<RazorpayOrderData>>(`/checkout/retry-order/${orderId}`)
+    return response.data.data
+  },
 }

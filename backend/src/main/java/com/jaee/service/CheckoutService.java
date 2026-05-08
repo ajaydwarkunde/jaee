@@ -207,6 +207,89 @@ public class CheckoutService {
     }
 
     /**
+     * Re-create payment order for an existing user order (typically CANCELLED/PENDING due to checkout cancellation).
+     */
+    @Transactional
+    public Map<String, Object> createRetryOrder(User user, Long orderId) throws RazorpayException {
+        Order order = orderRepository.findByIdAndUserWithItems(orderId, user)
+                .orElseThrow(() -> new BadRequestException("Order not found"));
+
+        if (order.getStatus() != Order.OrderStatus.PENDING && order.getStatus() != Order.OrderStatus.CANCELLED) {
+            throw new BadRequestException("Only pending or cancelled orders can be retried");
+        }
+        if (order.getItems() == null || order.getItems().isEmpty()) {
+            throw new BadRequestException("Order has no items to pay for");
+        }
+
+        validateOrderItemsInStock(order);
+
+        // Reset to pending for retry flow.
+        order.setStatus(Order.OrderStatus.PENDING);
+        order.setPaidAt(null);
+        order.setRazorpayPaymentId(null);
+
+        long amountInPaise = order.getTotalAmount()
+                .multiply(BigDecimal.valueOf(100))
+                .longValue();
+
+        if (testMode) {
+            String mockOrderId = "test_order_retry_" + order.getId() + "_" + System.currentTimeMillis();
+            order.setRazorpayOrderId(mockOrderId);
+            orderRepository.save(order);
+
+            log.info("TEST MODE: Created retry mock order for user {}: {}", user.getId(), mockOrderId);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("orderId", mockOrderId);
+            response.put("amount", amountInPaise);
+            response.put("currency", order.getCurrency());
+            response.put("keyId", "test_key");
+            response.put("internalOrderId", order.getId());
+            response.put("testMode", true);
+
+            Map<String, String> prefill = new HashMap<>();
+            prefill.put("name", user.getName() != null ? user.getName() : "");
+            prefill.put("email", user.getEmail() != null ? user.getEmail() : "");
+            prefill.put("contact", user.getMobileNumber() != null ? user.getMobileNumber() : "");
+            response.put("prefill", prefill);
+            return response;
+        }
+
+        JSONObject orderRequest = new JSONObject();
+        orderRequest.put("amount", amountInPaise);
+        orderRequest.put("currency", order.getCurrency());
+        orderRequest.put("receipt", "order_retry_" + order.getId() + "_" + System.currentTimeMillis());
+        orderRequest.put("notes", new JSONObject()
+                .put("order_id", order.getId().toString())
+                .put("user_id", user.getId().toString())
+                .put("retry", "true")
+        );
+
+        com.razorpay.Order razorpayOrder = razorpayClient.orders.create(orderRequest);
+        order.setRazorpayOrderId(razorpayOrder.get("id"));
+        orderRepository.save(order);
+
+        log.info("Razorpay retry order created for user {} and order {}: {}", user.getId(), order.getId(),
+                razorpayOrder.get("id"));
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("orderId", razorpayOrder.get("id"));
+        response.put("amount", amountInPaise);
+        response.put("currency", order.getCurrency());
+        response.put("keyId", razorpayKeyId);
+        response.put("internalOrderId", order.getId());
+        response.put("testMode", false);
+
+        Map<String, String> prefill = new HashMap<>();
+        prefill.put("name", user.getName() != null ? user.getName() : "");
+        prefill.put("email", user.getEmail() != null ? user.getEmail() : "");
+        prefill.put("contact", user.getMobileNumber() != null ? user.getMobileNumber() : "");
+        response.put("prefill", prefill);
+
+        return response;
+    }
+
+    /**
      * Verify payment after Razorpay checkout completes (called from frontend)
      */
     @Transactional
@@ -481,6 +564,30 @@ public class CheckoutService {
                 Product p = item.getProduct();
                 p.reduceStock(item.getQty());
                 productRepository.save(p);
+            }
+        }
+    }
+
+    private static void validateOrderItemsInStock(Order order) {
+        for (OrderItem item : order.getItems()) {
+            Product product = item.getProduct();
+            if (product == null || !Boolean.TRUE.equals(product.getActive())) {
+                throw new BadRequestException("Some products in this order are no longer available");
+            }
+            if (item.getVariant() != null) {
+                ProductVariant v = item.getVariant();
+                if (!Boolean.TRUE.equals(v.getActive())) {
+                    throw new BadRequestException("Some selected options in this order are no longer available");
+                }
+                int avail = v.getStockQty() != null ? v.getStockQty() : 0;
+                if (avail < item.getQty()) {
+                    throw new BadRequestException("Insufficient stock to retry payment for " + item.getNameSnapshot());
+                }
+            } else {
+                int avail = product.getStockQty() != null ? product.getStockQty() : 0;
+                if (avail < item.getQty()) {
+                    throw new BadRequestException("Insufficient stock to retry payment for " + item.getNameSnapshot());
+                }
             }
         }
     }
