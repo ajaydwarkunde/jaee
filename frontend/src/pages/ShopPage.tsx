@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { SlidersHorizontal, X } from 'lucide-react'
@@ -38,7 +38,7 @@ export default function ShopPage() {
   }))
 
   // Categories that currently have active products (same discovery as homepage Shop by Category)
-  const { data: categories } = useQuery({
+  const { data: categories, isFetched: categoriesFetched } = useQuery({
     queryKey: ['categories', 'storefront'],
     queryFn: categoryService.getStorefrontCategories,
   })
@@ -46,12 +46,12 @@ export default function ShopPage() {
   const shopCategories = categories
 
   useEffect(() => {
-    if (!categorySlug || !shopCategories?.length) return
-    const exists = shopCategories.some((c) => c.slug === categorySlug)
+    if (!categorySlug || !categoriesFetched) return
+    const exists = shopCategories?.some((c) => c.slug === categorySlug)
     if (!exists) {
       navigate('/shop', { replace: true })
     }
-  }, [categorySlug, shopCategories, navigate])
+  }, [categorySlug, shopCategories, categoriesFetched, navigate])
 
   // Get available filter options (colors, sizes)
   const { data: filterOptions } = useQuery<FilterOptions>({
@@ -59,16 +59,13 @@ export default function ShopPage() {
     queryFn: productService.getFilterOptions,
   })
 
-  // Get category by slug
-  const {
-    data: currentCategory,
-    isFetched: categoryFetched,
-    isError: categoryFetchError,
-  } = useQuery({
-    queryKey: ['category', categorySlug],
-    queryFn: () => categoryService.getCategoryBySlug(categorySlug!),
-    enabled: !!categorySlug,
-  })
+  const categoriesLoaded = categoriesFetched
+
+  // Resolve category from already-loaded storefront categories (faster than extra API hit per slug).
+  const currentCategory = useMemo(
+    () => shopCategories?.find((c) => c.slug === categorySlug),
+    [shopCategories, categorySlug]
+  )
 
   // Update filters when category changes
   useEffect(() => {
@@ -91,18 +88,11 @@ export default function ShopPage() {
   const { data: productsData, isLoading: productsLoading } = useQuery({
     queryKey: ['products', filters],
     queryFn: () => productService.getProducts(filters),
-    enabled:
-      !categorySlug ||
-      filters.categoryId !== undefined ||
-      (categoryFetched && categoryFetchError),
+    enabled: !categorySlug || categoriesLoaded,
   })
 
   const gridLoading =
-    (Boolean(categorySlug) && !categoryFetched) ||
-    (Boolean(categorySlug) &&
-      categoryFetched &&
-      filters.categoryId === undefined &&
-      !categoryFetchError) ||
+    (Boolean(categorySlug) && !categoriesLoaded) ||
     productsLoading
 
   const candlesHeaderImg = getValue('shop_candles_header_image_url' as keyof StoreSettings).trim()
@@ -130,6 +120,14 @@ export default function ShopPage() {
 
   const handleFilterChange = (key: keyof ProductFilters, value: string | number | undefined) => {
     setFilters((prev) => ({ ...prev, [key]: value, page: 0 }))
+  }
+
+  const handleCategorySelect = (slug?: string) => {
+    if (!slug) {
+      navigate('/shop')
+      return
+    }
+    navigate(`/shop/${slug}`)
   }
 
   const handleClearFilters = () => {
@@ -226,7 +224,7 @@ export default function ShopPage() {
                 <h4 className="text-sm font-medium text-charcoal mb-3">Category</h4>
                 <div className="space-y-2">
                   <button
-                    onClick={() => handleFilterChange('categoryId', undefined)}
+                    onClick={() => handleCategorySelect()}
                     className={`block w-full text-left text-sm py-1.5 px-2 rounded transition-colors ${
                       !filters.categoryId ? 'bg-rose/10 text-rose' : 'text-warm-gray hover:text-charcoal'
                     }`}
@@ -236,7 +234,7 @@ export default function ShopPage() {
                   {shopCategories?.map((cat) => (
                     <button
                       key={cat.id}
-                      onClick={() => handleFilterChange('categoryId', cat.id)}
+                      onClick={() => handleCategorySelect(cat.slug)}
                       className={`block w-full text-left text-sm py-1.5 px-2 rounded transition-colors ${
                         filters.categoryId === cat.id ? 'bg-rose/10 text-rose' : 'text-warm-gray hover:text-charcoal'
                       }`}
@@ -442,11 +440,22 @@ export default function ShopPage() {
             <div className="mb-6">
               <h4 className="text-sm font-medium text-charcoal mb-3">Category</h4>
               <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    handleCategorySelect()
+                    setFiltersOpen(false)
+                  }}
+                  className={`block w-full text-left text-sm py-2 px-3 rounded transition-colors ${
+                    !filters.categoryId ? 'bg-rose/10 text-rose' : 'text-warm-gray hover:bg-blush'
+                  }`}
+                >
+                  All Products
+                </button>
                 {shopCategories?.map((cat) => (
                   <button
                     key={cat.id}
                     onClick={() => {
-                      handleFilterChange('categoryId', cat.id)
+                      handleCategorySelect(cat.slug)
                       setFiltersOpen(false)
                     }}
                     className={`block w-full text-left text-sm py-2 px-3 rounded transition-colors ${

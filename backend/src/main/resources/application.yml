@@ -102,6 +102,10 @@ app:
     key: ${SUPABASE_SERVICE_KEY:}
     storage-bucket: ${SUPABASE_STORAGE_BUCKET:images}
 
+  cache-warm:
+    enabled: ${CACHE_WARM_ENABLED:true}
+    delay-seconds: ${CACHE_WARM_DELAY_SECONDS:2}
+
 # Actuator
 management:
   endpoints:
