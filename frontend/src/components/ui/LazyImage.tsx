@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { cn } from '@/lib/utils'
+import { isImageLoadDebugEnabled } from '@/lib/imageUrl'
 
 interface LazyImageProps {
   src: string
@@ -26,6 +27,7 @@ export default function LazyImage({
   const [isLoaded, setIsLoaded] = useState(false)
   const [isInView, setIsInView] = useState(priority)
   const imgRef = useRef<HTMLDivElement>(null)
+  const loadStartedAt = useRef<number | null>(null)
 
   useEffect(() => {
     if (priority) {
@@ -41,8 +43,8 @@ export default function LazyImage({
         }
       },
       {
-        // Start loading before cards enter the viewport so scrolling feels instant
-        rootMargin: '520px',
+        // Preload moderately ahead of viewport to balance smoothness vs network burst.
+        rootMargin: '280px',
         threshold: 0,
       }
     )
@@ -53,6 +55,12 @@ export default function LazyImage({
 
     return () => observer.disconnect()
   }, [priority])
+
+  useEffect(() => {
+    if (isInView && loadStartedAt.current === null) {
+      loadStartedAt.current = performance.now()
+    }
+  }, [isInView])
 
   return (
     <div ref={imgRef} className={cn('relative h-full min-h-0 w-full overflow-hidden', wrapperClassName)}>
@@ -76,8 +84,14 @@ export default function LazyImage({
           alt={alt}
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
-          fetchPriority={priority ? 'high' : 'auto'}
-          onLoad={() => setIsLoaded(true)}
+          fetchPriority={priority ? 'high' : 'low'}
+          onLoad={() => {
+            setIsLoaded(true)
+            if (isImageLoadDebugEnabled() && loadStartedAt.current != null) {
+              const ms = Math.round(performance.now() - loadStartedAt.current)
+              console.debug(`[jaai image] ${ms}ms`, src.slice(0, 96))
+            }
+          }}
           className={cn(
             'transition-opacity duration-300',
             isLoaded ? 'opacity-100' : 'opacity-0',

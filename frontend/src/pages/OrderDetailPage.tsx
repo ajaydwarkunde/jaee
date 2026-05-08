@@ -1,8 +1,9 @@
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, Package, Truck, MapPin, Phone, Mail, MessageCircle, ExternalLink } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { ArrowLeft, Package, Truck, MapPin, Phone, Mail, MessageCircle, ExternalLink, RefreshCw, Edit3 } from 'lucide-react'
 import { orderService } from '@/services/orderService'
+import { checkoutService } from '@/services/checkoutService'
 import { formatPrice, formatDate } from '@/lib/utils'
 import { orderWhatsAppHref } from '@/lib/orderWhatsApp'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
@@ -11,8 +12,13 @@ import Button from '@/components/ui/Button'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import OrderStepper from '@/components/ui/OrderStepper'
 import OrderItemsBreakdown from '@/components/order/OrderItemsBreakdown'
+import toast from 'react-hot-toast'
+import { initializeRazorpay, loadRazorpayScript } from '@/lib/razorpay'
+import { getErrorMessage } from '@/lib/api'
 export default function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>()
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { supportEmail, whatsappPhoneDigits } = useStoreSettings()
 
   const { data: order, isLoading, error } = useQuery({
@@ -28,6 +34,94 @@ export default function OrderDetailPage() {
     const discount = order.discountAmount ?? 0
     return { itemsSum, shipping, discount }
   }, [order])
+
+  const verifyPaymentMutation = useMutation({
+    mutationFn: checkoutService.verifyPayment,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+      queryClient.invalidateQueries({ queryKey: ['order', orderId] })
+      queryClient.invalidateQueries({ queryKey: ['cart'] })
+      toast.success('Payment successful!')
+      navigate(`/order-success?orderId=${data.orderId}`)
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error))
+    },
+  })
+
+  const retryOrderMutation = useMutation({
+    mutationFn: (id: number) => checkoutService.retryOrderPayment(id),
+    onError: (error) => {
+      toast.error(getErrorMessage(error))
+    },
+  })
+
+  const restoreToCartMutation = useMutation({
+    mutationFn: (id: number) => orderService.restoreToCart(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+      queryClient.invalidateQueries({ queryKey: ['order', orderId] })
+      queryClient.invalidateQueries({ queryKey: ['cart'] })
+      toast.success('Order items moved to cart. You can edit and checkout again.')
+      navigate('/cart')
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error))
+    },
+  })
+
+  const handleRetryPayment = async (id: number) => {
+    try {
+      const orderData = await retryOrderMutation.mutateAsync(id)
+
+      if (orderData.testMode) {
+        verifyPaymentMutation.mutate({
+          razorpayOrderId: orderData.orderId,
+          razorpayPaymentId: `test_pay_${Date.now()}`,
+          razorpaySignature: `test_signature_${Date.now()}`,
+        })
+        return
+      }
+
+      const scriptLoaded = await loadRazorpayScript()
+      if (!scriptLoaded) {
+        toast.error('Failed to load payment gateway')
+        return
+      }
+
+      const razorpay = initializeRazorpay({
+        key: orderData.keyId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: 'Jaai',
+        description: `Retry payment for order #${id}`,
+        image: '/favicon.svg',
+        order_id: orderData.orderId,
+        prefill: orderData.prefill,
+        theme: { color: '#923C5B' },
+        handler: (response) => {
+          verifyPaymentMutation.mutate({
+            razorpayOrderId: response.razorpay_order_id,
+            razorpayPaymentId: response.razorpay_payment_id,
+            razorpaySignature: response.razorpay_signature,
+          })
+        },
+        modal: {
+          ondismiss: () => {
+            toast.error('Payment cancelled')
+          },
+        },
+      })
+
+      if (!razorpay) {
+        toast.error('Failed to initialize payment gateway')
+        return
+      }
+      razorpay.open()
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
+  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -93,6 +187,28 @@ export default function OrderDetailPage() {
           <div className="mt-8 pt-6 border-t border-blush">
             <OrderStepper status={order.status} />
           </div>
+          {(order.status === 'PENDING' || order.status === 'CANCELLED') && (
+            <div className="mt-4 flex flex-wrap justify-end gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                icon={<RefreshCw className="w-4 h-4" />}
+                onClick={() => handleRetryPayment(order.id)}
+                disabled={retryOrderMutation.isPending || verifyPaymentMutation.isPending}
+              >
+                Pay now
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                icon={<Edit3 className="w-4 h-4" />}
+                onClick={() => restoreToCartMutation.mutate(order.id)}
+                disabled={restoreToCartMutation.isPending}
+              >
+                Modify order
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
@@ -100,7 +216,11 @@ export default function OrderDetailPage() {
             <h2 className="font-serif text-lg text-charcoal mb-4">
               Order Items ({order.items.length})
             </h2>
-            <OrderItemsBreakdown items={order.items} currency={order.currency} />
+            <OrderItemsBreakdown
+              items={order.items}
+              currency={order.currency}
+              customerFriendlyNames
+            />
 
             <div className="mt-6 pt-6 border-t border-blush space-y-3">
               <div className="flex justify-between text-warm-gray">

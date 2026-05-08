@@ -6,6 +6,7 @@ import { useStoreSettings } from '@/hooks/useStoreSettings'
 import { instagramProfileUrl } from '@/lib/utils'
 import { BUSINESS_LOCATION_LINE } from '@/config/business'
 import type { StoreSettings } from '@/services/settingsService'
+import { cmsHeroImageProps, cmsSectionImageProps } from '@/lib/imageUrl'
 
 const FALLBACK_ABOUT_HERO =
   'https://images.unsplash.com/photo-1596436889106-bbdff866e9b2?w=1920&auto=format&fit=crop&q=80'
@@ -54,13 +55,19 @@ export default function AboutPage() {
   const processImage =
     getValue('about_process_image_url' as keyof StoreSettings).trim() || FALLBACK_PROCESS_IMAGE
 
+  const heroImg = cmsHeroImageProps(heroImage, 'full')
+  const storyImg = cmsSectionImageProps(storyImage)
+  const processImg = cmsHeroImageProps(processImage, 'split')
+
   return (
     <div className="animate-fade-in">
       {/* Hero — CMS */}
       <section className="relative min-h-[260px] md:min-h-[340px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
           <LazyImage
-            src={heroImage}
+            src={heroImg.src}
+            srcSet={heroImg.srcSet}
+            sizes={heroImg.sizes}
             alt=""
             className="w-full h-full object-cover min-h-[260px] md:min-h-[340px]"
             priority
@@ -80,7 +87,9 @@ export default function AboutPage() {
             <div className="lg:col-span-5 flex justify-center lg:justify-start">
               <div className="w-full max-w-[380px] aspect-square rounded-3xl overflow-hidden shadow-soft-xl ring-2 ring-rose/20 bg-soft-white">
                 <LazyImage
-                  src={storyImage}
+                  src={storyImg.src}
+                  srcSet={storyImg.srcSet}
+                  sizes={storyImg.sizes}
                   alt="Jaai candle — our story"
                   className="w-full h-full object-cover"
                 />
@@ -237,7 +246,9 @@ export default function AboutPage() {
             </div>
             <div className="order-1 lg:order-2">
               <LazyImage
-                src={processImage}
+                src={processImg.src}
+                srcSet={processImg.srcSet}
+                sizes={processImg.sizes}
                 alt="Candle making process"
                 className="w-full rounded-2xl shadow-soft-xl ring-1 ring-blush/40"
               />

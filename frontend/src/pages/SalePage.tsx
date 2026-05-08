@@ -6,6 +6,7 @@ import ProductGrid from '@/components/product/ProductGrid'
 import Button from '@/components/ui/Button'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
 import type { StoreSettings } from '@/services/settingsService'
+import { cmsHeroImageProps } from '@/lib/imageUrl'
 
 export default function SalePage() {
   const [page, setPage] = useState(0)
@@ -13,6 +14,8 @@ export default function SalePage() {
   const saleBannerImg = getValue('sale_page_header_image_url' as keyof StoreSettings).trim()
   const saleBannerTitle = getValue('sale_page_header_title' as keyof StoreSettings).trim()
   const saleBannerSubtitle = getValue('sale_page_header_subtitle' as keyof StoreSettings).trim()
+
+  const saleBannerImgProps = saleBannerImg ? cmsHeroImageProps(saleBannerImg, 'full') : null
 
   const { data: productsData, isLoading } = useQuery({
     queryKey: ['products-on-sale', page],
@@ -32,9 +35,17 @@ export default function SalePage() {
           saleBannerImg ? '' : 'bg-gradient-to-r from-rose/20 via-blush to-rose/10'
         }`}
       >
-        {saleBannerImg ? (
+        {saleBannerImg && saleBannerImgProps ? (
           <>
-            <img src={saleBannerImg} alt="" className="absolute inset-0 w-full h-full object-cover" />
+            <img
+              src={saleBannerImgProps.src}
+              srcSet={saleBannerImgProps.srcSet}
+              sizes={saleBannerImgProps.sizes}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+              decoding="async"
+              fetchPriority="high"
+            />
             <div className="absolute inset-0 bg-charcoal/45" />
           </>
         ) : null}

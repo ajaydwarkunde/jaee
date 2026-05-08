@@ -49,4 +49,14 @@ public class OrderController {
         OrderDto order = orderService.getOrderByRazorpayOrderId(razorpayOrderId);
         return ResponseEntity.ok(ApiResponse.success(order));
     }
+
+    @PostMapping("/{orderId}/restore-to-cart")
+    @Operation(summary = "Restore pending/cancelled order items to cart for modification")
+    public ResponseEntity<ApiResponse<Void>> restoreToCart(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long orderId
+    ) {
+        orderService.restoreOrderToCart(user, orderId);
+        return ResponseEntity.ok(ApiResponse.success("Order items moved to cart. You can now modify and checkout again.", null));
+    }
 }
