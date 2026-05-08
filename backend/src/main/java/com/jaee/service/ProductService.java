@@ -13,6 +13,8 @@ import com.jaee.repository.ProductRepository;
 import com.jaee.repository.StockNotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +47,10 @@ public class ProductService {
     private static final Pattern WHITESPACE = Pattern.compile("[\\s]");
 
     @Transactional(readOnly = true)
+    @Cacheable(
+            cacheNames = "catalog.products",
+            key = "T(java.util.Objects).hash(#categoryId, #minPrice, #maxPrice, #search, #color, #size, #sortBy, #sortDir, #page, #pageSize)"
+    )
     public PageResponse<ProductDto> getProducts(
             Long categoryId,
             BigDecimal minPrice,
@@ -64,7 +70,7 @@ public class ProductService {
                 categoryId, minPrice, maxPrice, search, color, size, pageable
         );
 
-        return PageResponse.from(productPage, ProductDto::fromEntity);
+        return PageResponse.from(productPage, ProductDto::fromListingEntity);
     }
 
     @Transactional(readOnly = true)
@@ -76,6 +82,7 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "catalog.product-by-slug", key = "#slug")
     public ProductDto getProductBySlug(String slug) {
         Product product = productRepository.findBySlugWithDetails(slug)
                 .orElseThrow(() -> new NotFoundException("Product not found"));
@@ -90,18 +97,20 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "catalog.featured", key = "#limit")
     public List<ProductDto> getFeaturedProducts(int limit) {
         return productRepository.findFeaturedProducts(PageRequest.of(0, limit))
                 .stream()
-                .map(ProductDto::fromEntity)
+                .map(ProductDto::fromListingEntity)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "catalog.on-sale", key = "T(java.util.Objects).hash(#page, #size)")
     public PageResponse<ProductDto> getOnSaleProducts(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Product> productPage = productRepository.findOnSaleProducts(pageable);
-        return PageResponse.from(productPage, ProductDto::fromEntity);
+        return PageResponse.from(productPage, ProductDto::fromListingEntity);
     }
     
     @Transactional(readOnly = true)
@@ -125,11 +134,12 @@ public class ProductService {
         );
         
         return related.stream()
-                .map(ProductDto::fromEntity)
+                .map(ProductDto::fromListingEntity)
                 .collect(Collectors.toList());
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {"catalog.products", "catalog.featured", "catalog.on-sale", "catalog.product-by-slug"}, allEntries = true)
     public ProductDto createProduct(ProductCreateRequest request) {
         BigDecimal sellingPrice = resolveSellingPrice(request);
 
@@ -168,6 +178,7 @@ public class ProductService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {"catalog.products", "catalog.featured", "catalog.on-sale", "catalog.product-by-slug"}, allEntries = true)
     public ProductDto updateProduct(Long id, ProductCreateRequest request) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Product not found"));
@@ -222,6 +233,7 @@ public class ProductService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {"catalog.products", "catalog.featured", "catalog.on-sale", "catalog.product-by-slug"}, allEntries = true)
     public void deleteProduct(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Product not found"));

@@ -80,4 +80,38 @@ public class ProductDto {
                 .reviewCount(product.getReviewCount())
                 .build();
     }
+
+    /**
+     * Lightweight mapping for list/grid endpoints where variant-level details are not needed.
+     * This avoids triggering expensive lazy loads for fields not rendered on listing cards.
+     */
+    public static ProductDto fromListingEntity(Product product) {
+        return ProductDto.builder()
+                .id(product.getId())
+                .name(product.getName())
+                .slug(product.getSlug())
+                .description(product.getDescription())
+                .price(product.getPrice())
+                .weightKg(product.getWeightKg())
+                .compareAtPrice(product.getCompareAtPrice())
+                .discountPercent(calculateDiscount(product.getPrice(), product.getCompareAtPrice()))
+                .currency(product.getCurrency())
+                .categoryIds(product.getCategories() != null
+                        ? product.getCategories().stream().map(Category::getId).collect(Collectors.toList())
+                        : List.of())
+                .categoryNames(product.getCategories() != null
+                        ? product.getCategories().stream().map(Category::getName).collect(Collectors.toList())
+                        : List.of())
+                .images(product.getImages())
+                .videos(List.of())
+                .options(List.of())
+                .variants(List.of())
+                .stockQty(product.getStockQty())
+                .active(product.getActive())
+                .inStock(product.isInStock())
+                .createdAt(product.getCreatedAt())
+                .avgRating(product.getAvgRating())
+                .reviewCount(product.getReviewCount())
+                .build();
+    }
 }
