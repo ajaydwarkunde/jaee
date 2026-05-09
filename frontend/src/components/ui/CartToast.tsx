@@ -3,6 +3,7 @@ import { ShoppingBag, Check, X } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import type { Toast } from 'react-hot-toast'
+import { DEFAULT_TOAST_DURATION_MS, DEFAULT_TOAST_REMOVE_DELAY_MS } from '@/lib/toastConfig'
 
 interface CartToastProps {
   t: Toast
@@ -98,6 +99,10 @@ export function showCartToast({ productName, productImage, price, currency, quan
         quantity={quantity}
       />
     ),
-    { duration: 4000, position: 'top-right' }
+    {
+      duration: DEFAULT_TOAST_DURATION_MS,
+      position: 'top-right',
+      removeDelay: DEFAULT_TOAST_REMOVE_DELAY_MS,
+    }
   )
 }
