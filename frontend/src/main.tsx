@@ -6,6 +6,7 @@ import { Toaster, ToastBar, toast as hotToast } from 'react-hot-toast'
 import { X } from 'lucide-react'
 import App from './App'
 import './index.css'
+import { DEFAULT_TOAST_DURATION_MS, DEFAULT_TOAST_REMOVE_DELAY_MS } from '@/lib/toastConfig'
 import { registerSW } from 'virtual:pwa-register'
 
 registerSW({ immediate: true })
@@ -27,8 +28,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <App />
         <Toaster
           position="top-center"
+          gutter={8}
           toastOptions={{
-            duration: 4000,
+            duration: DEFAULT_TOAST_DURATION_MS,
+            /** Exit animation / DOM cleanup — keep removal feeling snappy. */
+            removeDelay: DEFAULT_TOAST_REMOVE_DELAY_MS,
             style: {
               background: '#2D2D2D',
               color: '#FBF6F3',
