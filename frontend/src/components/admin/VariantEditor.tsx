@@ -18,6 +18,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Copy, GripVertical, Plus, Trash2, Save, Loader2 } from 'lucide-react'
+import { getErrorMessage } from '@/lib/api'
 import { variantService } from '@/services/variantService'
 import type { VariantCreateRequest } from '@/services/variantService'
 import Button from '@/components/ui/Button'
@@ -237,8 +238,8 @@ export default function VariantEditor({ product, onClose }: { product: Product; 
       toast.success('Variants saved!')
       onClose()
     },
-    onError: () => {
-      toast.error('Failed to save variants')
+    onError: (err: unknown) => {
+      toast.error(getErrorMessage(err))
     },
   })
 

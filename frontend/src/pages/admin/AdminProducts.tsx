@@ -12,6 +12,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import ProductForm from '@/components/admin/ProductForm'
 import VariantEditor from '@/components/admin/VariantEditor'
 import toast from 'react-hot-toast'
+import { getErrorMessage } from '@/lib/api'
 import type { Product, ProductFormData } from '@/types'
 
 export default function AdminProducts() {
@@ -21,7 +22,8 @@ export default function AdminProducts() {
   const [editProduct, setEditProduct] = useState<Product | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null)
-  const [variantProduct, setVariantProduct] = useState<Product | null>(null)
+  /** Slug only — full product (options + variants) is loaded via query so listing rows are not used (listing DTO omits options). */
+  const [variantModalSlug, setVariantModalSlug] = useState<string | null>(null)
 
   const { data: productsData, isLoading } = useQuery({
     queryKey: ['admin-products', { search, page }],
@@ -31,6 +33,18 @@ export default function AdminProducts() {
   const { data: categories } = useQuery({
     queryKey: ['categories'],
     queryFn: categoryService.getCategories,
+  })
+
+  const {
+    data: variantEditorProduct,
+    isLoading: variantEditorLoading,
+    isError: variantEditorQueryFailed,
+    error: variantEditorQueryError,
+  } = useQuery({
+    queryKey: ['admin-product-for-variants', variantModalSlug],
+    queryFn: () => productService.getProductBySlug(variantModalSlug!),
+    enabled: !!variantModalSlug,
+    staleTime: 0,
   })
 
   const createMutation = useMutation({
@@ -187,7 +201,7 @@ export default function AdminProducts() {
                     <td className="p-4">
                       <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => setVariantProduct(product)}
+                          onClick={() => setVariantModalSlug(product.slug)}
                           className="p-2 text-warm-gray hover:text-amber-600 transition-colors"
                           title="Manage Variants (Size & Scent)"
                         >
@@ -255,17 +269,27 @@ export default function AdminProducts() {
           />
         </Modal>
 
-        {/* Variant Editor Modal */}
+        {/* Variant Editor Modal — load full product so option names exist (listing API strips options). */}
         <Modal
-          isOpen={!!variantProduct}
-          onClose={() => setVariantProduct(null)}
+          isOpen={!!variantModalSlug}
+          onClose={() => setVariantModalSlug(null)}
           title="Manage Variants"
           size="xl"
         >
-          {variantProduct && (
+          {variantEditorLoading && (
+            <div className="flex justify-center py-16">
+              <LoadingSpinner />
+            </div>
+          )}
+          {variantEditorQueryFailed && (
+            <p className="text-center text-error py-8 text-sm">
+              {getErrorMessage(variantEditorQueryError)}
+            </p>
+          )}
+          {!variantEditorLoading && !variantEditorQueryFailed && variantEditorProduct && (
             <VariantEditor
-              product={variantProduct}
-              onClose={() => setVariantProduct(null)}
+              product={variantEditorProduct}
+              onClose={() => setVariantModalSlug(null)}
             />
           )}
         </Modal>
