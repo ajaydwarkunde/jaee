@@ -19,7 +19,8 @@ export default function AdminProducts() {
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(0)
-  const [editProduct, setEditProduct] = useState<Product | null>(null)
+  /** When set, edit modal loads full product by slug (listing rows omit options — saving edit would wipe option types and break variants). */
+  const [editSlug, setEditSlug] = useState<string | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null)
   /** Slug only — full product (options + variants) is loaded via query so listing rows are not used (listing DTO omits options). */
@@ -47,6 +48,18 @@ export default function AdminProducts() {
     staleTime: 0,
   })
 
+  const {
+    data: editFormProduct,
+    isLoading: editFormLoading,
+    isError: editFormQueryFailed,
+    error: editFormQueryError,
+  } = useQuery({
+    queryKey: ['admin-product-for-edit', editSlug],
+    queryFn: () => productService.getProductBySlug(editSlug!),
+    enabled: isFormOpen && !!editSlug,
+    staleTime: 0,
+  })
+
   const createMutation = useMutation({
     mutationFn: (data: ProductFormData) => productService.createProduct(data),
     onSuccess: () => {
@@ -69,7 +82,9 @@ export default function AdminProducts() {
       queryClient.invalidateQueries({ queryKey: ['product'] })
       queryClient.invalidateQueries({ queryKey: ['products'] })
       toast.success('Product updated!')
-      setEditProduct(null)
+      queryClient.invalidateQueries({ queryKey: ['admin-product-for-edit'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-product-for-variants'] })
+      setEditSlug(null)
       setIsFormOpen(false)
     },
     onError: () => {
@@ -90,20 +105,20 @@ export default function AdminProducts() {
   })
 
   const handleSubmit = (data: ProductFormData) => {
-    if (editProduct) {
-      updateMutation.mutate({ id: editProduct.id, data })
-    } else {
+    if (editSlug && editFormProduct) {
+      updateMutation.mutate({ id: editFormProduct.id, data })
+    } else if (!editSlug) {
       createMutation.mutate(data)
     }
   }
 
   const handleEdit = (product: Product) => {
-    setEditProduct(product)
+    setEditSlug(product.slug)
     setIsFormOpen(true)
   }
 
   const handleCloseForm = () => {
-    setEditProduct(null)
+    setEditSlug(null)
     setIsFormOpen(false)
   }
 
@@ -121,7 +136,13 @@ export default function AdminProducts() {
               {productsData?.totalElements || 0} total products
             </p>
           </div>
-          <Button onClick={() => setIsFormOpen(true)} icon={<Plus className="w-5 h-5" />}>
+          <Button
+            onClick={() => {
+              setEditSlug(null)
+              setIsFormOpen(true)
+            }}
+            icon={<Plus className="w-5 h-5" />}
+          >
             Add Product
           </Button>
         </div>
@@ -253,20 +274,33 @@ export default function AdminProducts() {
           )}
         </div>
 
-        {/* Product Form Modal */}
+        {/* Product Form Modal — edit flow loads full product so options/images match DB (listing API strips options). */}
         <Modal
           isOpen={isFormOpen}
           onClose={handleCloseForm}
-          title={editProduct ? 'Edit Product' : 'Add Product'}
+          title={editSlug ? 'Edit Product' : 'Add Product'}
           size="lg"
         >
-          <ProductForm
-            product={editProduct}
-            categories={categories || []}
-            onSubmit={handleSubmit}
-            onCancel={handleCloseForm}
-            loading={createMutation.isPending || updateMutation.isPending}
-          />
+          {editSlug && editFormLoading && (
+            <div className="flex justify-center py-16">
+              <LoadingSpinner />
+            </div>
+          )}
+          {editSlug && editFormQueryFailed && (
+            <p className="text-center text-error py-8 text-sm">{getErrorMessage(editFormQueryError)}</p>
+          )}
+          {(!editSlug || editFormProduct) &&
+            !(editSlug && editFormLoading) &&
+            !(editSlug && editFormQueryFailed) && (
+              <ProductForm
+                key={editFormProduct?.id ?? 'new-product'}
+                product={editFormProduct ?? null}
+                categories={categories || []}
+                onSubmit={handleSubmit}
+                onCancel={handleCloseForm}
+                loading={createMutation.isPending || updateMutation.isPending}
+              />
+            )}
         </Modal>
 
         {/* Variant Editor Modal — load full product so option names exist (listing API strips options). */}
