@@ -221,6 +221,21 @@ export default function AdminDashboard() {
           </div>
         </div>
 
+        {/* Profit Dashboard Link */}
+        <div className="mb-8">
+          <Link to="/admin/profit-dashboard">
+            <div className="bg-soft-white rounded-xl shadow-soft p-6 flex items-center gap-4 hover:shadow-soft-lg transition-shadow border-l-4 border-rose">
+              <div className="w-12 h-12 rounded-full bg-rose/10 flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-rose" />
+              </div>
+              <div>
+                <h3 className="font-serif text-lg font-semibold text-charcoal">Profit Dashboard</h3>
+                <p className="text-sm text-warm-gray">View order-level revenue, expense and profit breakdown</p>
+              </div>
+            </div>
+          </Link>
+        </div>
+
         {/* Quick Actions */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>

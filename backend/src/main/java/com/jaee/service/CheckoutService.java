@@ -514,6 +514,7 @@ public class CheckoutService {
             }
             String skuSnap = variant != null ? variant.getSku() : null;
             BigDecimal unitWeightKg = resolveUnitWeightKg(variant, product);
+            BigDecimal expenseSnap = variant != null ? variant.getExpense() : null;
 
             OrderItem orderItem = OrderItem.builder()
                     .product(product)
@@ -526,6 +527,7 @@ public class CheckoutService {
                     .skuSnapshot(skuSnap)
                     .compareAtPriceSnapshot(compareAt)
                     .weightKgSnapshot(unitWeightKg)
+                    .expenseSnapshot(expenseSnap)
                     .build();
             order.addItem(orderItem);
         }

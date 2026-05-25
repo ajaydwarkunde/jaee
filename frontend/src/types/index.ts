@@ -71,6 +71,8 @@ export interface ProductVariant {
   stockQty: number
   active: boolean
   inStock: boolean
+  /** Per-unit cost/expense for profit tracking */
+  expense?: number | null
   optionValues: Record<string, string>
   images: string[]
 }
@@ -161,6 +163,10 @@ export interface OrderItem {
   unitWeightKg?: number | null
   /** unit × qty */
   lineWeightKg?: number | null
+  /** Per-unit expense at checkout */
+  expense?: number | null
+  /** expense × qty */
+  lineExpense?: number | null
 }
 
 export interface Order {
@@ -191,6 +197,8 @@ export interface Order {
   userId?: number | null
   userName?: string | null
   itemCount?: number
+  totalExpense?: number | null
+  profit?: number | null
 }
 
 // Address types

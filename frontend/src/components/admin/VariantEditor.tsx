@@ -34,6 +34,7 @@ interface VariantRow {
   weightKg: number
   stockQty: number
   active: boolean
+  expense: number | ''
   optionValues: Record<string, string>
   images: string[]
 }
@@ -49,6 +50,7 @@ function newVariantRow(options: string[]): VariantRow {
     weightKg: 0.5,
     stockQty: 0,
     active: true,
+    expense: '',
     optionValues,
     images: [],
   }
@@ -70,6 +72,7 @@ function mapApiToRows(variants: ProductVariant[]): VariantRow[] {
       weightKg: v.weightKg != null && v.weightKg > 0 ? v.weightKg : 0.5,
       stockQty: v.stockQty,
       active: v.active,
+      expense: v.expense ?? '',
       optionValues: v.optionValues,
       images: v.images,
     }))
@@ -171,6 +174,17 @@ function SortableVariantRow({
           value={row.stockQty}
           onChange={(e) => onUpdateRow(row.key, 'stockQty', Number(e.target.value))}
           className="w-16 px-2 py-1.5 border border-blush rounded text-sm text-charcoal bg-soft-white focus:outline-none focus:border-rose"
+        />
+      </td>
+      <td className="py-2 px-2">
+        <input
+          type="number"
+          step="0.01"
+          value={row.expense}
+          onChange={(e) => onUpdateRow(row.key, 'expense', e.target.value ? Number(e.target.value) : '')}
+          placeholder="—"
+          title="Per-unit cost/expense"
+          className="w-20 px-2 py-1.5 border border-blush rounded text-sm text-charcoal bg-soft-white focus:outline-none focus:border-rose"
         />
       </td>
       <td className="py-2 px-2">
@@ -299,6 +313,7 @@ export default function VariantEditor({ product, onClose }: { product: Product; 
       compareAtPrice: v.compareAtPrice ? Number(v.compareAtPrice) : undefined,
       stockQty: v.stockQty,
       active: v.active,
+      expense: v.expense ? Number(v.expense) : undefined,
       optionValues: v.optionValues,
       images: v.images,
     }))
@@ -366,6 +381,7 @@ export default function VariantEditor({ product, onClose }: { product: Product; 
                   <th className="text-left py-2 px-2 font-medium text-charcoal">Compare</th>
                   <th className="text-left py-2 px-2 font-medium text-charcoal whitespace-nowrap">Weight (kg)</th>
                   <th className="text-left py-2 px-2 font-medium text-charcoal">Stock</th>
+                  <th className="text-left py-2 px-2 font-medium text-charcoal">Expense</th>
                   <th className="text-left py-2 px-2 font-medium text-charcoal">SKU</th>
                   <th className="py-2 px-2 font-medium text-charcoal text-left whitespace-nowrap">Actions</th>
                 </tr>

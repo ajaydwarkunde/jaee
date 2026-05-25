@@ -8,6 +8,7 @@ export interface VariantCreateRequest {
   compareAtPrice?: number
   stockQty: number
   active: boolean
+  expense?: number
   optionValues: Record<string, string>
   images: string[]
 }
