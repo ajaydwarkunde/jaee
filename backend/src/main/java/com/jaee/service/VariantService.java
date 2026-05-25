@@ -47,6 +47,7 @@ public class VariantService {
                 .compareAtPrice(request.getCompareAtPrice())
                 .stockQty(request.getStockQty())
                 .active(request.getActive())
+                .expense(request.getExpense())
                 .optionValues(request.getOptionValues() != null ? request.getOptionValues() : java.util.Map.of())
                 .images(request.getImages() != null ? request.getImages() : List.of())
                 .build();
@@ -70,6 +71,7 @@ public class VariantService {
         variant.setCompareAtPrice(request.getCompareAtPrice());
         variant.setStockQty(request.getStockQty());
         variant.setActive(request.getActive());
+        variant.setExpense(request.getExpense());
         if (request.getOptionValues() != null) {
             variant.getOptionValues().clear();
             variant.getOptionValues().putAll(request.getOptionValues());
@@ -112,6 +114,7 @@ public class VariantService {
                     .compareAtPrice(req.getCompareAtPrice())
                     .stockQty(req.getStockQty())
                     .active(req.getActive() != null ? req.getActive() : true)
+                    .expense(req.getExpense())
                     .optionValues(req.getOptionValues() != null ? req.getOptionValues() : java.util.Map.of())
                     .images(req.getImages() != null ? req.getImages() : List.of())
                     .build());

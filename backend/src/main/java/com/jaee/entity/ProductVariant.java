@@ -42,6 +42,10 @@ public class ProductVariant {
     @Column(precision = 10, scale = 2)
     private BigDecimal compareAtPrice;
 
+    /** Per-unit cost/expense for profit tracking. */
+    @Column(precision = 10, scale = 2)
+    private BigDecimal expense;
+
     @Builder.Default
     private Integer stockQty = 0;
 

@@ -57,6 +57,11 @@ public class OrderDto {
 
     /** Primary label for badges: customStatus if set, else workflow status. */
     private String displayStatus;
+
+    /** Sum of per-item expense × qty across all items (admin-only). */
+    private BigDecimal totalExpense;
+    /** Profit = totalAmount − totalExpense − shippingAmount (null when expense data is absent). */
+    private BigDecimal profit;
     
     public static OrderDto fromEntity(Order order) {
         List<OrderItem> items = order.getItems() != null ? order.getItems() : List.of();
@@ -72,6 +77,22 @@ public class OrderDto {
                 totalWeightKg = totalWeightKg.add(
                         it.getWeightKgSnapshot().multiply(BigDecimal.valueOf(it.getQty())));
             }
+        }
+
+        BigDecimal totalExpense = BigDecimal.ZERO;
+        boolean anyExpense = false;
+        for (OrderItem it : items) {
+            if (it.getExpenseSnapshot() != null) {
+                anyExpense = true;
+                totalExpense = totalExpense.add(
+                        it.getExpenseSnapshot().multiply(BigDecimal.valueOf(it.getQty())));
+            }
+        }
+
+        BigDecimal profit = null;
+        if (anyExpense) {
+            BigDecimal shipping = order.getShippingAmount() != null ? order.getShippingAmount() : BigDecimal.ZERO;
+            profit = order.getTotalAmount().subtract(totalExpense).subtract(shipping);
         }
 
         String custom = order.getCustomStatus();
@@ -107,6 +128,8 @@ public class OrderDto {
                 .customStatus(custom)
                 .internalNotes(order.getInternalNotes())
                 .displayStatus(display)
+                .totalExpense(anyExpense ? totalExpense : null)
+                .profit(profit)
                 .build();
     }
     
@@ -128,12 +151,19 @@ public class OrderDto {
         private BigDecimal compareAtPrice;
         private BigDecimal unitWeightKg;
         private BigDecimal lineWeightKg;
+        private BigDecimal expense;
+        private BigDecimal lineExpense;
 
         public static OrderItemDto fromEntity(OrderItem item) {
             BigDecimal unitW = item.getWeightKgSnapshot();
             BigDecimal lineW = null;
             if (unitW != null && item.getQty() != null) {
                 lineW = unitW.multiply(BigDecimal.valueOf(item.getQty()));
+            }
+            BigDecimal exp = item.getExpenseSnapshot();
+            BigDecimal lineExp = null;
+            if (exp != null && item.getQty() != null) {
+                lineExp = exp.multiply(BigDecimal.valueOf(item.getQty()));
             }
             return OrderItemDto.builder()
                     .id(item.getId())
@@ -149,6 +179,8 @@ public class OrderDto {
                     .compareAtPrice(item.getCompareAtPriceSnapshot())
                     .unitWeightKg(unitW)
                     .lineWeightKg(lineW)
+                    .expense(exp)
+                    .lineExpense(lineExp)
                     .build();
         }
     }

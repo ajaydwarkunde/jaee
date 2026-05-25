@@ -56,6 +56,10 @@ public class OrderItem {
     @Column(name = "weight_kg_snapshot", precision = 10, scale = 3)
     private BigDecimal weightKgSnapshot;
 
+    /** Per-unit expense captured at checkout for profit calculation. */
+    @Column(name = "expense_snapshot", precision = 10, scale = 2)
+    private BigDecimal expenseSnapshot;
+
     public BigDecimal getSubtotal() {
         return priceSnapshot.multiply(BigDecimal.valueOf(qty));
     }

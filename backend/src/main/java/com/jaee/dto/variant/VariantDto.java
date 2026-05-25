@@ -23,6 +23,7 @@ public class VariantDto {
     private Integer stockQty;
     private Boolean active;
     private Boolean inStock;
+    private BigDecimal expense;
     private Map<String, String> optionValues;
     private List<String> images;
 
@@ -47,6 +48,7 @@ public class VariantDto {
                 .stockQty(variant.getStockQty())
                 .active(variant.getActive())
                 .inStock(variant.isInStock())
+                .expense(variant.getExpense())
                 .optionValues(variant.getOptionValues())
                 .images(variant.getImages())
                 .build();

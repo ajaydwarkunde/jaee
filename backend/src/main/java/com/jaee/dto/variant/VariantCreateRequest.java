@@ -24,6 +24,9 @@ public class VariantCreateRequest {
     
     @Min(value = 0, message = "Stock quantity cannot be negative")
     private Integer stockQty = 0;
+
+    /** Per-unit cost/expense for profit tracking. */
+    private BigDecimal expense;
     
     private Boolean active = true;
 
