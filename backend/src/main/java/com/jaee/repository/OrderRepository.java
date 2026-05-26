@@ -33,6 +33,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     
     @Query("SELECT o FROM Order o LEFT JOIN FETCH o.user WHERE o.status = :status ORDER BY o.createdAt DESC")
     Page<Order> findByStatusWithUser(@Param("status") Order.OrderStatus status, Pageable pageable);
+
+    @Query("SELECT o FROM Order o LEFT JOIN FETCH o.user WHERE o.status IN :statuses ORDER BY o.createdAt DESC")
+    Page<Order> findByStatusInWithUser(@Param("statuses") List<OrderStatus> statuses, Pageable pageable);
     
     @Query("SELECT o FROM Order o LEFT JOIN FETCH o.items LEFT JOIN FETCH o.user WHERE o.id = :id")
     Optional<Order> findByIdWithItemsAndUser(@Param("id") Long id);
