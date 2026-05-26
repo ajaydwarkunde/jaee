@@ -14,7 +14,7 @@ export default function AdminProfitDashboard() {
 
   const { data: ordersData, isLoading } = useQuery({
     queryKey: ['admin-profit-orders', page],
-    queryFn: () => orderService.getAllOrders({ status: 'PAID', page, size: pageSize }),
+    queryFn: () => orderService.getAllOrders({ status: 'SUCCESS', page, size: pageSize }),
   })
 
   const orders = ordersData?.content ?? []
@@ -49,7 +49,7 @@ export default function AdminProfitDashboard() {
           <div>
             <h1 className="heading-2 text-charcoal">Profit Dashboard</h1>
             <p className="text-sm text-warm-gray">
-              Revenue, expense and profit per paid order
+              Revenue, expense and profit for successful orders only (paid, shipped, delivered)
             </p>
           </div>
         </div>
@@ -78,7 +78,7 @@ export default function AdminProfitDashboard() {
 
         {orders.length === 0 ? (
           <div className="bg-soft-white rounded-xl shadow-soft p-12 text-center">
-            <p className="text-warm-gray">No paid orders found.</p>
+            <p className="text-warm-gray">No successful orders found.</p>
           </div>
         ) : (
           <div className="overflow-x-auto rounded-xl border border-blush bg-soft-white">
@@ -87,6 +87,7 @@ export default function AdminProfitDashboard() {
                 <tr>
                   <th className="p-3 font-normal text-warm-gray">Order</th>
                   <th className="p-3 font-normal text-warm-gray">Buyer</th>
+                  <th className="p-3 font-normal text-warm-gray">Status</th>
                   <th className="p-3 font-normal text-warm-gray">Date</th>
                   <th className="p-3 font-normal text-warm-gray text-right">Order Total</th>
                   <th className="p-3 font-normal text-warm-gray text-right">Expense</th>
@@ -109,6 +110,11 @@ export default function AdminProfitDashboard() {
                         </Link>
                       </td>
                       <td className="p-3 text-charcoal">{order.userName || order.customerEmail || '—'}</td>
+                      <td className="p-3">
+                        <Badge variant={order.status === 'FULFILLED' ? 'success' : order.status === 'SHIPPED' ? 'default' : 'success'}>
+                          {order.displayStatus || order.status}
+                        </Badge>
+                      </td>
                       <td className="p-3 text-warm-gray whitespace-nowrap">{formatDate(order.createdAt)}</td>
                       <td className="p-3 text-right tabular-nums">{formatPrice(order.totalAmount, order.currency)}</td>
                       <td className="p-3 text-right tabular-nums text-warm-gray">

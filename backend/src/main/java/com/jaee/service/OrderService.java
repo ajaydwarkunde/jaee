@@ -132,18 +132,25 @@ public class OrderService {
     // Admin Methods
     // ============================================
     
+    private static final List<OrderStatus> SUCCESSFUL_ORDER_STATUSES =
+            List.of(OrderStatus.PAID, OrderStatus.SHIPPED, OrderStatus.FULFILLED);
+
     @Transactional(readOnly = true)
     public PageResponse<OrderDto> getAllOrders(String status, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Order> orderPage;
-        
+
         if (status != null && !status.isEmpty() && !status.equals("ALL")) {
-            OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
-            orderPage = orderRepository.findByStatusWithUser(orderStatus, pageable);
+            if ("SUCCESS".equalsIgnoreCase(status) || "SUCCESSFUL".equalsIgnoreCase(status)) {
+                orderPage = orderRepository.findByStatusInWithUser(SUCCESSFUL_ORDER_STATUSES, pageable);
+            } else {
+                OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
+                orderPage = orderRepository.findByStatusWithUser(orderStatus, pageable);
+            }
         } else {
             orderPage = orderRepository.findAllWithUser(pageable);
         }
-        
+
         return PageResponse.from(orderPage, OrderDto::fromEntity);
     }
     
