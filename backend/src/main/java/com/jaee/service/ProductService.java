@@ -169,6 +169,7 @@ public class ProductService {
                 .options(resolveDefaultOptions(request.getOptions()))
                 .stockQty(request.getStockQty())
                 .active(request.getActive())
+                .customizationEnabled(Boolean.TRUE.equals(request.getCustomizationEnabled()))
                 .build();
 
         productRepository.save(product);
@@ -221,6 +222,9 @@ public class ProductService {
         boolean wasOutOfStock = product.getStockQty() <= 0;
         product.setStockQty(request.getStockQty());
         product.setActive(request.getActive());
+        if (request.getCustomizationEnabled() != null) {
+            product.setCustomizationEnabled(request.getCustomizationEnabled());
+        }
 
         productRepository.save(product);
         log.info("Product updated: {}", product.getName());

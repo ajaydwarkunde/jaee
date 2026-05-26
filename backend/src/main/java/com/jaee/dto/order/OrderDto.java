@@ -153,6 +153,7 @@ public class OrderDto {
         private BigDecimal lineWeightKg;
         private BigDecimal expense;
         private BigDecimal lineExpense;
+        private String customizationText;
 
         public static OrderItemDto fromEntity(OrderItem item) {
             BigDecimal unitW = item.getWeightKgSnapshot();
@@ -181,6 +182,7 @@ public class OrderDto {
                     .lineWeightKg(lineW)
                     .expense(exp)
                     .lineExpense(lineExp)
+                    .customizationText(item.getCustomizationText())
                     .build();
         }
     }

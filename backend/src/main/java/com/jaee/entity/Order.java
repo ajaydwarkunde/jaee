@@ -97,8 +97,11 @@ public class Order {
     public enum OrderStatus {
         PENDING,
         PAID,
-        CANCELLED,
+        PREPARING,
+        PACKAGING,
         SHIPPED,
-        FULFILLED
+        OUT_FOR_DELIVERY,
+        FULFILLED,
+        CANCELLED
     }
 }

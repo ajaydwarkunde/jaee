@@ -40,6 +40,9 @@ public class CartItem {
     @Column(precision = 10, scale = 2)
     private BigDecimal unitPriceSnapshot;
 
+    @Column(name = "customization_text", columnDefinition = "TEXT")
+    private String customizationText;
+
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 

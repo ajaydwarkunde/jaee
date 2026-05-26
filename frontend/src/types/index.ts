@@ -51,6 +51,7 @@ export interface Product {
   variants: ProductVariant[]
   stockQty: number
   active: boolean
+  customizationEnabled?: boolean
   inStock: boolean
   createdAt: string
   avgRating: number | null
@@ -121,6 +122,7 @@ export interface CartItem {
   variantId?: number | null
   /** Option summary e.g. "Size: M · Scent: Rose" */
   variantLabel?: string | null
+  customizationText?: string | null
 }
 
 export interface Cart {
@@ -142,6 +144,7 @@ export interface GuestCartItem {
   qty: number
   /** When the product has variants, must match server cart line */
   variantId?: number
+  customizationText?: string
 }
 
 // Order types
@@ -167,11 +170,20 @@ export interface OrderItem {
   expense?: number | null
   /** expense × qty */
   lineExpense?: number | null
+  customizationText?: string | null
 }
 
 export interface Order {
   id: number
-  status: 'PENDING' | 'PAID' | 'CANCELLED' | 'SHIPPED' | 'FULFILLED'
+  status:
+    | 'PENDING'
+    | 'PAID'
+    | 'PREPARING'
+    | 'PACKAGING'
+    | 'SHIPPED'
+    | 'OUT_FOR_DELIVERY'
+    | 'FULFILLED'
+    | 'CANCELLED'
   /** Badge label: custom admin label when set */
   displayStatus?: string
   customStatus?: string | null
@@ -259,6 +271,7 @@ export interface ProductFormData {
   options: string[]
   stockQty: number
   active: boolean
+  customizationEnabled?: boolean
 }
 
 export interface CategoryFormData {

@@ -78,6 +78,10 @@ export const orderService = {
     return response.data.data
   },
 
+  deleteOrder: async (orderId: number): Promise<void> => {
+    await api.delete(`/admin/orders/${orderId}`)
+  },
+
   getStoreSales: async (): Promise<StoreSales[]> => {
     const response = await api.get<ApiResponse<StoreSales[]>>('/admin/analytics/store-sales')
     return response.data.data

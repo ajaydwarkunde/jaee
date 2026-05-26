@@ -65,6 +65,7 @@ public class CartDto {
         private Integer availableQty;
         private Long variantId;
         private String variantLabel;
+        private String customizationText;
         
         public static CartItemDto fromEntity(CartItem item) {
             ProductVariant v = item.getVariant();
@@ -101,6 +102,7 @@ public class CartDto {
                     .availableQty(availableQty)
                     .variantId(v != null ? v.getId() : null)
                     .variantLabel(variantLabel)
+                    .customizationText(item.getCustomizationText())
                     .build();
         }
     }

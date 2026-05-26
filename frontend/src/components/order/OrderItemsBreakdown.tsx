@@ -76,7 +76,15 @@ export default function OrderItemsBreakdown({
               : { product: item.name, skuVariant: [item.sku, item.variantLabel].filter(Boolean).join(' · ') || '—' }
             return (
               <tr key={item.id} className="border-t border-blush/80 align-top">
-                <td className={`${td} text-charcoal`}>{display.product}</td>
+                <td className={`${td} text-charcoal`}>
+                  <div>{display.product}</div>
+                  {item.customizationText?.trim() && (
+                    <p className="text-xs text-warm-gray mt-1.5 max-w-md">
+                      <span className="font-medium text-charcoal/80">Customization:</span>{' '}
+                      {item.customizationText}
+                    </p>
+                  )}
+                </td>
                 <td className={`${td} text-warm-gray`}>{display.skuVariant}</td>
               <td className={`${td} text-right tabular-nums`}>{item.qty}</td>
               {showWeights && (

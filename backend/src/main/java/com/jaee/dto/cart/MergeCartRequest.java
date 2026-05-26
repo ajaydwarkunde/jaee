@@ -22,5 +22,7 @@ public class MergeCartRequest {
         private Integer qty;
 
         private Long variantId;
+
+        private String customizationText;
     }
 }

@@ -198,6 +198,13 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success("Note saved", order));
     }
 
+    @DeleteMapping("/orders/{orderId}")
+    @Operation(summary = "Delete an order (admin)")
+    public ResponseEntity<ApiResponse<Void>> deleteOrder(@PathVariable Long orderId) {
+        orderService.deleteOrder(orderId);
+        return ResponseEntity.ok(ApiResponse.success("Order deleted", null));
+    }
+
     @PatchMapping("/orders/{orderId}/tracking")
     @Operation(summary = "Update order tracking info")
     public ResponseEntity<ApiResponse<OrderDto>> updateOrderTracking(

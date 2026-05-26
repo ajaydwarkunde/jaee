@@ -146,7 +146,10 @@ class OrderServiceTest {
         when(orderRepository.count()).thenReturn(100L);
         when(orderRepository.countByStatus(Order.OrderStatus.PENDING)).thenReturn(20L);
         when(orderRepository.countByStatus(Order.OrderStatus.PAID)).thenReturn(30L);
+        when(orderRepository.countByStatus(Order.OrderStatus.PREPARING)).thenReturn(5L);
+        when(orderRepository.countByStatus(Order.OrderStatus.PACKAGING)).thenReturn(4L);
         when(orderRepository.countByStatus(Order.OrderStatus.SHIPPED)).thenReturn(25L);
+        when(orderRepository.countByStatus(Order.OrderStatus.OUT_FOR_DELIVERY)).thenReturn(3L);
         when(orderRepository.countByStatus(Order.OrderStatus.FULFILLED)).thenReturn(15L);
         when(orderRepository.countByStatus(Order.OrderStatus.CANCELLED)).thenReturn(10L);
 
@@ -155,7 +158,10 @@ class OrderServiceTest {
         assertThat(stats).containsEntry("total", 100L);
         assertThat(stats).containsEntry("pending", 20L);
         assertThat(stats).containsEntry("paid", 30L);
+        assertThat(stats).containsEntry("preparing", 5L);
+        assertThat(stats).containsEntry("packaging", 4L);
         assertThat(stats).containsEntry("shipped", 25L);
+        assertThat(stats).containsEntry("outForDelivery", 3L);
         assertThat(stats).containsEntry("fulfilled", 15L);
         assertThat(stats).containsEntry("cancelled", 10L);
     }

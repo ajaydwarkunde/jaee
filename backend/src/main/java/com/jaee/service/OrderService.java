@@ -132,8 +132,13 @@ public class OrderService {
     // Admin Methods
     // ============================================
     
-    private static final List<OrderStatus> SUCCESSFUL_ORDER_STATUSES =
-            List.of(OrderStatus.PAID, OrderStatus.SHIPPED, OrderStatus.FULFILLED);
+    private static final List<OrderStatus> SUCCESSFUL_ORDER_STATUSES = List.of(
+            OrderStatus.PAID,
+            OrderStatus.PREPARING,
+            OrderStatus.PACKAGING,
+            OrderStatus.SHIPPED,
+            OrderStatus.OUT_FOR_DELIVERY,
+            OrderStatus.FULFILLED);
 
     @Transactional(readOnly = true)
     public PageResponse<OrderDto> getAllOrders(String status, int page, int size) {
@@ -216,13 +221,24 @@ public class OrderService {
         return OrderDto.fromEntity(saved);
     }
 
+    @Transactional
+    public void deleteOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException("Order not found"));
+        orderRepository.delete(order);
+        log.info("Order {} deleted by admin", orderId);
+    }
+
     @Transactional(readOnly = true)
     public Map<String, Long> getOrderStats() {
         Map<String, Long> stats = new HashMap<>();
         stats.put("total", orderRepository.count());
         stats.put("pending", orderRepository.countByStatus(OrderStatus.PENDING));
         stats.put("paid", orderRepository.countByStatus(OrderStatus.PAID));
+        stats.put("preparing", orderRepository.countByStatus(OrderStatus.PREPARING));
+        stats.put("packaging", orderRepository.countByStatus(OrderStatus.PACKAGING));
         stats.put("shipped", orderRepository.countByStatus(OrderStatus.SHIPPED));
+        stats.put("outForDelivery", orderRepository.countByStatus(OrderStatus.OUT_FOR_DELIVERY));
         stats.put("fulfilled", orderRepository.countByStatus(OrderStatus.FULFILLED));
         stats.put("cancelled", orderRepository.countByStatus(OrderStatus.CANCELLED));
         return stats;
@@ -230,7 +246,7 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public List<StoreSalesDto> getStoreSales() {
-        List<OrderStatus> paidStatuses = List.of(OrderStatus.PAID, OrderStatus.SHIPPED, OrderStatus.FULFILLED);
+        List<OrderStatus> paidStatuses = SUCCESSFUL_ORDER_STATUSES;
         List<Object[]> revenueRows = orderRepository.getRevenueByStoreType(paidStatuses);
 
         Map<StoreType, StoreSalesDto> map = new EnumMap<>(StoreType.class);

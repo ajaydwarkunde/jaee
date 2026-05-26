@@ -54,6 +54,9 @@ export default function ProductForm({
   const [isUploadingVideo, setIsUploadingVideo] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [isDraggingVideo, setIsDraggingVideo] = useState(false)
+  const [customizationEnabled, setCustomizationEnabled] = useState(
+    Boolean(product?.customizationEnabled),
+  )
   const fileInputRef = useRef<HTMLInputElement>(null)
   const videoInputRef = useRef<HTMLInputElement>(null)
 
@@ -182,6 +185,7 @@ export default function ProductForm({
       options: productOptions,
       stockQty: data.stockQty,
       active: data.active,
+      customizationEnabled,
     }
     payload.price = data.price
     onSubmit(payload)
@@ -493,6 +497,26 @@ export default function ProductForm({
             ))}
           </div>
         )}
+      </div>
+
+      <div className="rounded-xl border border-blush/80 bg-blush/20 p-4 space-y-2">
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={customizationEnabled}
+            onChange={(e) => setCustomizationEnabled(e.target.checked)}
+            className="w-5 h-5 mt-0.5 rounded border-blush text-rose focus:ring-rose"
+          />
+          <span>
+            <span className="block text-sm font-medium text-charcoal">
+              Enable “Add Your Customization Details Here”
+            </span>
+            <span className="block text-xs text-warm-gray mt-1">
+              When enabled, customers must enter customization text before adding this product to
+              the cart. Shown on the product page and saved on the order.
+            </span>
+          </span>
+        </label>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

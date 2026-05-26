@@ -637,6 +637,7 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1)
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null)
+  const [customizationText, setCustomizationText] = useState('')
 
   const { isAuthenticated } = useAuthStore()
   const addToGuestCart = useCartStore((state) => state.addToGuestCart)
@@ -679,6 +680,7 @@ export default function ProductPage() {
     queryKey: ['product', slug],
     queryFn: () => productService.getProductBySlug(slug!),
     enabled: !!slug,
+    staleTime: 0,
   })
 
   const variantsSnapshotKey = useMemo(
@@ -690,6 +692,7 @@ export default function ProductPage() {
     setSelectedVariant(null)
     setQuantity(1)
     setSelectedImage(0)
+    setCustomizationText('')
   }, [slug, variantsSnapshotKey])
 
   const { data: relatedProducts = [] } = useQuery({
@@ -707,7 +710,12 @@ export default function ProductPage() {
 
   const addToCartMutation = useMutation({
     mutationFn: () =>
-      cartService.addToCart(product!.id, quantity, selectedVariant?.id ?? undefined),
+      cartService.addToCart(
+        product!.id,
+        quantity,
+        selectedVariant?.id ?? undefined,
+        product!.customizationEnabled ? customizationText.trim() : undefined,
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] })
       const p = product!
@@ -762,11 +770,20 @@ export default function ProductPage() {
 
   const handleAddToCart = () => {
     if (!product) return
+    if (product.customizationEnabled && !customizationText.trim()) {
+      toast.error('Please add your customization details before adding to cart')
+      return
+    }
 
     if (isAuthenticated) {
       addToCartMutation.mutate()
     } else {
-      addToGuestCart(product.id, quantity, selectedVariant?.id)
+      addToGuestCart(
+        product.id,
+        quantity,
+        selectedVariant?.id,
+        product.customizationEnabled ? customizationText.trim() : undefined,
+      )
       showCartToast({
         productName: product.name,
         productImage: product.images[0],
@@ -962,6 +979,21 @@ export default function ProductPage() {
             {/* Quantity & Add to Cart */}
             {effectiveInStock && (
               <div className="space-y-4 mb-8">
+                {product.customizationEnabled && (
+                  <div>
+                    <label className="block text-sm font-medium text-charcoal mb-2">
+                      Add Your Customization Details Here <span className="text-rose">*</span>
+                    </label>
+                    <textarea
+                      value={customizationText}
+                      onChange={(e) => setCustomizationText(e.target.value)}
+                      rows={4}
+                      required
+                      placeholder="e.g. gift message, fragrance preference, name on label..."
+                      className="w-full px-4 py-3 border border-blush rounded-xl text-sm text-charcoal bg-soft-white focus:outline-none focus:border-rose resize-y min-h-[100px]"
+                    />
+                  </div>
+                )}
                 <div className="flex items-center gap-4">
                   <span className="text-sm font-medium text-charcoal">Quantity:</span>
                   <div className="flex items-center border border-blush rounded-full">

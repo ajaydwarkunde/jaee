@@ -275,7 +275,7 @@ export default function OrderDetailPage() {
               </div>
             )}
 
-            {order.trackingNumber && (
+            {(order.trackingUrl || order.trackingNumber) && (
               <div className="bg-soft-white rounded-xl shadow-soft p-6">
                 <h2 className="font-serif text-lg text-charcoal mb-4">Tracking Details</h2>
                 <div className="space-y-3">

@@ -22,13 +22,19 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import OrderItemsBreakdown from '@/components/order/OrderItemsBreakdown'
 import toast from 'react-hot-toast'
 import type { Order } from '@/types'
-
-const ORDER_STATUSES = ['ALL', 'PENDING', 'PAID', 'SHIPPED', 'FULFILLED', 'CANCELLED']
+import {
+  ORDER_STATUS_FILTER_TABS,
+  ORDER_STATUS_OPTIONS,
+  orderStatusLabel,
+} from '@/lib/orderStatus'
 
 const STATUS_CONFIG: Record<string, { color: string; icon: React.ReactNode; bgColor: string }> = {
   PENDING: { color: 'warning', icon: <Clock className="w-4 h-4" />, bgColor: 'bg-warning/10' },
   PAID: { color: 'success', icon: <DollarSign className="w-4 h-4" />, bgColor: 'bg-success/10' },
+  PREPARING: { color: 'warning', icon: <Package className="w-4 h-4" />, bgColor: 'bg-warning/10' },
+  PACKAGING: { color: 'warning', icon: <Package className="w-4 h-4" />, bgColor: 'bg-warning/10' },
   SHIPPED: { color: 'info', icon: <Truck className="w-4 h-4" />, bgColor: 'bg-blue-100' },
+  OUT_FOR_DELIVERY: { color: 'info', icon: <Truck className="w-4 h-4" />, bgColor: 'bg-blue-100' },
   FULFILLED: { color: 'success', icon: <CheckCircle className="w-4 h-4" />, bgColor: 'bg-success/10' },
   CANCELLED: { color: 'error', icon: <XCircle className="w-4 h-4" />, bgColor: 'bg-error/10' },
 }
@@ -46,6 +52,7 @@ export default function AdminOrders() {
   const [detailOrderId, setDetailOrderId] = useState<number | null>(null)
   const [actionsMenuOrderId, setActionsMenuOrderId] = useState<number | null>(null)
   const [noteDraft, setNoteDraft] = useState('')
+  const [deleteOrderTarget, setDeleteOrderTarget] = useState<Order | null>(null)
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ['admin-orders', statusFilter, page],
@@ -100,6 +107,19 @@ export default function AdminOrders() {
       setNoteDraft('')
     },
     onError: () => toast.error('Failed to add note'),
+  })
+
+  const deleteOrderMutation = useMutation({
+    mutationFn: (orderId: number) => orderService.deleteOrder(orderId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-order-stats'] })
+      toast.success('Order deleted')
+      setDeleteOrderTarget(null)
+      setDetailOrderId(null)
+      setActionsMenuOrderId(null)
+    },
+    onError: () => toast.error('Failed to delete order'),
   })
 
   const updateTrackingMutation = useMutation({
@@ -194,7 +214,7 @@ export default function AdminOrders() {
         )}
 
         <div className="flex flex-wrap gap-2 mb-6">
-          {ORDER_STATUSES.map((status) => (
+          {ORDER_STATUS_FILTER_TABS.map((status) => (
             <button
               key={status}
               onClick={() => {
@@ -207,7 +227,9 @@ export default function AdminOrders() {
                   : 'bg-soft-white text-charcoal hover:bg-blush'
               }`}
             >
-              {status === 'ALL' ? 'All Orders' : status}
+              {status === 'ALL'
+                ? 'All Orders'
+                : orderStatusLabel(status)}
             </button>
           ))}
         </div>
@@ -230,7 +252,7 @@ export default function AdminOrders() {
                 {orders?.content.map((order) => {
                   const workflow = order.status
                   const statusConfig = STATUS_CONFIG[workflow] || STATUS_CONFIG.PENDING
-                  const label = order.displayStatus || order.status
+                  const label = orderStatusLabel(order.status, order.customStatus)
                   return (
                     <tr key={order.id} className="border-t border-blush hover:bg-blush/20">
                       <td className="p-4">
@@ -308,7 +330,17 @@ export default function AdminOrders() {
                                   setActionsMenuOrderId(null)
                                 }}
                               >
-                                Tracking
+                                Tracking link
+                              </button>
+                              <button
+                                type="button"
+                                className="w-full text-left px-4 py-2 hover:bg-blush/40 text-error"
+                                onClick={() => {
+                                  setDeleteOrderTarget(order)
+                                  setActionsMenuOrderId(null)
+                                }}
+                              >
+                                Delete order
                               </button>
                             </div>
                           )}
@@ -372,18 +404,18 @@ export default function AdminOrders() {
             <div>
               <label className="block text-sm font-medium text-charcoal mb-2">Preset status</label>
               <div className="grid grid-cols-2 gap-2">
-                {ORDER_STATUSES.filter((s) => s !== 'ALL').map((status) => (
+                {ORDER_STATUS_OPTIONS.map((opt) => (
                   <button
-                    key={status}
+                    key={opt.value}
                     type="button"
-                    onClick={() => setNewStatus(status)}
-                    className={`p-3 rounded-lg border-2 transition-colors text-sm font-medium ${
-                      newStatus === status
+                    onClick={() => setNewStatus(opt.value)}
+                    className={`p-3 rounded-lg border-2 transition-colors text-sm font-medium text-left ${
+                      newStatus === opt.value
                         ? 'border-rose bg-rose/10 text-rose'
                         : 'border-blush hover:border-warm-gray'
                     }`}
                   >
-                    {status}
+                    {opt.label}
                   </button>
                 ))}
               </div>
@@ -470,10 +502,10 @@ export default function AdminOrders() {
               placeholder="e.g. AWB1234567890"
             />
             <Input
-              label="Tracking URL"
+              label="Tracking URL (customer can open this link)"
               value={trackingForm.trackingUrl}
               onChange={(e) => setTrackingForm({ ...trackingForm, trackingUrl: e.target.value })}
-              placeholder="https://www.delhivery.com/track/package/..."
+              placeholder="https://carrier.com/track/..."
             />
 
             <div className="flex gap-3 pt-4">
@@ -488,6 +520,30 @@ export default function AdminOrders() {
                 Save Tracking
               </Button>
             </div>
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={!!deleteOrderTarget}
+          onClose={() => setDeleteOrderTarget(null)}
+          title={`Delete order #${deleteOrderTarget?.id}?`}
+          size="sm"
+        >
+          <p className="text-warm-gray mb-6">
+            This permanently removes the order from the admin list. This cannot be undone.
+          </p>
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => setDeleteOrderTarget(null)} className="flex-1">
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              className="flex-1"
+              loading={deleteOrderMutation.isPending}
+              onClick={() => deleteOrderTarget && deleteOrderMutation.mutate(deleteOrderTarget.id)}
+            >
+              Delete order
+            </Button>
           </div>
         </Modal>
       </div>

@@ -24,6 +24,7 @@ public class VariantService {
 
     private final ProductVariantRepository variantRepository;
     private final ProductRepository productRepository;
+    private final CatalogCacheService catalogCacheService;
 
     @Transactional(readOnly = true)
     public List<VariantDto> getVariantsByProductId(Long productId) {
@@ -53,6 +54,7 @@ public class VariantService {
                 .build();
 
         variantRepository.save(variant);
+        catalogCacheService.evictAll();
         log.info("Variant created for product {}: {}", productId, request.getOptionValues());
         return VariantDto.fromEntity(variant);
     }
@@ -82,6 +84,7 @@ public class VariantService {
         }
 
         variantRepository.save(variant);
+        catalogCacheService.evictAll();
         log.info("Variant {} updated", variantId);
         return VariantDto.fromEntity(variant);
     }
@@ -91,6 +94,7 @@ public class VariantService {
         ProductVariant variant = variantRepository.findById(variantId)
                 .orElseThrow(() -> new NotFoundException("Variant not found"));
         variantRepository.delete(variant);
+        catalogCacheService.evictAll();
         log.info("Variant {} deleted", variantId);
     }
 
@@ -121,6 +125,7 @@ public class VariantService {
         }
 
         variantRepository.saveAll(variants);
+        catalogCacheService.evictAll();
         log.info("Bulk saved {} variants for product {}", variants.size(), productId);
 
         return variants.stream().map(VariantDto::fromEntity).collect(Collectors.toList());

@@ -26,6 +26,9 @@ const OrderSuccessPage = lazy(() => import('./pages/OrderSuccessPage'))
 const OrderFailurePage = lazy(() => import('./pages/OrderFailurePage'))
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
 const AdminProducts = lazy(() => import('./pages/admin/AdminProducts'))
+const AdminProductFormPage = lazy(() => import('./pages/admin/AdminProductFormPage'))
+const AdminProductVariantsPage = lazy(() => import('./pages/admin/AdminProductVariantsPage'))
+const AdminVariantFormPage = lazy(() => import('./pages/admin/AdminVariantFormPage'))
 const AdminCategories = lazy(() => import('./pages/admin/AdminCategories'))
 const AdminOrders = lazy(() => import('./pages/admin/AdminOrders'))
 const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'))
@@ -100,6 +103,11 @@ function App() {
           <Route path="admin" element={<AdminRoute />}>
             <Route index element={<AdminDashboard />} />
             <Route path="products" element={<AdminProducts />} />
+            <Route path="products/new" element={<AdminProductFormPage />} />
+            <Route path="products/:slug/edit" element={<AdminProductFormPage />} />
+            <Route path="products/:slug/variants" element={<AdminProductVariantsPage />} />
+            <Route path="products/:slug/variants/new" element={<AdminVariantFormPage />} />
+            <Route path="products/:slug/variants/:variantId" element={<AdminVariantFormPage />} />
             <Route path="categories" element={<AdminCategories />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="coupons" element={<AdminCoupons />} />

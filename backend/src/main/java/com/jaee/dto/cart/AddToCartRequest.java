@@ -16,4 +16,7 @@ public class AddToCartRequest {
 
     /** Required when the product has SKU variants; ignored otherwise. */
     private Long variantId;
+
+    /** Required when product.customizationEnabled is true. */
+    private String customizationText;
 }
