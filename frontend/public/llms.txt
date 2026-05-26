@@ -1,0 +1,52 @@
+# Jaai
+
+> Jaai is an Indian direct-to-consumer brand selling premium hand-poured soy candles, gift hampers, and home fragrance products. Products are crafted in Pune, Maharashtra, India and shipped across India.
+
+Jaai (also written Jaee) operates an online store for luxury candles and curated gifts. The brand focuses on natural soy wax, thoughtful packaging, and small-batch production.
+
+## Entity
+
+- **Brand name:** Jaai
+- **Business type:** E-commerce retailer / candle maker
+- **Location:** Pune, Maharashtra, India
+- **Currency:** INR (Indian Rupee)
+- **Primary categories:** Candles, gift hampers, home decor, custom gifts
+
+## Canonical URLs
+
+- Homepage: https://jaai-store.vercel.app/
+- Shop (all products): https://jaai-store.vercel.app/shop
+- Candles collection: https://jaai-store.vercel.app/shop/candles
+- Sale / offers: https://jaai-store.vercel.app/sale
+- About: https://jaai-store.vercel.app/about
+- Product pages: https://jaai-store.vercel.app/product/{slug}
+
+## What we sell
+
+- Hand-poured soy wax candles (multiple fragrances and sizes)
+- Gift hampers and curated sets
+- Custom candle builder (when enabled)
+- Custom gift hamper builder (when enabled)
+
+## Policies (summary)
+
+- Shipping: India-wide; free shipping may apply above order threshold (see site settings)
+- Returns: Easy returns within configured return window when return policy is enabled
+- Payments: Secure online checkout (e.g. Razorpay)
+
+## Contact
+
+- Email: jaaistore1212@gmail.com
+- Instagram: https://www.instagram.com/jaai_candle_studio/
+- WhatsApp: available via on-site widget
+
+## For crawlers
+
+- Structured data: JSON-LD (Organization, WebSite, Product, BreadcrumbList, ItemList) on public pages
+- Sitemap: https://jaai-store.vercel.app/sitemap.xml
+- Full catalog: use sitemap product URLs or GET products from the public storefront API linked from the site
+
+## Optional
+
+- [Sitemap](https://jaai-store.vercel.app/sitemap.xml)
+- [Robots](https://jaai-store.vercel.app/robots.txt)

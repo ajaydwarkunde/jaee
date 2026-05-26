@@ -1,0 +1,53 @@
+# Jaai storefront — allow search engines and AI crawlers on public pages
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /account/
+Disallow: /login
+Disallow: /register
+Disallow: /cart
+Disallow: /orders
+Disallow: /wishlist
+Disallow: /order-success
+Disallow: /order-failure
+Disallow: /verify-email
+Disallow: /reset-password
+Disallow: /forgot-password
+
+# AI / LLM crawlers (GEO) — public catalog and content only
+User-agent: GPTBot
+Allow: /
+Disallow: /admin/
+Disallow: /account/
+Disallow: /cart
+Disallow: /orders
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin/
+Disallow: /account/
+
+User-agent: Claude-Web
+Allow: /
+Disallow: /admin/
+Disallow: /account/
+
+User-agent: anthropic-ai
+Allow: /
+Disallow: /admin/
+Disallow: /account/
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+Sitemap: https://jaai-store.vercel.app/sitemap.xml
+
+# Machine-readable site summary for LLMs
+# https://llmstxt.org/
+# https://jaai-store.vercel.app/llms.txt

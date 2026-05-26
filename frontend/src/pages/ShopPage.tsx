@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
+import { useParams, useSearchParams, useNavigate, useLocation } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { SlidersHorizontal, X } from 'lucide-react'
 import { productService } from '@/services/productService'
@@ -13,9 +13,14 @@ import type { FilterOptions, ProductFilters } from '@/types'
 import type { StoreSettings } from '@/services/settingsService'
 import { shopIndexListingFilters } from '@/lib/shopPrefetch'
 import { cmsHeroImageProps } from '@/lib/imageUrl'
+import PageMeta from '@/components/seo/PageMeta'
+import JsonLd from '@/components/seo/JsonLd'
+import { absoluteUrl, buildItemListSchema } from '@/lib/seo'
+
 export default function ShopPage() {
   const { categorySlug } = useParams()
   const navigate = useNavigate()
+  const { pathname, search } = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
   const [filtersOpen, setFiltersOpen] = useState(false)
   const queryClient = useQueryClient()
@@ -160,8 +165,24 @@ export default function ShopPage() {
 
   const hasActiveFilters = filters.minPrice || filters.maxPrice || filters.search || filters.color || filters.size
 
+  const shopPath = pathname + search
+  const shopListUrl = absoluteUrl(shopPath.split('?')[0])
+  const shopMetaDescription =
+    currentCategory?.description?.trim() ||
+    (categorySlug
+      ? `Shop ${shopHeaderTitle} at Jaai — hand-poured soy candles and gifts from Pune, Maharashtra, India.`
+      : 'Browse all Jaai candles and home products. Filter by category, price, and fragrance. Ships across India.')
+
+  const itemListSchema = useMemo(() => {
+    const items = productsData?.content
+    if (!items?.length) return null
+    return buildItemListSchema(shopHeaderTitle, items, shopListUrl)
+  }, [productsData?.content, shopHeaderTitle, shopListUrl])
+
   return (
     <div className="min-h-screen bg-cream">
+      <PageMeta title={shopHeaderTitle} description={shopMetaDescription} path={shopPath} />
+      {itemListSchema ? <JsonLd data={itemListSchema} /> : null}
       {/* Header */}
       <div
         className={`relative py-12 md:py-16 overflow-hidden ${

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useLocation } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ShoppingBag, Heart, Minus, Plus, ChevronLeft, ChevronRight, Truck, RotateCcw, Shield, Star, MessageSquare, Share2, Copy, Bell, Play, Volume2, VolumeX } from 'lucide-react'
 import { productService } from '@/services/productService'
@@ -26,6 +26,13 @@ import { getErrorMessage } from '@/lib/api'
 import type { Product, ProductVariant } from '@/types'
 import toast from 'react-hot-toast'
 import { showCartToast } from '@/components/ui/CartToast'
+import PageMeta from '@/components/seo/PageMeta'
+import JsonLd from '@/components/seo/JsonLd'
+import {
+  absoluteUrl,
+  buildBreadcrumbSchema,
+  buildProductSchema,
+} from '@/lib/seo'
 
 function ShareButtons({ productName }: { productName: string }) {
   const url = window.location.href
@@ -624,6 +631,7 @@ function VariantSelector({
 
 export default function ProductPage() {
   const { slug } = useParams<{ slug: string }>()
+  const { pathname, search } = useLocation()
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [showReviewForm, setShowReviewForm] = useState(false)
@@ -820,8 +828,33 @@ export default function ProductPage() {
     ? displayImages 
     : ['https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=800']
 
+  const productPath = pathname + search
+  const productUrl = absoluteUrl(productPath.split('?')[0])
+  const metaDescription =
+    (product.description?.trim() ||
+      `${product.name} — premium hand-poured soy candle by Jaai. Ships across India from Pune.`) +
+    (product.categoryNames.length > 0 ? ` Categories: ${product.categoryNames.join(', ')}.` : '')
+  const ogImage = optimizeImageUrl(images[0], 1200) || images[0]
+  const breadcrumbItems = [
+    { name: 'Home', path: '/' },
+    { name: 'Shop', path: '/shop' },
+    { name: product.name, path: productPath.split('?')[0] },
+  ]
+  const structuredData = [
+    buildProductSchema(product, productUrl),
+    buildBreadcrumbSchema(breadcrumbItems),
+  ]
+
   return (
     <div className="bg-cream min-h-screen">
+      <PageMeta
+        title={product.name}
+        description={metaDescription}
+        path={productPath}
+        image={ogImage}
+        type="product"
+      />
+      <JsonLd data={structuredData} />
       <div className="container-custom py-8 md:py-12">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm mb-8">
