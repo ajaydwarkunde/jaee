@@ -37,6 +37,7 @@ public class ProductDto {
     private List<VariantDto> variants;
     private Integer stockQty;
     private Boolean active;
+    private Boolean customizationEnabled;
     private Boolean inStock;
     private LocalDateTime createdAt;
     private BigDecimal avgRating;
@@ -83,6 +84,7 @@ public class ProductDto {
                         : List.of())
                 .stockQty(product.getStockQty())
                 .active(product.getActive())
+                .customizationEnabled(Boolean.TRUE.equals(product.getCustomizationEnabled()))
                 .inStock(product.isInStock())
                 .createdAt(product.getCreatedAt())
                 .avgRating(product.getAvgRating())

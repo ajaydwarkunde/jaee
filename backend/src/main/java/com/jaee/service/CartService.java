@@ -114,10 +114,22 @@ public class CartService {
             throw new BadRequestException("Insufficient stock. Available: " + available);
         }
 
+        boolean customizationRequired = Boolean.TRUE.equals(product.getCustomizationEnabled());
+        String customizationText = request.getCustomizationText() != null
+                ? request.getCustomizationText().trim()
+                : "";
+        if (customizationRequired && customizationText.isBlank()) {
+            throw new BadRequestException("Please add your customization details before adding to cart");
+        }
+        if (!customizationRequired) {
+            customizationText = null;
+        }
+
         String variantLabel = variant != null ? VariantLabelFormatter.format(variant) : null;
 
-        CartItem existingItem = cartItemRepository.findCartLine(cart, product, variantId)
-                .orElse(null);
+        CartItem existingItem = customizationRequired
+                ? null
+                : cartItemRepository.findCartLine(cart, product, variantId).orElse(null);
 
         if (existingItem != null) {
             int newQty = existingItem.getQty() + request.getQty();
@@ -134,6 +146,7 @@ public class CartService {
                     .variantLabel(variantLabel)
                     .qty(request.getQty())
                     .unitPriceSnapshot(unitPrice)
+                    .customizationText(customizationText)
                     .build();
             cart.addItem(newItem);
             cartItemRepository.save(newItem);
@@ -228,12 +241,22 @@ public class CartService {
 
             String variantLabel = variant != null ? VariantLabelFormatter.format(variant) : null;
 
-            CartItem existingItem = cartItemRepository.findCartLine(cart, product, variantId).orElse(null);
-
             int qtyToAdd = Math.min(guestItem.getQty(), available);
             if (qtyToAdd <= 0) {
                 continue;
             }
+
+            String guestCustomization = guestItem.getCustomizationText() != null
+                    ? guestItem.getCustomizationText().trim()
+                    : "";
+            boolean customizationRequired = Boolean.TRUE.equals(product.getCustomizationEnabled());
+            if (customizationRequired && guestCustomization.isBlank()) {
+                continue;
+            }
+
+            CartItem existingItem = customizationRequired
+                    ? null
+                    : cartItemRepository.findCartLine(cart, product, variantId).orElse(null);
 
             if (existingItem != null) {
                 int newQty = Math.min(existingItem.getQty() + qtyToAdd, available);
@@ -247,6 +270,7 @@ public class CartService {
                         .variantLabel(variantLabel)
                         .qty(qtyToAdd)
                         .unitPriceSnapshot(unitPrice)
+                        .customizationText(customizationRequired ? guestCustomization : null)
                         .build();
                 cart.addItem(newItem);
                 cartItemRepository.save(newItem);

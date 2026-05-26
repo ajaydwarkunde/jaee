@@ -88,6 +88,11 @@ public class Product {
     @Builder.Default
     private Boolean active = true;
 
+    /** When true, customers must enter customization text before add-to-cart. */
+    @Builder.Default
+    @Column(name = "customization_enabled", nullable = false)
+    private Boolean customizationEnabled = false;
+
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 

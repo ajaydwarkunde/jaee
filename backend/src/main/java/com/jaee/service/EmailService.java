@@ -70,6 +70,9 @@ public class EmailService {
     @Value("${app.cors.allowed-origins:http://localhost:5173}")
     private String frontendUrl;
 
+    @Value("${app.admin.order-notification-email:JAAISTORE1212@gmail.com}")
+    private String adminOrderNotificationEmail;
+
     public EmailService() {
         this.httpClient = new OkHttpClient.Builder()
                 .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
@@ -287,6 +290,72 @@ public class EmailService {
 
         String htmlContent = buildOrderConfirmationHtml(order);
         sendEmail(order.getCustomerEmail(), "Order Confirmed! - Jaai #" + order.getId(), htmlContent);
+    }
+
+    @Async
+    public void sendAdminNewOrderNotification(Order order) {
+        if (!emailEnabled) {
+            log.info("Email disabled - admin new order notification for {}", order.getId());
+            return;
+        }
+        String to = adminOrderNotificationEmail != null ? adminOrderNotificationEmail.trim() : "";
+        if (to.isBlank()) {
+            log.warn("Admin order notification email not configured");
+            return;
+        }
+        String html = buildAdminNewOrderHtml(order);
+        sendEmail(to, "New order #" + order.getId() + " — Jaai", html);
+    }
+
+    private String buildAdminNewOrderHtml(Order order) {
+        StringBuilder items = new StringBuilder();
+        for (OrderItem item : order.getItems()) {
+            items.append("<tr><td style=\"padding:8px 0;border-bottom:1px solid #eee;\">")
+                    .append(escapeHtml(item.getNameSnapshot()))
+                    .append("</td><td style=\"padding:8px 0;border-bottom:1px solid #eee;text-align:center;\">")
+                    .append(item.getQty())
+                    .append("</td><td style=\"padding:8px 0;border-bottom:1px solid #eee;text-align:right;\">₹")
+                    .append(item.getSubtotal().setScale(0, RoundingMode.HALF_UP))
+                    .append("</td></tr>");
+            if (item.getCustomizationText() != null && !item.getCustomizationText().isBlank()) {
+                items.append("<tr><td colspan=\"3\" style=\"padding:0 0 12px 0;font-size:13px;color:#555;\"><em>Customization: ")
+                        .append(escapeHtml(item.getCustomizationText()))
+                        .append("</em></td></tr>");
+            }
+        }
+        String customerName = order.getUser() != null && order.getUser().getName() != null
+                ? escapeHtml(order.getUser().getName())
+                : "—";
+        String paymentStatus = order.getStatus() != null ? escapeHtml(order.getStatus().name()) : "—";
+        String address = order.getShippingAddress() != null ? escapeHtml(order.getShippingAddress()).replace("\n", "<br>") : "—";
+        return String.format("""
+            <!DOCTYPE html><html><body style="font-family:Segoe UI,sans-serif;background:#FAF7F2;padding:20px;">
+            <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;padding:24px;">
+            <h2 style="color:#E9868B;margin:0 0 16px;">New order #%d</h2>
+            <p><strong>Customer:</strong> %s</p>
+            <p><strong>Email:</strong> %s</p>
+            <p><strong>Phone:</strong> %s</p>
+            <p><strong>Payment status:</strong> %s</p>
+            <p><strong>Total:</strong> ₹%s</p>
+            <h3 style="margin-top:20px;">Items</h3>
+            <table style="width:100%%;border-collapse:collapse;">%s</table>
+            <h3 style="margin-top:20px;">Delivery address</h3>
+            <p style="white-space:pre-line;">%s</p>
+            </div></body></html>
+            """,
+                order.getId(),
+                customerName,
+                escapeHtml(order.getCustomerEmail() != null ? order.getCustomerEmail() : "—"),
+                escapeHtml(order.getCustomerPhone() != null ? order.getCustomerPhone() : "—"),
+                paymentStatus,
+                order.getTotalAmount().setScale(0, RoundingMode.HALF_UP),
+                items,
+                address);
+    }
+
+    private static String escapeHtml(String raw) {
+        if (raw == null) return "";
+        return raw.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
     }
 
     /**

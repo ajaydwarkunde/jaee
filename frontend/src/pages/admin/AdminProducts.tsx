@@ -1,126 +1,39 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Pencil, Trash2, Search, Layers } from 'lucide-react'
 import { productService } from '@/services/productService'
-import { categoryService } from '@/services/categoryService'
 import { formatPrice } from '@/lib/utils'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Modal from '@/components/ui/Modal'
 import Badge from '@/components/ui/Badge'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
-import ProductForm from '@/components/admin/ProductForm'
-import VariantEditor from '@/components/admin/VariantEditor'
+import { invalidateCatalogQueries } from '@/lib/catalogQueries'
 import toast from 'react-hot-toast'
-import { getErrorMessage } from '@/lib/api'
-import type { Product, ProductFormData } from '@/types'
+import type { Product } from '@/types'
 
 export default function AdminProducts() {
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(0)
-  /** When set, edit modal loads full product by slug (listing rows omit options — saving edit would wipe option types and break variants). */
-  const [editSlug, setEditSlug] = useState<string | null>(null)
-  const [isFormOpen, setIsFormOpen] = useState(false)
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null)
-  /** Slug only — full product (options + variants) is loaded via query so listing rows are not used (listing DTO omits options). */
-  const [variantModalSlug, setVariantModalSlug] = useState<string | null>(null)
 
   const { data: productsData, isLoading } = useQuery({
     queryKey: ['admin-products', { search, page }],
     queryFn: () => productService.getProducts({ search: search || undefined, page, pageSize: 10 }),
   })
 
-  const { data: categories } = useQuery({
-    queryKey: ['categories'],
-    queryFn: categoryService.getCategories,
-  })
-
-  const {
-    data: variantEditorProduct,
-    isLoading: variantEditorLoading,
-    isError: variantEditorQueryFailed,
-    error: variantEditorQueryError,
-  } = useQuery({
-    queryKey: ['admin-product-for-variants', variantModalSlug],
-    queryFn: () => productService.getProductBySlug(variantModalSlug!),
-    enabled: !!variantModalSlug,
-    staleTime: 0,
-  })
-
-  const {
-    data: editFormProduct,
-    isLoading: editFormLoading,
-    isError: editFormQueryFailed,
-    error: editFormQueryError,
-  } = useQuery({
-    queryKey: ['admin-product-for-edit', editSlug],
-    queryFn: () => productService.getProductBySlug(editSlug!),
-    enabled: isFormOpen && !!editSlug,
-    staleTime: 0,
-  })
-
-  const createMutation = useMutation({
-    mutationFn: (data: ProductFormData) => productService.createProduct(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-products'] })
-      queryClient.invalidateQueries({ queryKey: ['product'] })
-      queryClient.invalidateQueries({ queryKey: ['products'] })
-      toast.success('Product created!')
-      setIsFormOpen(false)
-    },
-    onError: () => {
-      toast.error('Failed to create product')
-    },
-  })
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: ProductFormData }) =>
-      productService.updateProduct(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-products'] })
-      queryClient.invalidateQueries({ queryKey: ['product'] })
-      queryClient.invalidateQueries({ queryKey: ['products'] })
-      toast.success('Product updated!')
-      queryClient.invalidateQueries({ queryKey: ['admin-product-for-edit'] })
-      queryClient.invalidateQueries({ queryKey: ['admin-product-for-variants'] })
-      setEditSlug(null)
-      setIsFormOpen(false)
-    },
-    onError: () => {
-      toast.error('Failed to update product')
-    },
-  })
-
   const deleteMutation = useMutation({
     mutationFn: (id: number) => productService.deleteProduct(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-products'] })
+      invalidateCatalogQueries(queryClient)
       toast.success('Product deleted!')
       setDeleteProduct(null)
     },
-    onError: () => {
-      toast.error('Failed to delete product')
-    },
+    onError: () => toast.error('Failed to delete product'),
   })
-
-  const handleSubmit = (data: ProductFormData) => {
-    if (editSlug && editFormProduct) {
-      updateMutation.mutate({ id: editFormProduct.id, data })
-    } else if (!editSlug) {
-      createMutation.mutate(data)
-    }
-  }
-
-  const handleEdit = (product: Product) => {
-    setEditSlug(product.slug)
-    setIsFormOpen(true)
-  }
-
-  const handleCloseForm = () => {
-    setEditSlug(null)
-    setIsFormOpen(false)
-  }
 
   if (isLoading) {
     return <LoadingSpinner fullScreen />
@@ -132,22 +45,13 @@ export default function AdminProducts() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="heading-2 text-charcoal">Products</h1>
-            <p className="text-warm-gray mt-1">
-              {productsData?.totalElements || 0} total products
-            </p>
+            <p className="text-warm-gray mt-1">{productsData?.totalElements || 0} total products</p>
           </div>
-          <Button
-            onClick={() => {
-              setEditSlug(null)
-              setIsFormOpen(true)
-            }}
-            icon={<Plus className="w-5 h-5" />}
-          >
+          <Button onClick={() => navigate('/admin/products/new')} icon={<Plus className="w-5 h-5" />}>
             Add Product
           </Button>
         </div>
 
-        {/* Search */}
         <div className="mb-6">
           <Input
             type="text"
@@ -162,7 +66,6 @@ export default function AdminProducts() {
           />
         </div>
 
-        {/* Products Table */}
         <div className="bg-soft-white rounded-xl shadow-soft overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -170,7 +73,9 @@ export default function AdminProducts() {
                 <tr>
                   <th className="text-left p-4 font-medium text-charcoal">Product</th>
                   <th className="text-left p-4 font-medium text-charcoal">Category</th>
-                  <th className="text-left p-4 font-medium text-charcoal min-w-[200px] max-w-[280px]">Description</th>
+                  <th className="text-left p-4 font-medium text-charcoal min-w-[200px] max-w-[280px]">
+                    Description
+                  </th>
                   <th className="text-left p-4 font-medium text-charcoal">Price</th>
                   <th className="text-left p-4 font-medium text-charcoal">Stock</th>
                   <th className="text-left p-4 font-medium text-charcoal">Status</th>
@@ -183,7 +88,10 @@ export default function AdminProducts() {
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <img
-                          src={product.images[0] || 'https://images.unsplash.com/photo-1602523961359-24a68d4e5a9b?w=100'}
+                          src={
+                            product.images[0] ||
+                            'https://images.unsplash.com/photo-1602523961359-24a68d4e5a9b?w=100'
+                          }
                           alt={product.name}
                           className="w-12 h-12 rounded-lg object-cover"
                         />
@@ -200,7 +108,9 @@ export default function AdminProducts() {
                         </div>
                       </div>
                     </td>
-                    <td className="p-4 text-warm-gray">{product.categoryNames?.length > 0 ? product.categoryNames.join(', ') : '—'}</td>
+                    <td className="p-4 text-warm-gray">
+                      {product.categoryNames?.length > 0 ? product.categoryNames.join(', ') : '—'}
+                    </td>
                     <td className="p-4 max-w-[280px]">
                       {product.description?.trim() ? (
                         <p className="text-sm text-charcoal/80 line-clamp-2" title={product.description}>
@@ -222,21 +132,23 @@ export default function AdminProducts() {
                     <td className="p-4">
                       <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => setVariantModalSlug(product.slug)}
+                          onClick={() => navigate(`/admin/products/${product.slug}/variants`)}
                           className="p-2 text-warm-gray hover:text-amber-600 transition-colors"
-                          title="Manage Variants (Size & Scent)"
+                          title="Manage variants"
                         >
                           <Layers className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleEdit(product)}
+                          onClick={() => navigate(`/admin/products/${product.slug}/edit`)}
                           className="p-2 text-warm-gray hover:text-rose transition-colors"
+                          title="Edit product"
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => setDeleteProduct(product)}
                           className="p-2 text-warm-gray hover:text-error transition-colors"
+                          title="Delete product"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -248,7 +160,6 @@ export default function AdminProducts() {
             </table>
           </div>
 
-          {/* Pagination */}
           {productsData && productsData.totalPages > 1 && (
             <div className="flex justify-center items-center gap-2 p-4 border-t border-blush">
               <Button
@@ -274,61 +185,6 @@ export default function AdminProducts() {
           )}
         </div>
 
-        {/* Product Form Modal — edit flow loads full product so options/images match DB (listing API strips options). */}
-        <Modal
-          isOpen={isFormOpen}
-          onClose={handleCloseForm}
-          title={editSlug ? 'Edit Product' : 'Add Product'}
-          size="lg"
-        >
-          {editSlug && editFormLoading && (
-            <div className="flex justify-center py-16">
-              <LoadingSpinner />
-            </div>
-          )}
-          {editSlug && editFormQueryFailed && (
-            <p className="text-center text-error py-8 text-sm">{getErrorMessage(editFormQueryError)}</p>
-          )}
-          {(!editSlug || editFormProduct) &&
-            !(editSlug && editFormLoading) &&
-            !(editSlug && editFormQueryFailed) && (
-              <ProductForm
-                key={editFormProduct?.id ?? 'new-product'}
-                product={editFormProduct ?? null}
-                categories={categories || []}
-                onSubmit={handleSubmit}
-                onCancel={handleCloseForm}
-                loading={createMutation.isPending || updateMutation.isPending}
-              />
-            )}
-        </Modal>
-
-        {/* Variant Editor Modal — load full product so option names exist (listing API strips options). */}
-        <Modal
-          isOpen={!!variantModalSlug}
-          onClose={() => setVariantModalSlug(null)}
-          title="Manage Variants"
-          size="xl"
-        >
-          {variantEditorLoading && (
-            <div className="flex justify-center py-16">
-              <LoadingSpinner />
-            </div>
-          )}
-          {variantEditorQueryFailed && (
-            <p className="text-center text-error py-8 text-sm">
-              {getErrorMessage(variantEditorQueryError)}
-            </p>
-          )}
-          {!variantEditorLoading && !variantEditorQueryFailed && variantEditorProduct && (
-            <VariantEditor
-              product={variantEditorProduct}
-              onClose={() => setVariantModalSlug(null)}
-            />
-          )}
-        </Modal>
-
-        {/* Delete Confirmation */}
         <Modal
           isOpen={!!deleteProduct}
           onClose={() => setDeleteProduct(null)}

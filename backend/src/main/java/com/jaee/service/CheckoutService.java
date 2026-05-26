@@ -42,6 +42,7 @@ public class CheckoutService {
     private final WhatsAppService whatsAppService;
     private final ShipmentQuoteService shipmentQuoteService;
     private final ProductVariantRepository productVariantRepository;
+    private final CatalogCacheService catalogCacheService;
 
     @Value("${app.razorpay.key-id}")
     private String razorpayKeyId;
@@ -331,6 +332,7 @@ public class CheckoutService {
         order.setRazorpayPaymentId(razorpayPaymentId);
 
         reduceInventoryForOrder(order);
+        catalogCacheService.evictAll();
 
         orderRepository.save(order);
 
@@ -342,19 +344,7 @@ public class CheckoutService {
         // Clear cart
         cartService.clearCart(order.getUser());
 
-        // Send confirmation email
-        try {
-            emailService.sendOrderConfirmation(order);
-        } catch (Exception e) {
-            log.error("Failed to send order confirmation email for order {}: {}", order.getId(), e.getMessage());
-        }
-
-        // Send WhatsApp notification
-        try {
-            whatsAppService.sendOrderConfirmation(order);
-        } catch (Exception e) {
-            log.error("Failed to send WhatsApp notification for order {}: {}", order.getId(), e.getMessage());
-        }
+        notifyOrderPlaced(order);
 
         log.info("Order {} completed successfully via {} payment {}", 
                 order.getId(), testMode ? "TEST" : "Razorpay", razorpayPaymentId);
@@ -419,6 +409,7 @@ public class CheckoutService {
         order.setRazorpayPaymentId(razorpayPaymentId);
 
         reduceInventoryForOrder(order);
+        catalogCacheService.evictAll();
 
         orderRepository.save(order);
 
@@ -429,18 +420,7 @@ public class CheckoutService {
 
         cartService.clearCart(order.getUser());
 
-        try {
-            emailService.sendOrderConfirmation(order);
-        } catch (Exception e) {
-            log.error("Failed to send order confirmation email for order {}: {}", order.getId(), e.getMessage());
-        }
-
-        // Send WhatsApp notification
-        try {
-            whatsAppService.sendOrderConfirmation(order);
-        } catch (Exception e) {
-            log.error("Failed to send WhatsApp notification for order {}: {}", order.getId(), e.getMessage());
-        }
+        notifyOrderPlaced(order);
 
         log.info("Order {} marked as paid via webhook", order.getId());
     }
@@ -528,6 +508,7 @@ public class CheckoutService {
                     .compareAtPriceSnapshot(compareAt)
                     .weightKgSnapshot(unitWeightKg)
                     .expenseSnapshot(expenseSnap)
+                    .customizationText(cartItem.getCustomizationText())
                     .build();
             order.addItem(orderItem);
         }
@@ -554,6 +535,24 @@ public class CheckoutService {
             return cartItem.getVariant().getImages().get(0);
         }
         return cartItem.getProduct().getImages().isEmpty() ? null : cartItem.getProduct().getImages().get(0);
+    }
+
+    private void notifyOrderPlaced(Order order) {
+        try {
+            emailService.sendOrderConfirmation(order);
+        } catch (Exception e) {
+            log.error("Failed to send order confirmation email for order {}: {}", order.getId(), e.getMessage());
+        }
+        try {
+            emailService.sendAdminNewOrderNotification(order);
+        } catch (Exception e) {
+            log.error("Failed to send admin new-order email for order {}: {}", order.getId(), e.getMessage());
+        }
+        try {
+            whatsAppService.sendOrderConfirmation(order);
+        } catch (Exception e) {
+            log.error("Failed to send WhatsApp notification for order {}: {}", order.getId(), e.getMessage());
+        }
     }
 
     private void reduceInventoryForOrder(Order order) {

@@ -48,4 +48,7 @@ public class ProductCreateRequest {
     private Integer stockQty = 0;
     
     private Boolean active = true;
+
+    /** When true, customers must enter customization details before add-to-cart. */
+    private Boolean customizationEnabled = false;
 }

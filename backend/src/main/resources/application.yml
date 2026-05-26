@@ -57,6 +57,9 @@ app:
   # - resend (default): requires RESEND_API_KEY
   # - brevo-smtp / smtp: requires EMAIL_SMTP_* credentials (smtp-relay.brevo.com)
   # Always use EMAIL_FROM on a verified sender/domain for production delivery.
+  admin:
+    order-notification-email: ${ADMIN_ORDER_NOTIFICATION_EMAIL:JAAISTORE1212@gmail.com}
+
   email:
     provider: ${EMAIL_PROVIDER:resend}
     from: ${EMAIL_FROM:onboarding@resend.dev}

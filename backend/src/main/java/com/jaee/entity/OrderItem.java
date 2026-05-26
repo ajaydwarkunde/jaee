@@ -60,6 +60,9 @@ public class OrderItem {
     @Column(name = "expense_snapshot", precision = 10, scale = 2)
     private BigDecimal expenseSnapshot;
 
+    @Column(name = "customization_text", columnDefinition = "TEXT")
+    private String customizationText;
+
     public BigDecimal getSubtotal() {
         return priceSnapshot.multiply(BigDecimal.valueOf(qty));
     }
