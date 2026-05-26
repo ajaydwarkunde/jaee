@@ -9,8 +9,13 @@ export const SITE_URL = (import.meta.env.VITE_SITE_URL || 'https://jaai-store.ve
 export const SITE_NAME = 'Jaai'
 export const SITE_TAGLINE = 'Premium Candles & Home Decor'
 
+/** Homepage & fallback title — target 50–60 characters for on-page SEO audits. */
+export const DEFAULT_HOME_TITLE =
+  'Jaai | Hand-Poured Soy Candles & Gifts from Pune, India'
+
+/** Default meta description — target 120–160 characters. */
 export const DEFAULT_SITE_DESCRIPTION =
-  'Jaai — Premium hand-poured soy candles and home products. Handcrafted in Pune, Maharashtra, India. Shop candles, gift hampers, and custom gifts online.'
+  'Shop Jaai soy candles & gift hampers hand-poured in Pune, Maharashtra. Premium fragrances, all-India shipping, secure checkout and easy returns online.'
 
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/favicon.svg`
 

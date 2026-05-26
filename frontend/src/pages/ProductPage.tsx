@@ -32,6 +32,7 @@ import {
   absoluteUrl,
   buildBreadcrumbSchema,
   buildProductSchema,
+  clampMetaDescription,
 } from '@/lib/seo'
 
 function ShareButtons({ productName }: { productName: string }) {
@@ -830,10 +831,11 @@ export default function ProductPage() {
 
   const productPath = pathname + search
   const productUrl = absoluteUrl(productPath.split('?')[0])
-  const metaDescription =
+  const metaDescription = clampMetaDescription(
     (product.description?.trim() ||
-      `${product.name} — premium hand-poured soy candle by Jaai. Ships across India from Pune.`) +
-    (product.categoryNames.length > 0 ? ` Categories: ${product.categoryNames.join(', ')}.` : '')
+      `Buy ${product.name} — premium hand-poured soy candle by Jaai, handmade in Pune, Maharashtra. Natural wax, lasting fragrance, gift-ready packaging with secure checkout and all-India shipping.`) +
+      (product.categoryNames.length > 0 ? ` Categories: ${product.categoryNames.join(', ')}.` : '')
+  )
   const ogImage = optimizeImageUrl(images[0], 1200) || images[0]
   const breadcrumbItems = [
     { name: 'Home', path: '/' },

@@ -15,7 +15,7 @@ import { shopIndexListingFilters } from '@/lib/shopPrefetch'
 import { cmsHeroImageProps } from '@/lib/imageUrl'
 import PageMeta from '@/components/seo/PageMeta'
 import JsonLd from '@/components/seo/JsonLd'
-import { absoluteUrl, buildItemListSchema } from '@/lib/seo'
+import { absoluteUrl, buildItemListSchema, clampMetaDescription } from '@/lib/seo'
 
 export default function ShopPage() {
   const { categorySlug } = useParams()
@@ -167,11 +167,16 @@ export default function ShopPage() {
 
   const shopPath = pathname + search
   const shopListUrl = absoluteUrl(shopPath.split('?')[0])
-  const shopMetaDescription =
+  const shopPageTitle = categorySlug
+    ? `Shop ${shopHeaderTitle} — Soy Candles & Gifts`
+    : 'Shop Hand-Poured Soy Candles & Gift Hampers'
+
+  const shopMetaDescription = clampMetaDescription(
     currentCategory?.description?.trim() ||
-    (categorySlug
-      ? `Shop ${shopHeaderTitle} at Jaai — hand-poured soy candles and gifts from Pune, Maharashtra, India.`
-      : 'Browse all Jaai candles and home products. Filter by category, price, and fragrance. Ships across India.')
+      (categorySlug
+        ? `Shop ${shopHeaderTitle} at Jaai — hand-poured soy candles, scented jars & curated gift hampers from Pune, Maharashtra. Filter by fragrance and price with secure checkout and all-India delivery.`
+        : "Browse Jaai's full candle shop — soy wax candles, scented jars, tea lights & curated gift hampers. Handmade in Pune, Maharashtra. Filter by fragrance, price & size with all-India shipping.")
+  )
 
   const itemListSchema = useMemo(() => {
     const items = productsData?.content
@@ -181,7 +186,7 @@ export default function ShopPage() {
 
   return (
     <div className="min-h-screen bg-cream">
-      <PageMeta title={shopHeaderTitle} description={shopMetaDescription} path={shopPath} />
+      <PageMeta title={shopPageTitle} description={shopMetaDescription} path={shopPath} />
       {itemListSchema ? <JsonLd data={itemListSchema} /> : null}
       {/* Header */}
       <div
