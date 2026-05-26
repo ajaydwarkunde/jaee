@@ -19,32 +19,35 @@ const PRIVATE_PREFIXES = [
   '/splash-demo',
 ]
 
-const STATIC_ROUTES: Record<string, { title: string; description: string }> = {
+/** Per-route titles (50–60 chars with brand suffix) and descriptions (120–160 chars). */
+const STATIC_ROUTES: Record<string, { title?: string; description: string }> = {
   '/': {
-    title: 'Home',
     description: DEFAULT_SITE_DESCRIPTION,
   },
   '/shop': {
-    title: 'Shop All Products',
+    title: 'Shop Hand-Poured Soy Candles & Gift Hampers',
     description:
-      'Browse Jaai’s full collection of hand-poured soy candles, gift hampers, and home fragrance products. Ships across India from Pune.',
+      "Browse Jaai's full candle shop — soy wax candles, scented jars, tea lights & curated gift hampers. Handmade in Pune, Maharashtra. Filter by fragrance, price & size with all-India shipping.",
   },
   '/sale': {
-    title: 'Offers & Sale',
-    description: 'Shop discounted candles and gifts from Jaai. Limited-time offers on premium hand-poured products.',
+    title: 'Candle Sale & Offers — Discounts on Jaai',
+    description:
+      'Save on Jaai candles and gift sets — limited-time offers on hand-poured soy wax candles and home fragrance. Premium quality from Pune with all-India delivery and secure online checkout today.',
   },
   '/about': {
-    title: 'About Us',
+    title: 'About Jaai — Pune Candle Makers & Our Story',
     description:
-      'Learn how Jaai crafts premium soy candles by hand in Pune, Maharashtra — our story, values, and commitment to quality.',
+      'Discover Jaai — a Pune-based candle brand making premium soy wax candles and gifts by hand. Read our story, values, and commitment to natural ingredients, quality, and sustainable packaging in India.',
   },
   '/custom-candle': {
-    title: 'Custom Candle',
-    description: 'Design your own hand-poured custom candle with Jaai. Choose fragrance, vessel, and packaging.',
+    title: 'Build a Custom Hand-Poured Soy Candle',
+    description:
+      'Design your own Jaai custom candle — pick fragrance, vessel, wax blend, and packaging. Hand-poured soy candles made to order in Pune, Maharashtra with gift-ready options and all-India delivery.',
   },
   '/custom-hamper': {
-    title: 'Custom Gift Hamper',
-    description: 'Build a personalized gift hamper with Jaai candles and curated home products.',
+    title: 'Create a Custom Gift Hamper — Candles & More',
+    description:
+      'Build a personalized Jaai gift hamper with candles, home fragrance, and curated add-ons. Perfect for weddings, corporate gifts, and festivals — handmade in Pune with premium packaging and India-wide shipping.',
   },
 }
 
