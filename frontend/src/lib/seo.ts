@@ -180,12 +180,14 @@ export function buildWebSiteSchema() {
 }
 
 export function buildProductSchema(product: Product, productUrl: string) {
+  const images = product.images ?? []
+  const categoryNames = product.categoryNames ?? []
   const schema: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
     description: product.description || `${product.name} — hand-poured candle by ${SITE_NAME}.`,
-    image: product.images.length > 0 ? product.images : [DEFAULT_OG_IMAGE],
+    image: images.length > 0 ? images : [DEFAULT_OG_IMAGE],
     url: productUrl,
     brand: {
       '@type': 'Brand',
@@ -214,8 +216,8 @@ export function buildProductSchema(product: Product, productUrl: string) {
   const sku = product.variants?.find((v) => v.sku)?.sku
   if (sku) schema.sku = sku
 
-  if (product.categoryNames.length > 0) {
-    schema.category = product.categoryNames.join(', ')
+  if (categoryNames.length > 0) {
+    schema.category = categoryNames.join(', ')
   }
 
   return schema
