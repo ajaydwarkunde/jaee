@@ -10,7 +10,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const publicDir = join(__dirname, '..', 'public')
 
 const SITE_URL = (process.env.VITE_SITE_URL || 'https://jaai-store.vercel.app').replace(/\/$/, '')
-const API_URL = (process.env.VITE_API_URL || 'https://jaee-backend.onrender.com').replace(/\/$/, '')
+const API_URL = (process.env.VITE_API_URL || 'https://jaee-api.onrender.com').replace(/\/$/, '')
 
 const STATIC_PATHS = [
   '/',
@@ -41,28 +41,33 @@ function urlEntry(loc, changefreq = 'weekly', priority = '0.7') {
 }
 
 async function fetchProductSlugs() {
-  const slugs = []
-  let page = 0
-  let last = false
+  try {
+    const slugs = []
+    let page = 0
+    let last = false
 
-  while (!last) {
-    const res = await fetch(`${API_URL}/products?page=${page}&pageSize=100`)
-    if (!res.ok) {
-      console.warn(`[sitemap] products API ${res.status} — skipping product URLs`)
-      return slugs
+    while (!last) {
+      const res = await fetch(`${API_URL}/products?page=${page}&pageSize=100`)
+      if (!res.ok) {
+        console.warn(`[sitemap] products API ${res.status} — skipping product URLs`)
+        return slugs
+      }
+      const body = await res.json()
+      const data = body?.data
+      if (!data?.content) break
+      for (const p of data.content) {
+        if (p?.slug && p.active !== false) slugs.push(p.slug)
+      }
+      last = Boolean(data.last)
+      page += 1
+      if (page > 50) break
     }
-    const body = await res.json()
-    const data = body?.data
-    if (!data?.content) break
-    for (const p of data.content) {
-      if (p?.slug && p.active !== false) slugs.push(p.slug)
-    }
-    last = Boolean(data.last)
-    page += 1
-    if (page > 50) break
+
+    return slugs
+  } catch (err) {
+    console.warn('[sitemap] Could not fetch products — using static URLs only:', err.message)
+    return []
   }
-
-  return slugs
 }
 
 async function fetchCategorySlugs() {
@@ -114,6 +119,16 @@ ${entries.join('\n')}
 }
 
 main().catch((err) => {
-  console.error('[sitemap] Failed:', err)
-  process.exit(1)
+  console.warn('[sitemap] Build continuing with static URLs only:', err.message)
+  const entries = STATIC_PATHS.map((path) => {
+    const loc = `${SITE_URL}${path}`
+    return urlEntry(loc, path === '/' ? 'daily' : 'weekly', path === '/' ? '1.0' : '0.7')
+  })
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${entries.join('\n')}
+</urlset>
+`
+  writeFileSync(join(publicDir, 'sitemap.xml'), xml, 'utf8')
+  console.log(`[sitemap] Wrote fallback ${STATIC_PATHS.length} URLs`)
 })

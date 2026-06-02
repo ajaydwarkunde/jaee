@@ -786,7 +786,7 @@ export default function ProductPage() {
       )
       showCartToast({
         productName: product.name,
-        productImage: product.images[0],
+        productImage: (product.images ?? [])[0],
         price: Number(selectedVariant?.price ?? product.price),
         currency: product.currency,
         quantity,
@@ -838,20 +838,22 @@ export default function ProductPage() {
     : productDiscountPercentOff(product)
   const effectiveInStock = selectedVariant ? selectedVariant.inStock : product.inStock
 
-  const displayImages = selectedVariant && selectedVariant.images.length > 0
+  const productImages = product.images ?? []
+  const displayImages = selectedVariant && (selectedVariant.images?.length ?? 0) > 0
     ? selectedVariant.images
-    : product.images
+    : productImages
 
-  const images = displayImages.length > 0 
+  const images = (displayImages?.length ?? 0) > 0 
     ? displayImages 
     : ['https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=800']
 
   const productPath = pathname + search
   const productUrl = absoluteUrl(productPath.split('?')[0])
+  const categoryNames = product.categoryNames ?? []
   const metaDescription = clampMetaDescription(
     (product.description?.trim() ||
       `Buy ${product.name} — premium hand-poured soy candle by Jaai, handmade in Pune, Maharashtra. Natural wax, lasting fragrance, gift-ready packaging with secure checkout and all-India shipping.`) +
-      (product.categoryNames.length > 0 ? ` Categories: ${product.categoryNames.join(', ')}.` : '')
+      (categoryNames.length > 0 ? ` Categories: ${categoryNames.join(', ')}.` : ''),
   )
   const ogImage = optimizeImageUrl(images[0], 1200) || images[0]
   const breadcrumbItems = [
@@ -882,10 +884,10 @@ export default function ProductPage() {
             Back to Shop
           </Link>
           <span className="text-warm-gray">/</span>
-          {product.categoryNames.length > 0 && (
+          {categoryNames.length > 0 && (
             <>
               <Link to={`/shop`} className="text-warm-gray hover:text-rose transition-colors">
-                {product.categoryNames.join(', ')}
+                {categoryNames.join(', ')}
               </Link>
               <span className="text-warm-gray">/</span>
             </>
@@ -905,9 +907,9 @@ export default function ProductPage() {
 
           {/* Product Info */}
           <div className="lg:py-4">
-            {product.categoryNames.length > 0 && (
+            {categoryNames.length > 0 && (
               <p className="text-sm text-warm-gray uppercase tracking-wide mb-2">
-                {product.categoryNames.join(' · ')}
+                {categoryNames.join(' · ')}
               </p>
             )}
             
@@ -965,7 +967,7 @@ export default function ProductPage() {
                 onSelect={(v) => {
                   setSelectedVariant(v)
                   setQuantity(1)
-                  if (v && v.images.length > 0) setSelectedImage(0)
+                  if (v && (v.images?.length ?? 0) > 0) setSelectedImage(0)
                 }}
               />
             )}
