@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft } from 'lucide-react'
 import { productService } from '@/services/productService'
@@ -11,7 +11,8 @@ import type { ProductFormData } from '@/types'
 
 export default function AdminProductFormPage() {
   const { slug } = useParams<{ slug: string }>()
-  const isNew = !slug
+  const { pathname } = useLocation()
+  const isNew = pathname.endsWith('/products/new')
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
