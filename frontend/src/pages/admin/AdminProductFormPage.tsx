@@ -11,7 +11,7 @@ import type { ProductFormData } from '@/types'
 
 export default function AdminProductFormPage() {
   const { slug } = useParams<{ slug: string }>()
-  const isNew = slug === 'new'
+  const isNew = !slug
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
