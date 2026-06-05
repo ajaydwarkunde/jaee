@@ -20,6 +20,7 @@ import {
   type CommunityExperience,
 } from '@/services/communityExperienceService'
 import { cmsHeroImageProps, cmsSectionImageProps } from '@/lib/imageUrl'
+import SmokeFireBackground from '@/components/effects/SmokeFireBackground'
 
 const DEFAULT_HERO_CANDLE =
   'https://images.unsplash.com/photo-1602874801007-bd458bb1b8b6?w=1200&auto=format&fit=crop'
@@ -593,12 +594,17 @@ export default function HomePage() {
 
   return (
     <div className="animate-fade-in">
-      {/* Cover hero */}
-      <SplitHero
-        hamperEnabled={featureHamperPublic}
-        candlesImageSrc={getValue('homepage_hero_candles_image_url' as keyof StoreSettings)}
-        hampersImageSrc={getValue('homepage_hero_hampers_image_url' as keyof StoreSettings)}
-      />
+      {/* Cover hero with smoke + fire atmosphere */}
+      <div className="relative overflow-hidden">
+        <SmokeFireBackground fireColor="#E8A04A" smokeColor="#923C5B" opacity={0.5} />
+        <div className="relative z-10">
+          <SplitHero
+            hamperEnabled={featureHamperPublic}
+            candlesImageSrc={getValue('homepage_hero_candles_image_url' as keyof StoreSettings)}
+            hampersImageSrc={getValue('homepage_hero_hampers_image_url' as keyof StoreSettings)}
+          />
+        </div>
+      </div>
 
       {/* Featured Products */}
       <section ref={featuredSectionRef} className="pt-4 pb-16 md:py-24 bg-soft-white">
