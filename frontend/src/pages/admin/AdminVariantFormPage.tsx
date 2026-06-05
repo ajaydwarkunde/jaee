@@ -19,7 +19,7 @@ export default function AdminVariantFormPage() {
   const { slug, variantId } = useParams<{ slug: string; variantId: string }>()
   const [searchParams] = useSearchParams()
   const cloneFromId = searchParams.get('cloneFrom')
-  const isNew = variantId === 'new'
+  const isNew = !variantId
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
