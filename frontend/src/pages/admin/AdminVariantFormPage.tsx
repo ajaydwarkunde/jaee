@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft } from 'lucide-react'
@@ -17,9 +17,10 @@ import { getErrorMessage } from '@/lib/api'
 
 export default function AdminVariantFormPage() {
   const { slug, variantId } = useParams<{ slug: string; variantId: string }>()
+  const { pathname } = useLocation()
   const [searchParams] = useSearchParams()
   const cloneFromId = searchParams.get('cloneFrom')
-  const isNew = !variantId
+  const isNew = pathname.endsWith('/variants/new')
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
