@@ -70,6 +70,6 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
         // Skip logging for health checks to reduce noise
-        return path.contains("/actuator/health");
+        return path.contains("/actuator/health") || path.contains("/keepalive");
     }
 }
