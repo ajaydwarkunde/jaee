@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -37,6 +38,16 @@ class SecurityIntegrationTest {
     void publicEndpoints_return200WithoutAuth() throws Exception {
         mockMvc.perform(get("/products"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithAnonymousUser
+    void productPreview_fromJaaiVercelDeployment_allowsCors() throws Exception {
+        String previewOrigin = "https://jaai-jzewab8c3-ajaydwarkundes-projects.vercel.app";
+
+        mockMvc.perform(get("/products").header("Origin", previewOrigin))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", previewOrigin));
     }
 
     @Test
