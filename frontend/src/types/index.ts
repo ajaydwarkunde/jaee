@@ -36,6 +36,8 @@ export interface Product {
   id: number
   name: string
   slug: string
+  sheetSku?: string | null
+  sheetLastSyncedAt?: string | null
   description: string | null
   price: number
   /** Per unit, for delivery (kg) */

@@ -29,6 +29,13 @@ public class Product {
     @Column(nullable = false, unique = true)
     private String slug;
 
+    /** Stable external identifier for products managed by the Google Sheet. */
+    @Column(name = "sheet_sku", length = 100)
+    private String sheetSku;
+
+    @Column(name = "sheet_last_synced_at")
+    private LocalDateTime sheetLastSyncedAt;
+
     @Column(columnDefinition = "TEXT")
     private String description;
 

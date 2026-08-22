@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Upload, X, Loader2, Film, Plus, Layers } from 'lucide-react'
+import { Upload, X, Loader2, Film, Plus, Layers, FileSpreadsheet } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Textarea from '@/components/ui/Textarea'
@@ -201,8 +201,27 @@ export default function ProductForm({
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+      {product?.sheetSku && (
+        <div className="rounded-xl border border-success/30 bg-success/10 p-4">
+          <div className="flex items-start gap-3">
+            <FileSpreadsheet className="h-5 w-5 shrink-0 text-success mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-charcoal">
+                Managed by Google Sheet · SKU {product.sheetSku}
+              </p>
+              <p className="mt-1 text-xs text-warm-gray">
+                Name, selling price, stock, cost and variant options are sheet-owned. You can edit
+                them here, but the next sheet sync will overwrite those values.
+                {product.sheetLastSyncedAt &&
+                  ` Last synced ${new Date(product.sheetLastSyncedAt).toLocaleString()}.`}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Input
-        label="Product Name"
+        label={`Product Name${product?.sheetSku ? ' (Google Sheet managed)' : ''}`}
         {...register('name')}
         error={errors.name?.message}
         required
@@ -223,7 +242,7 @@ export default function ProductForm({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Input
-          label="Selling Price (₹)"
+          label={`Selling Price (₹)${product?.sheetSku ? ' · Sheet managed' : ''}`}
           type="number"
           step="1"
           {...register('price', { valueAsNumber: true })}
@@ -521,7 +540,7 @@ export default function ProductForm({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Input
-          label="Stock Quantity"
+          label={`Stock Quantity${product?.sheetSku ? ' · Sheet managed' : ''}`}
           type="number"
           {...register('stockQty')}
           error={errors.stockQty?.message}

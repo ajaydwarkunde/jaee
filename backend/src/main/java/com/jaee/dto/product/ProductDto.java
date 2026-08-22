@@ -22,6 +22,8 @@ public class ProductDto {
     private Long id;
     private String name;
     private String slug;
+    private String sheetSku;
+    private LocalDateTime sheetLastSyncedAt;
     private String description;
     private BigDecimal price;
     /** Per-unit weight for delivery estimates (kg). */
@@ -64,6 +66,8 @@ public class ProductDto {
                 .id(product.getId())
                 .name(product.getName())
                 .slug(product.getSlug())
+                .sheetSku(product.getSheetSku())
+                .sheetLastSyncedAt(product.getSheetLastSyncedAt())
                 .description(product.getDescription())
                 .price(product.getPrice())
                 .weightKg(product.getWeightKg())
@@ -101,6 +105,8 @@ public class ProductDto {
                 .id(product.getId())
                 .name(product.getName())
                 .slug(product.getSlug())
+                .sheetSku(product.getSheetSku())
+                .sheetLastSyncedAt(product.getSheetLastSyncedAt())
                 .description(product.getDescription())
                 .price(product.getPrice())
                 .weightKg(product.getWeightKg())

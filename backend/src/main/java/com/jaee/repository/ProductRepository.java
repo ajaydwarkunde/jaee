@@ -17,6 +17,10 @@ import java.util.Set;
 public interface ProductRepository extends JpaRepository<Product, Long> {
     Optional<Product> findBySlug(String slug);
 
+    Optional<Product> findBySheetSkuIgnoreCase(String sheetSku);
+
+    List<Product> findAllByNameIgnoreCase(String name);
+
     @Query("SELECT p FROM Product p LEFT JOIN FETCH p.categories LEFT JOIN FETCH p.variants WHERE p.slug = :slug")
     Optional<Product> findBySlugWithDetails(@Param("slug") String slug);
 

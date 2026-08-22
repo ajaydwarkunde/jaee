@@ -95,6 +95,10 @@ app:
     enabled: ${FIREBASE_ENABLED:false}
     credentials: ${FIREBASE_CREDENTIALS:}  # Base64 encoded service account JSON
 
+  integrations:
+    google-sheets:
+      sync-secret: ${GOOGLE_SHEETS_SYNC_SECRET:}
+
   # Fulfillment / warehouse (shipping tier “local” uses Pune metro cluster — see ShippingZoneResolver)
   shipping:
     origin-city: ${SHIPPING_ORIGIN_CITY:Wakad}

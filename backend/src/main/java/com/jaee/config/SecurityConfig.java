@@ -61,6 +61,7 @@ public class SecurityConfig {
                 .requestMatchers("/builder-options/admin/**").hasRole("ADMIN")
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers("/keepalive").permitAll()
+                .requestMatchers(HttpMethod.POST, "/integrations/google-sheets/products/sync").permitAll()
                 .requestMatchers("/swagger-ui/**", "/api-docs/**", "/swagger-ui.html").permitAll()
                 // Admin endpoints
                 .requestMatchers("/custom-candles/admin/**").hasRole("ADMIN")
