@@ -62,8 +62,10 @@ repeat. Delete the inactive `SYNC-TEST` draft from admin after verification.
 
 | Property | Example |
 |---|---|
-| `BACKEND_URL` | `https://jaee-backend-staging.onrender.com` |
-| `SHEET_SYNC_SECRET` | The matching Render secret |
+| `BACKEND_URL` | Staging API, e.g. `https://jaee.onrender.com` |
+| `BACKEND_URL_PRODUCTION` | Production API, e.g. `https://jaee-backend.onrender.com` |
+| `SHEET_SYNC_SECRET` | Staging Render secret (from **Generate sync secret**) |
+| `SHEET_SYNC_SECRET_PRODUCTION` | Optional. Production Render secret; omit to reuse `SHEET_SYNC_SECRET` |
 | `PRODUCT_SHEET_NAME` | Optional; omit to use the first worksheet |
 
 5. Reload the spreadsheet.
@@ -76,7 +78,9 @@ Do not put the secret in a sheet cell or commit it to this repository.
 
 Test with a copy of the sheet and the staging backend first.
 
-1. Select **Jaai Catalog → Sync all products**.
+Cell edits and **Jaai Catalog → Sync all products (staging)** always go to `BACKEND_URL`. Production is never updated automatically. To update the live catalog, choose **Jaai Catalog → Sync all products (production)** and confirm the warning. That call uses `BACKEND_URL_PRODUCTION`.
+
+1. Select **Jaai Catalog → Sync all products (staging)**.
 2. Review the toast summary.
 3. Open **Jaai Catalog → Open sync log** for skipped or failed rows.
 4. Complete newly created inactive drafts in website admin by adding category,
