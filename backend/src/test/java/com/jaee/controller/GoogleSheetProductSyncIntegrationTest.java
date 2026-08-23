@@ -9,10 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -62,6 +64,56 @@ class GoogleSheetProductSyncIntegrationTest {
         assertThat(updated.getPrice()).isEqualByComparingTo("199");
         assertThat(updated.getBaseCost()).isEqualByComparingTo("35");
         assertThat(updated.getStockQty()).isEqualTo(8);
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void syncedDraftIsHiddenPubliclyButVisibleToAdmin() throws Exception {
+        mockMvc.perform(post("/integrations/google-sheets/products/sync")
+                        .header("X-Sheet-Sync-Secret", "test-sheet-secret")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload(149, 29, 4)))
+                .andExpect(status().isOk());
+
+        Product draft = productRepository.findBySheetSkuIgnoreCase("J001").orElseThrow();
+        assertThat(draft.getActive()).isFalse();
+
+        // The public catalog must never leak an unpublished draft.
+        mockMvc.perform(get("/products").param("search", "Gulab Ishq Wax Sachet").param("pageSize", "50"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[?(@.sheetSku == 'J001')]").isEmpty());
+
+        // Admin must see it, otherwise there is no way to publish it.
+        mockMvc.perform(get("/admin/products").param("search", "J001").param("pageSize", "50"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[?(@.sheetSku == 'J001')]").isNotEmpty())
+                .andExpect(jsonPath("$.data.content[0].active").value(false))
+                .andExpect(jsonPath("$.data.content[0].name").value("Gulab Ishq Wax Sachet"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void adminListingSearchesBySheetSkuAndName() throws Exception {
+        mockMvc.perform(post("/integrations/google-sheets/products/sync")
+                        .header("X-Sheet-Sync-Secret", "test-sheet-secret")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload(149, 29, 4)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/admin/products").param("search", "j001"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[?(@.sheetSku == 'J001')]").isNotEmpty());
+
+        mockMvc.perform(get("/admin/products").param("search", "gulab ishq"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[?(@.sheetSku == 'J001')]").isNotEmpty());
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void adminListingIsForbiddenForRegularUser() throws Exception {
+        mockMvc.perform(get("/admin/products"))
+                .andExpect(status().isForbidden());
     }
 
     @Test
