@@ -24,7 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -556,16 +558,30 @@ public class CheckoutService {
     }
 
     private void reduceInventoryForOrder(Order order) {
+        Set<Product> variantProducts = new HashSet<>();
         for (OrderItem item : order.getItems()) {
             if (item.getVariant() != null) {
                 ProductVariant v = item.getVariant();
                 v.reduceStock(item.getQty());
                 productVariantRepository.save(v);
+                variantProducts.add(v.getProduct());
             } else if (item.getProduct() != null) {
                 Product p = item.getProduct();
                 p.reduceStock(item.getQty());
                 productRepository.save(p);
             }
+        }
+
+        productVariantRepository.flush();
+        for (Product product : variantProducts) {
+            int aggregateStock = productVariantRepository.findByProductIdWithDetails(product.getId()).stream()
+                    .filter(variant -> Boolean.TRUE.equals(variant.getActive()))
+                    .map(ProductVariant::getStockQty)
+                    .filter(java.util.Objects::nonNull)
+                    .mapToInt(Integer::intValue)
+                    .sum();
+            product.setStockQty(aggregateStock);
+            productRepository.save(product);
         }
     }
 

@@ -87,6 +87,15 @@ public class GoogleSheetProductRowSyncService {
             linked = true;
         }
 
+        Map<String, String> rowOptions = optionValues(row);
+        if (existingVariant == null
+                && product.getId() != null
+                && variantRepository.findByProductIdWithDetails(product.getId()).stream()
+                .anyMatch(variant -> normalizedOptions(variant.getOptionValues()).equals(rowOptions))) {
+            return result(row, normalizedSku, "skipped", product.getId(),
+                    "Another SKU already uses the same Size, Fragrance and Color combination");
+        }
+
         int oldStock = product.getStockQty() == null ? 0 : product.getStockQty();
         if (product.getSheetSku() == null || product.getSheetSku().isBlank()) {
             product.setSheetSku(normalizedSku);
@@ -97,7 +106,7 @@ public class GoogleSheetProductRowSyncService {
         applyImagesIfPresent(product, row);
 
         product = productRepository.save(product);
-        upsertSingleVariant(product, row, normalizedSku, optionValues(row), existingVariant);
+        upsertSingleVariant(product, row, normalizedSku, rowOptions, existingVariant);
         aggregateProductFromVariants(product);
         product = productRepository.save(product);
 
@@ -352,6 +361,14 @@ public class GoogleSheetProductRowSyncService {
         putIfPresent(values, "Scent", row.fragrance());
         putIfPresent(values, "Color", row.color());
         return values;
+    }
+
+    private static Map<String, String> normalizedOptions(Map<String, String> options) {
+        if (options == null || options.isEmpty()
+                || (options.size() == 1 && "Default".equals(options.get("Default")))) {
+            return Map.of();
+        }
+        return options;
     }
 
     private static void putIfPresent(Map<String, String> target, String key, String value) {
