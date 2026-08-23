@@ -70,10 +70,13 @@ jobs:
 
   # ============================================
   # Deploy Production (main branch only)
+  # Requires GitHub Environment "production"
+  # approval before the Render deploy hook runs.
   # ============================================
   deploy-production:
     needs: [backend, frontend]
     runs-on: ubuntu-latest
+    environment: production
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
     steps:
@@ -115,62 +118,3 @@ jobs:
           echo "Staging deployment triggered!"
           echo "Backend: Render staging service"
           echo "Frontend: Vercel creates preview deployment automatically"
-
-  # ============================================
-  # Auto-promote: staging -> production
-  # After staging deploys, health-check it and
-  # auto-merge develop into main if healthy.
-  # ============================================
-  promote-to-production:
-    needs: [deploy-staging]
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
-    permissions:
-      contents: write
-      pull-requests: write
-
-    steps:
-      - name: Wait for Render to deploy
-        run: |
-          echo "Waiting 2 minutes for Render to build and start the staging service..."
-          sleep 120
-
-      - name: Health check staging backend
-        run: |
-          MAX_ATTEMPTS=10
-          WAIT_SECONDS=30
-          for i in $(seq 1 $MAX_ATTEMPTS); do
-            status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 \
-              "${{ secrets.STAGING_BACKEND_URL }}/actuator/health") || true
-            if [ "$status" = "200" ]; then
-              echo "Staging is healthy (attempt $i)"
-              exit 0
-            fi
-            echo "Attempt $i/$MAX_ATTEMPTS: HTTP $status — retrying in ${WAIT_SECONDS}s..."
-            sleep $WAIT_SECONDS
-          done
-          echo "Staging health check failed after $MAX_ATTEMPTS attempts"
-          exit 1
-
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Merge develop into main
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin main develop
-          git checkout main
-          git merge origin/develop --no-edit -m "Auto-promote: develop to main [staging healthy]"
-          git push origin main
-
-      - name: Deploy Backend to Production
-        run: |
-          if [ -n "${{ secrets.RENDER_BACKEND_DEPLOY_HOOK }}" ]; then
-            curl -X POST "${{ secrets.RENDER_BACKEND_DEPLOY_HOOK }}"
-            echo "Production backend deploy triggered"
-          else
-            echo "RENDER_BACKEND_DEPLOY_HOOK not set - skipping"
-          fi
