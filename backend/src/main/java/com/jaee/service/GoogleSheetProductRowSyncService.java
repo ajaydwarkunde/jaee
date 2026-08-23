@@ -63,14 +63,11 @@ public class GoogleSheetProductRowSyncService {
             product = legacySkuOwner;
         }
 
-        boolean linked = false;
         boolean created = false;
 
         if (product == null) {
             product = createDraft(row, normalizedSku);
             created = true;
-        } else if (existingVariant == null) {
-            linked = true;
         }
 
         if (existingVariant != null && !existingVariant.getProduct().getId().equals(product.getId())) {
@@ -84,14 +81,18 @@ public class GoogleSheetProductRowSyncService {
             variantRepository.saveAndFlush(existingVariant);
             productRepository.delete(duplicate);
             productRepository.flush();
-            linked = true;
         }
 
+        // Variants created before SKUs were globally unique are invisible to the lookup above,
+        // so fall back to matching by SKU within the resolved product.
+        if (existingVariant == null && product.getId() != null) {
+            existingVariant = findVariantBySku(product.getId(), normalizedSku);
+        }
+        boolean linked = !created && existingVariant == null;
+
         Map<String, String> rowOptions = optionValues(row);
-        if (existingVariant == null
-                && product.getId() != null
-                && variantRepository.findByProductIdWithDetails(product.getId()).stream()
-                .anyMatch(variant -> normalizedOptions(variant.getOptionValues()).equals(rowOptions))) {
+        if (product.getId() != null
+                && clashesWithAnotherVariant(product.getId(), normalizedSku, existingVariant, rowOptions)) {
             return result(row, normalizedSku, "skipped", product.getId(),
                     "Another SKU already uses the same Size, Fragrance and Color combination");
         }
@@ -106,8 +107,9 @@ public class GoogleSheetProductRowSyncService {
         applyImagesIfPresent(product, row);
 
         product = productRepository.save(product);
-        upsertSingleVariant(product, row, normalizedSku, rowOptions, existingVariant);
-        aggregateProductFromVariants(product);
+        ProductVariant savedVariant =
+                upsertSingleVariant(product, row, normalizedSku, rowOptions, existingVariant);
+        aggregateProductFromVariants(product, savedVariant);
         product = productRepository.save(product);
 
         if (oldStock <= 0 && product.getStockQty() > 0 && Boolean.TRUE.equals(product.getActive())) {
@@ -158,20 +160,13 @@ public class GoogleSheetProductRowSyncService {
                 .build();
     }
 
-    private void upsertSingleVariant(
+    private ProductVariant upsertSingleVariant(
             Product product,
             SheetProductRow row,
             String sku,
             Map<String, String> optionValues,
             ProductVariant variant
     ) {
-        if (variant == null) {
-            variant = variantRepository.findByProductIdWithDetails(product.getId()).stream()
-                    .filter(candidate -> candidate.getSku() != null
-                            && candidate.getSku().equalsIgnoreCase(sku))
-                    .findFirst()
-                    .orElse(null);
-        }
         if (variant == null) {
             variant = ProductVariant.builder()
                     .product(product)
@@ -202,11 +197,51 @@ public class GoogleSheetProductRowSyncService {
         } else {
             variant.getOptionValues().putAll(optionValues);
         }
-        variantRepository.saveAndFlush(variant);
+        variantRepository.save(variant);
+        return variant;
     }
 
-    private void aggregateProductFromVariants(Product product) {
-        List<ProductVariant> variants = variantRepository.findByProductIdWithDetails(product.getId());
+    private ProductVariant findVariantBySku(Long productId, String sku) {
+        return variantRepository.findByProductIdWithDetails(productId).stream()
+                .filter(candidate -> candidate.getSku() != null && candidate.getSku().equalsIgnoreCase(sku))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /** Two SKUs sharing one option combination would make the second unreachable in the selector. */
+    private boolean clashesWithAnotherVariant(
+            Long productId,
+            String sku,
+            ProductVariant current,
+            Map<String, String> rowOptions
+    ) {
+        return variantRepository.findByProductIdWithDetails(productId).stream()
+                .filter(candidate -> !isSameVariant(candidate, current))
+                .filter(candidate -> candidate.getSku() == null || !candidate.getSku().equalsIgnoreCase(sku))
+                .anyMatch(candidate -> normalizedOptions(candidate.getOptionValues()).equals(rowOptions));
+    }
+
+    private static boolean isSameVariant(ProductVariant left, ProductVariant right) {
+        if (left == null || right == null) {
+            return false;
+        }
+        if (left == right) {
+            return true;
+        }
+        if (left.getId() != null && left.getId().equals(right.getId())) {
+            return true;
+        }
+        return left.getSku() != null && right.getSku() != null
+                && left.getSku().equalsIgnoreCase(right.getSku());
+    }
+
+    private void aggregateProductFromVariants(Product product, ProductVariant justSaved) {
+        List<ProductVariant> variants =
+                new ArrayList<>(variantRepository.findByProductIdWithDetails(product.getId()));
+        if (justSaved != null && variants.stream().noneMatch(variant -> isSameVariant(variant, justSaved))) {
+            variants.add(justSaved);
+        }
+
         int totalStock = variants.stream()
                 .filter(variant -> Boolean.TRUE.equals(variant.getActive()))
                 .map(ProductVariant::getStockQty)
@@ -241,7 +276,9 @@ public class GoogleSheetProductRowSyncService {
         variants.stream()
                 .map(ProductVariant::getOptionValues)
                 .filter(java.util.Objects::nonNull)
-                .forEach(values -> optionNames.addAll(values.keySet()));
+                .flatMap(values -> values.keySet().stream())
+                .filter(name -> !"Default".equals(name))
+                .forEach(optionNames::add);
         if (optionNames.isEmpty()) {
             optionNames.add("Default");
         }

@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -58,8 +59,9 @@ class GoogleSheetProductRowSyncServiceTest {
         assertThat(result.status()).isEqualTo("created");
         assertThat(result.productId()).isEqualTo(42L);
 
+        // Saved once to obtain an id for the variant, then again after variant aggregation.
         ArgumentCaptor<Product> productCaptor = ArgumentCaptor.forClass(Product.class);
-        verify(productRepository).save(productCaptor.capture());
+        verify(productRepository, atLeastOnce()).save(productCaptor.capture());
         Product product = productCaptor.getValue();
         assertThat(product.getSheetSku()).isEqualTo("J001");
         assertThat(product.getName()).isEqualTo("Gulab Ishq");
@@ -172,7 +174,7 @@ class GoogleSheetProductRowSyncServiceTest {
 
         assertThat(result.status()).isEqualTo("created");
         ArgumentCaptor<Product> productCaptor = ArgumentCaptor.forClass(Product.class);
-        verify(productRepository).save(productCaptor.capture());
+        verify(productRepository, atLeastOnce()).save(productCaptor.capture());
         Product product = productCaptor.getValue();
         assertThat(product.getPricingOnRequest()).isTrue();
         assertThat(product.getPrice()).isEqualByComparingTo("0");
