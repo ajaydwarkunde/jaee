@@ -13,6 +13,7 @@ values by header name.
 |---|---|
 | `SKU` | Stable product identity |
 | `Product Name` | Product name |
+| `Description` | Optional storefront description. A non-empty value updates the website; blank preserves the description entered in admin. |
 | `Size` | Variant option `Size` |
 | `Fragrance` | Variant option `Scent` |
 | `Color` | Variant option `Color` |
@@ -84,7 +85,7 @@ Cell edits and **Jaai Catalog → Sync all products (staging)** always go to `BA
 2. Review the toast summary.
 3. Open **Jaai Catalog → Open sync log** for skipped or failed rows.
 4. Complete newly created inactive drafts in website admin by adding category,
-   description and images, then activate them.
+   description (if absent from the sheet) and images, then activate them.
 
 The first full sync links a sheet row to an existing unlinked website product
 only when there is exactly one case-insensitive product-name match. Ambiguous
@@ -95,8 +96,10 @@ is safe because all later updates use SKU.
 
 - Manual edits and multi-row pastes trigger synchronization within seconds.
 - Formula results are flushed before the edited rows are read.
-- Website-only fields—images, description, categories, videos, customization
-  and active status—are preserved for existing products.
+- Description and images use non-destructive optional ownership: a non-empty
+  sheet cell updates the website, while a blank cell preserves the admin value.
+- Website-only fields—categories, videos, customization and active status—are
+  always preserved.
 - Sheet-owned fields are overwritten on every sync.
 - Treat SKU as immutable after the first sync. Changing it creates/links a
   different product and leaves the old product untouched.

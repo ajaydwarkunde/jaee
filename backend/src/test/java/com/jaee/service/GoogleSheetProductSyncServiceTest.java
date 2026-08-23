@@ -69,6 +69,7 @@ class GoogleSheetProductSyncServiceTest {
                 rowNumber,
                 sku,
                 "Product " + sku,
+                null,
                 "Large",
                 "Rose",
                 "Red",

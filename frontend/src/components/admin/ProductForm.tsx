@@ -210,11 +210,10 @@ export default function ProductForm({
                 Managed by Google Sheet · SKU {product.sheetSku}
               </p>
               <p className="mt-1 text-xs text-warm-gray">
-                Name, selling price, stock, cost and variant options are sheet-owned. You can edit
-                them here, but the next sheet sync will overwrite those values. Images from the
-                sheet replace the gallery only when the Image URLs cell is filled; otherwise your
-                admin uploads stay. If Website Pricing is blank, the storefront shows Instagram
-                quote instead of Add to Cart.
+                Name, selling price, stock, cost and variant options are sheet-owned. Description
+                and images are overwritten only when their sheet cells are filled; blank cells
+                preserve your admin edits. If Website Pricing is blank, the storefront shows an
+                Instagram quote instead of Add to Cart.
                 {product.sheetLastSyncedAt &&
                   ` Last synced ${new Date(product.sheetLastSyncedAt).toLocaleString()}.`}
               </p>
@@ -232,7 +231,7 @@ export default function ProductForm({
       />
 
       <Textarea
-        label="Product description (storefront)"
+        label={`Product description (storefront)${product?.sheetSku ? ' · Sheet optional' : ''}`}
         {...register('description')}
         rows={6}
         required
@@ -240,7 +239,8 @@ export default function ProductForm({
         placeholder="Ingredients, burn time, care, scent notes — appears below the title on the public product page."
       />
       <p className="text-xs text-warm-gray -mt-2">
-        Required for every product. Shoppers see this on the product detail page; it is also used for search.
+        Required for every product. For sheet-managed products, a non-empty Description cell
+        overwrites this value; a blank cell preserves your manual update.
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

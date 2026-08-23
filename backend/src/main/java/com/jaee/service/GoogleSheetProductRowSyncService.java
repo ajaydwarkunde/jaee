@@ -73,6 +73,7 @@ public class GoogleSheetProductRowSyncService {
         product.setSheetSku(normalizedSku);
         product.setSheetLastSyncedAt(LocalDateTime.now());
         product.setName(row.productName().trim());
+        applyDescriptionIfPresent(product, row.description());
         product.setPricingOnRequest(pricingOnRequest);
         product.setPrice(pricingOnRequest ? BigDecimal.ZERO : row.websitePrice());
         product.setBaseCost(row.totalCost());
@@ -126,7 +127,7 @@ public class GoogleSheetProductRowSyncService {
                 .slug(slug)
                 .sheetSku(sku)
                 .sheetLastSyncedAt(LocalDateTime.now())
-                .description(DRAFT_DESCRIPTION)
+                .description(hasText(row.description()) ? row.description().trim() : DRAFT_DESCRIPTION)
                 .price(row.websitePrice() == null || row.websitePrice().compareTo(BigDecimal.ZERO) <= 0
                         ? BigDecimal.ZERO
                         : row.websitePrice())
@@ -219,6 +220,16 @@ public class GoogleSheetProductRowSyncService {
             product.getImages().clear();
         }
         product.getImages().addAll(images);
+    }
+
+    private static void applyDescriptionIfPresent(Product product, String description) {
+        if (hasText(description)) {
+            product.setDescription(description.trim());
+        }
+    }
+
+    private static boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 
     static List<String> parseImageUrls(List<String> rawUrls) {
