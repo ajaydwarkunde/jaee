@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Pencil, Trash2, Search, Layers } from 'lucide-react'
+import { Plus, Pencil, Trash2, Search, Layers, FileSpreadsheet } from 'lucide-react'
 import { productService } from '@/services/productService'
 import { formatPrice } from '@/lib/utils'
 import Button from '@/components/ui/Button'
@@ -98,6 +98,12 @@ export default function AdminProducts() {
                         <div>
                           <div className="flex items-center gap-2">
                             <p className="font-serif text-base font-semibold text-rose">{product.name}</p>
+                            {product.sheetSku && (
+                              <Badge variant="success" className="gap-1" title="Managed by Google Sheet">
+                                <FileSpreadsheet className="h-3 w-3" />
+                                Sheet
+                              </Badge>
+                            )}
                             {product.variants && product.variants.length > 0 && (
                               <span className="text-xs px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded-full font-medium">
                                 {product.variants.length} variant{product.variants.length > 1 ? 's' : ''}
@@ -105,6 +111,13 @@ export default function AdminProducts() {
                             )}
                           </div>
                           <p className="text-sm text-warm-gray">{product.slug}</p>
+                          {product.sheetSku && (
+                            <p className="mt-0.5 text-xs text-warm-gray">
+                              SKU {product.sheetSku}
+                              {product.sheetLastSyncedAt &&
+                                ` · Synced ${new Date(product.sheetLastSyncedAt).toLocaleString()}`}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </td>

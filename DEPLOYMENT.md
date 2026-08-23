@@ -69,6 +69,7 @@ On every push/PR to `main` or `develop`:
 | `RAZORPAY_KEY_ID` | Test mode key |
 | `RAZORPAY_KEY_SECRET` | Test mode secret |
 | `RAZORPAY_TEST_MODE` | `true` |
+| `GOOGLE_SHEETS_SYNC_SECRET` | Unique staging secret shared only with the Apps Script |
 
 4. Go to **Settings > Deploy Hook** and create a deploy hook. Copy the URL.
 

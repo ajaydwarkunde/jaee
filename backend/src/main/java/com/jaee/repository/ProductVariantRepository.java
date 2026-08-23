@@ -12,6 +12,8 @@ import java.util.Optional;
 @Repository
 public interface ProductVariantRepository extends JpaRepository<ProductVariant, Long> {
 
+    Optional<ProductVariant> findBySkuIgnoreCase(String sku);
+
     @Query("SELECT v FROM ProductVariant v LEFT JOIN FETCH v.optionValues LEFT JOIN FETCH v.images WHERE v.product.id = :productId ORDER BY v.sortOrder ASC, v.id ASC")
     List<ProductVariant> findByProductIdWithDetails(@Param("productId") Long productId);
 

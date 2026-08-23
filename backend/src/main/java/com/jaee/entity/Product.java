@@ -29,6 +29,13 @@ public class Product {
     @Column(nullable = false, unique = true)
     private String slug;
 
+    /** Stable external identifier for products managed by the Google Sheet. */
+    @Column(name = "sheet_sku", length = 100)
+    private String sheetSku;
+
+    @Column(name = "sheet_last_synced_at")
+    private LocalDateTime sheetLastSyncedAt;
+
     @Column(columnDefinition = "TEXT")
     private String description;
 
@@ -87,6 +94,11 @@ public class Product {
 
     @Builder.Default
     private Boolean active = true;
+
+    /** When true, storefront shows a quote inquiry instead of a sellable price. */
+    @Builder.Default
+    @Column(name = "pricing_on_request", nullable = false)
+    private Boolean pricingOnRequest = false;
 
     /** When true, customers must enter customization text before add-to-cart. */
     @Builder.Default

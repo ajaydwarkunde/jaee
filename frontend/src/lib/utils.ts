@@ -71,6 +71,34 @@ export function instagramProfileUrl(handleOrUsername: string): string {
   return `https://www.instagram.com/${encodeURIComponent(user)}/`
 }
 
+export function instagramDmUrl(handleOrUsername: string): string {
+  const user = handleOrUsername.replace(/^@/, '').trim()
+  return `https://ig.me/m/${encodeURIComponent(user)}`
+}
+
+export function buildProductQuoteMessage(input: {
+  productName: string
+  sku?: string | null
+  size?: string | null
+  fragrance?: string | null
+  color?: string | null
+  productUrl: string
+}): string {
+  const lines = [
+    'Hi Jaai! I would like a price for this product.',
+    '',
+    `Product: ${input.productName}`,
+  ]
+  if (input.sku) lines.push(`SKU: ${input.sku}`)
+  if (input.size) lines.push(`Size: ${input.size}`)
+  if (input.fragrance) lines.push(`Fragrance: ${input.fragrance}`)
+  if (input.color) lines.push(`Color: ${input.color}`)
+  lines.push(`Link: ${input.productUrl}`)
+  lines.push('')
+  lines.push('Please share the price and how I can order. Thank you!')
+  return lines.join('\n')
+}
+
 export function truncate(str: string, length: number): string {
   if (str.length <= length) return str
   return str.slice(0, length) + '...'

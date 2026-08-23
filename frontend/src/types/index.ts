@@ -36,8 +36,12 @@ export interface Product {
   id: number
   name: string
   slug: string
+  sheetSku?: string | null
+  sheetLastSyncedAt?: string | null
   description: string | null
   price: number
+  /** When true, storefront asks the customer to message Instagram instead of buying. */
+  pricingOnRequest?: boolean
   /** Per unit, for delivery (kg) */
   weightKg?: number
   compareAtPrice: number | null

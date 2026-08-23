@@ -18,7 +18,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, priority = false }: ProductCardProps) {
-  const { src: imageSrc, srcSet, sizes } = productListingImageProps(product.images[0])
+  const { src: imageSrc, srcSet, sizes } = productListingImageProps(product.images?.[0])
   const discountPct = productDiscountPercentOff(product)
   const hasDiscount = discountPct != null
   const { isAuthenticated } = useAuthStore()
@@ -135,20 +135,26 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           </div>
         )}
         <div className="mt-2 flex flex-col min-w-0 gap-0.5">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-lg font-semibold text-rose tabular-nums">
-              {formatPrice(Number(product.price), product.currency)}
-            </span>
-            {hasDiscount && product.compareAtPrice != null && (
-              <span className="text-sm text-warm-gray line-through tabular-nums">
-                {formatPrice(Number(product.compareAtPrice), product.currency)}
-              </span>
-            )}
-          </div>
-          {hasDiscount && (
-            <span className="text-sm font-semibold text-rose tabular-nums">
-              {discountPct}% off
-            </span>
+          {product.pricingOnRequest ? (
+            <span className="text-sm font-semibold text-rose">Contact us for pricing</span>
+          ) : (
+            <>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-lg font-semibold text-rose tabular-nums">
+                  {formatPrice(Number(product.price), product.currency)}
+                </span>
+                {hasDiscount && product.compareAtPrice != null && (
+                  <span className="text-sm text-warm-gray line-through tabular-nums">
+                    {formatPrice(Number(product.compareAtPrice), product.currency)}
+                  </span>
+                )}
+              </div>
+              {hasDiscount && (
+                <span className="text-sm font-semibold text-rose tabular-nums">
+                  {discountPct}% off
+                </span>
+              )}
+            </>
           )}
         </div>
       </Link>

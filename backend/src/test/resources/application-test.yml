@@ -41,3 +41,7 @@ app:
     expiration-minutes: 5
     max-attempts: 5
     cooldown-seconds: 60
+
+  integrations:
+    google-sheets:
+      sync-secret: test-sheet-secret
