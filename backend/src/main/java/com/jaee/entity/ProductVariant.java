@@ -31,6 +31,11 @@ public class ProductVariant {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
+    /** When true, this specific option requires a quote instead of checkout. */
+    @Builder.Default
+    @Column(name = "pricing_on_request", nullable = false)
+    private Boolean pricingOnRequest = false;
+
     @Column(name = "sort_order", nullable = false)
     @Builder.Default
     private Integer sortOrder = 0;

@@ -114,7 +114,7 @@ export default function AdminProducts() {
                           <p className="text-sm text-warm-gray">{product.slug}</p>
                           {product.sheetSku && (
                             <p className="mt-0.5 text-xs text-warm-gray">
-                              SKU {product.sheetSku}
+                              Initial SKU {product.sheetSku} · variants have individual SKUs
                               {product.sheetLastSyncedAt &&
                                 ` · Synced ${new Date(product.sheetLastSyncedAt).toLocaleString()}`}
                             </p>

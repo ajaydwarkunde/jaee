@@ -107,6 +107,10 @@ public class CartService {
             if (!Boolean.TRUE.equals(variant.getActive())) {
                 throw new BadRequestException("This option is no longer available");
             }
+            if (Boolean.TRUE.equals(variant.getPricingOnRequest())) {
+                throw new BadRequestException(
+                        "This option is priced on request. Message us on Instagram for a quote.");
+            }
             unitPrice = variant.getPrice();
             available = variant.getStockQty() != null ? variant.getStockQty() : 0;
         } else {
@@ -233,7 +237,9 @@ public class CartService {
 
             if (variantId != null) {
                 variant = productVariantRepository.findByIdAndProduct_Id(variantId, product.getId()).orElse(null);
-                if (variant == null || !Boolean.TRUE.equals(variant.getActive())) {
+                if (variant == null
+                        || !Boolean.TRUE.equals(variant.getActive())
+                        || Boolean.TRUE.equals(variant.getPricingOnRequest())) {
                     continue;
                 }
                 unitPrice = variant.getPrice();
