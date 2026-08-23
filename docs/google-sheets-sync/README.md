@@ -16,21 +16,18 @@ values by header name.
 | `Size` | Variant option `Size` |
 | `Fragrance` | Variant option `Scent` |
 | `Color` | Variant option `Color` |
-| `Total Cost` | Internal base cost / variant expense |
-| `Website Pricing` | Selling price |
-| `Stock Quantity` | Product and variant inventory |
+| `Total Cost` | Internal base cost (optional; never shown to customers) |
+| `Website Pricing` | Selling price. Blank means “Contact us for pricing” |
+| `Stock Quantity` | Inventory. Optional; defaults to 0 |
+| `Image URLs` | Optional. Public `https://` image URLs, one per line (max 10). First URL is the primary image. Leave blank to keep admin uploads. |
 
-Add a new `Stock Quantity` column to the sheet before enabling the trigger.
-Every synchronized row requires a non-empty SKU/name, positive total cost and
-website price, and stock greater than or equal to zero.
+Rows with an SKU and product name can sync even when cost, website price, or stock is blank.
 
 ## 1. Configure the backend
 
-Generate a strong secret:
+Do **not** run `openssl` if you prefer not to. In the sheet, open **Jaai Catalog → Generate sync secret**. Copy the value into Render as `GOOGLE_SHEETS_SYNC_SECRET`, then redeploy.
 
-```bash
-openssl rand -hex 32
-```
+If you do generate a secret locally, `openssl rand -hex 32` only creates random bytes on your machine. It does not send data anywhere.
 
 In Render, add `GOOGLE_SHEETS_SYNC_SECRET` with that value to the target backend
 service, then redeploy it. Use separate secrets for staging and production.

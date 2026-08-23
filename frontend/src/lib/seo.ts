@@ -197,10 +197,14 @@ export function buildProductSchema(product: Product, productUrl: string) {
       '@type': 'Offer',
       url: productUrl,
       priceCurrency: product.currency || 'INR',
-      price: product.price,
-      availability: product.inStock
-        ? 'https://schema.org/InStock'
-        : 'https://schema.org/OutOfStock',
+      ...(product.pricingOnRequest
+        ? { availability: 'https://schema.org/PreOrder' }
+        : {
+            price: product.price,
+            availability: product.inStock
+              ? 'https://schema.org/InStock'
+              : 'https://schema.org/OutOfStock',
+          }),
       seller: { '@id': `${SITE_URL}/#organization` },
     },
   }

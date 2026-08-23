@@ -67,12 +67,17 @@ public class GoogleSheetProductRowSyncService {
         }
 
         int oldStock = product.getStockQty() == null ? 0 : product.getStockQty();
+        boolean pricingOnRequest = row.websitePrice() == null
+                || row.websitePrice().compareTo(BigDecimal.ZERO) <= 0;
+        int stock = row.stockQuantity() == null ? 0 : row.stockQuantity();
         product.setSheetSku(normalizedSku);
         product.setSheetLastSyncedAt(LocalDateTime.now());
         product.setName(row.productName().trim());
-        product.setPrice(row.websitePrice());
+        product.setPricingOnRequest(pricingOnRequest);
+        product.setPrice(pricingOnRequest ? BigDecimal.ZERO : row.websitePrice());
         product.setBaseCost(row.totalCost());
-        product.setStockQty(row.stockQuantity());
+        product.setStockQty(stock);
+        applyImagesIfPresent(product, row);
 
         Map<String, String> optionValues = optionValues(row);
         List<String> optionNames = optionValues.isEmpty()
@@ -88,7 +93,7 @@ public class GoogleSheetProductRowSyncService {
         product = productRepository.save(product);
         upsertSingleVariant(product, row, normalizedSku, optionValues, linked);
 
-        if (oldStock <= 0 && row.stockQuantity() > 0 && Boolean.TRUE.equals(product.getActive())) {
+        if (oldStock <= 0 && stock > 0 && Boolean.TRUE.equals(product.getActive())) {
             stockNotificationService.notifySubscribers(product.getId());
         }
 
@@ -102,13 +107,13 @@ public class GoogleSheetProductRowSyncService {
         if (row == null) return "Row payload is missing";
         if (normalizeSku(row.sku()).isBlank()) return "SKU is required";
         if (row.productName() == null || row.productName().isBlank()) return "Product Name is required";
-        if (row.websitePrice() == null || row.websitePrice().compareTo(BigDecimal.ZERO) <= 0) {
-            return "Website Pricing must be greater than 0";
+        if (row.websitePrice() != null && row.websitePrice().compareTo(BigDecimal.ZERO) < 0) {
+            return "Website Pricing cannot be negative";
         }
-        if (row.totalCost() == null || row.totalCost().compareTo(BigDecimal.ZERO) <= 0) {
-            return "Total Cost must be greater than 0";
+        if (row.totalCost() != null && row.totalCost().compareTo(BigDecimal.ZERO) < 0) {
+            return "Total Cost cannot be negative";
         }
-        if (row.stockQuantity() == null || row.stockQuantity() < 0) {
+        if (row.stockQuantity() != null && row.stockQuantity() < 0) {
             return "Stock Quantity must be zero or greater";
         }
         return null;
@@ -122,13 +127,17 @@ public class GoogleSheetProductRowSyncService {
                 .sheetSku(sku)
                 .sheetLastSyncedAt(LocalDateTime.now())
                 .description(DRAFT_DESCRIPTION)
-                .price(row.websitePrice())
+                .price(row.websitePrice() == null || row.websitePrice().compareTo(BigDecimal.ZERO) <= 0
+                        ? BigDecimal.ZERO
+                        : row.websitePrice())
+                .pricingOnRequest(row.websitePrice() == null || row.websitePrice().compareTo(BigDecimal.ZERO) <= 0)
                 .baseCost(row.totalCost())
                 .weightKg(new BigDecimal("0.500"))
                 .currency("INR")
-                .stockQty(row.stockQuantity())
+                .stockQty(row.stockQuantity() == null ? 0 : row.stockQuantity())
                 .active(false)
                 .options(new ArrayList<>())
+                .images(new ArrayList<>(parseImageUrls(row.imageUrls())))
                 .build();
     }
 
@@ -160,10 +169,12 @@ public class GoogleSheetProductRowSyncService {
                     .build();
         }
 
+        boolean pricingOnRequest = row.websitePrice() == null
+                || row.websitePrice().compareTo(BigDecimal.ZERO) <= 0;
         variant.setSku(sku);
-        variant.setPrice(row.websitePrice());
+        variant.setPrice(pricingOnRequest ? BigDecimal.ZERO : row.websitePrice());
         variant.setExpense(row.totalCost());
-        variant.setStockQty(row.stockQuantity());
+        variant.setStockQty(row.stockQuantity() == null ? 0 : row.stockQuantity());
         if (variant.getWeightKg() == null) {
             variant.setWeightKg(product.getWeightKg());
         }
@@ -195,6 +206,41 @@ public class GoogleSheetProductRowSyncService {
         String noWhitespace = WHITESPACE.matcher(input.trim()).replaceAll("-");
         String normalized = Normalizer.normalize(noWhitespace, Normalizer.Form.NFD);
         return NON_SLUG.matcher(normalized).replaceAll("").toLowerCase(Locale.ENGLISH);
+    }
+
+    private static void applyImagesIfPresent(Product product, SheetProductRow row) {
+        List<String> images = parseImageUrls(row.imageUrls());
+        if (images.isEmpty()) {
+            return;
+        }
+        if (product.getImages() == null) {
+            product.setImages(new ArrayList<>());
+        } else {
+            product.getImages().clear();
+        }
+        product.getImages().addAll(images);
+    }
+
+    static List<String> parseImageUrls(List<String> rawUrls) {
+        if (rawUrls == null || rawUrls.isEmpty()) {
+            return List.of();
+        }
+        List<String> images = new ArrayList<>();
+        for (String raw : rawUrls) {
+            if (raw == null) continue;
+            for (String token : raw.split("[,\\n;]+")) {
+                String url = token.trim();
+                if (url.isEmpty()) continue;
+                if (!url.startsWith("https://") && !url.startsWith("http://")) continue;
+                if (!images.contains(url)) {
+                    images.add(url);
+                }
+                if (images.size() == 10) {
+                    return images;
+                }
+            }
+        }
+        return images;
     }
 
     private static Map<String, String> optionValues(SheetProductRow row) {

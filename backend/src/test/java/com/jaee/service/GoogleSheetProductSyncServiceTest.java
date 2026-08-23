@@ -74,7 +74,8 @@ class GoogleSheetProductSyncServiceTest {
                 "Red",
                 BigDecimal.TEN,
                 BigDecimal.valueOf(100),
-                1
+                1,
+                null
         );
     }
 }

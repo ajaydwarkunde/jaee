@@ -39,6 +39,7 @@ public class ProductDto {
     private List<VariantDto> variants;
     private Integer stockQty;
     private Boolean active;
+    private Boolean pricingOnRequest;
     private Boolean customizationEnabled;
     private Boolean inStock;
     private LocalDateTime createdAt;
@@ -88,6 +89,7 @@ public class ProductDto {
                         : List.of())
                 .stockQty(product.getStockQty())
                 .active(product.getActive())
+                .pricingOnRequest(Boolean.TRUE.equals(product.getPricingOnRequest()))
                 .customizationEnabled(Boolean.TRUE.equals(product.getCustomizationEnabled()))
                 .inStock(product.isInStock())
                 .createdAt(product.getCreatedAt())
@@ -125,6 +127,7 @@ public class ProductDto {
                 .variants(List.of())
                 .stockQty(product.getStockQty())
                 .active(product.getActive())
+                .pricingOnRequest(Boolean.TRUE.equals(product.getPricingOnRequest()))
                 .inStock(product.isInStock())
                 .createdAt(product.getCreatedAt())
                 .avgRating(product.getAvgRating())

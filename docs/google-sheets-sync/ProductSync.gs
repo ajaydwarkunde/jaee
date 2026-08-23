@@ -16,12 +16,6 @@ const MAX_RETRIES = 3;
 const REQUIRED_HEADERS = [
   'SKU',
   'Product Name',
-  'Size',
-  'Fragrance',
-  'Color',
-  'Total Cost',
-  'Website Pricing',
-  'Stock Quantity',
 ];
 
 function onOpen() {
@@ -30,6 +24,7 @@ function onOpen() {
     .addItem('Install edit trigger', 'installProductSyncTrigger')
     .addItem('Sync all products', 'syncAllProducts')
     .addSeparator()
+    .addItem('Generate sync secret', 'generateSyncSecret')
     .addItem('Open sync log', 'openSyncLog')
     .addToUi();
 }
@@ -111,6 +106,30 @@ function openSyncLog() {
   SpreadsheetApp.setActiveSheet(sheet);
 }
 
+function generateSyncSecret() {
+  const properties = PropertiesService.getScriptProperties();
+  const existing = properties.getProperty('SHEET_SYNC_SECRET');
+  const ui = SpreadsheetApp.getUi();
+  if (existing) {
+    const replace = ui.alert(
+      'A sync secret already exists. Generate a new one? The old one will stop working until you update Render.',
+      ui.ButtonSet.YES_NO
+    );
+    if (replace !== ui.Button.YES) return;
+  }
+
+  const bytes = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    Utilities.getUuid() + new Date().toISOString() + Math.random()
+  );
+  const secret = toHex_(bytes);
+  properties.setProperty('SHEET_SYNC_SECRET', secret);
+
+  ui.alert(
+    'Copy this value into Render as GOOGLE_SHEETS_SYNC_SECRET, then save and redeploy.\n\n' + secret
+  );
+}
+
 function readRows_(sheet, firstRow, lastRow) {
   const lastColumn = sheet.getLastColumn();
   const headers = sheet.getRange(HEADER_ROW, 1, 1, lastColumn).getDisplayValues()[0];
@@ -134,12 +153,13 @@ function readRows_(sheet, firstRow, lastRow) {
       rowNumber: firstRow + offset,
       sku: sku,
       productName: text_(display[indexes['Product Name']]),
-      size: text_(display[indexes['Size']]),
-      fragrance: text_(display[indexes['Fragrance']]),
-      color: text_(display[indexes['Color']]),
-      totalCost: number_(raw[indexes['Total Cost']]),
-      websitePrice: number_(raw[indexes['Website Pricing']]),
-      stockQuantity: integer_(raw[indexes['Stock Quantity']]),
+      size: text_(cell_(display, indexes['Size'])),
+      fragrance: text_(cell_(display, indexes['Fragrance'])),
+      color: text_(cell_(display, indexes['Color'])),
+      totalCost: number_(cell_(raw, indexes['Total Cost'])),
+      websitePrice: number_(cell_(raw, indexes['Website Pricing'])),
+      stockQuantity: integer_(cell_(raw, indexes['Stock Quantity'])),
+      imageUrls: imageUrls_(cell_(display, indexes['Image URLs'])),
     };
   }).filter(Boolean);
 }
@@ -273,6 +293,31 @@ function mergeResponse_(target, source) {
     target[key] += source[key] || 0;
   });
   target.results = target.results.concat(source.results || []);
+}
+
+function toHex_(bytes) {
+  let hex = '';
+  for (let i = 0; i < bytes.length; i++) {
+    let value = bytes[i];
+    if (value < 0) value += 256;
+    const part = value.toString(16);
+    hex += part.length === 1 ? '0' + part : part;
+  }
+  return hex;
+}
+
+function cell_(row, index) {
+  return index === undefined ? '' : row[index];
+}
+
+function imageUrls_(value) {
+  const text = text_(value);
+  if (!text) return [];
+  return text
+    .split(/[\n,;]+/)
+    .map((item) => item.trim())
+    .filter((item) => item.indexOf('http://') === 0 || item.indexOf('https://') === 0)
+    .slice(0, 10);
 }
 
 function text_(value) {

@@ -40,6 +40,8 @@ export interface Product {
   sheetLastSyncedAt?: string | null
   description: string | null
   price: number
+  /** When true, storefront asks the customer to message Instagram instead of buying. */
+  pricingOnRequest?: boolean
   /** Per unit, for delivery (kg) */
   weightKg?: number
   compareAtPrice: number | null

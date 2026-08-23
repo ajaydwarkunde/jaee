@@ -211,7 +211,10 @@ export default function ProductForm({
               </p>
               <p className="mt-1 text-xs text-warm-gray">
                 Name, selling price, stock, cost and variant options are sheet-owned. You can edit
-                them here, but the next sheet sync will overwrite those values.
+                them here, but the next sheet sync will overwrite those values. Images from the
+                sheet replace the gallery only when the Image URLs cell is filled; otherwise your
+                admin uploads stay. If Website Pricing is blank, the storefront shows Instagram
+                quote instead of Add to Cart.
                 {product.sheetLastSyncedAt &&
                   ` Last synced ${new Date(product.sheetLastSyncedAt).toLocaleString()}.`}
               </p>
@@ -308,6 +311,10 @@ export default function ProductForm({
       {/* Image Upload Section */}
       <div className="space-y-3">
         <label className="block text-sm font-medium text-charcoal">Product Images</label>
+        <p className="text-xs text-warm-gray">
+          Upload files here, paste URLs, or fill the Google Sheet <span className="font-medium">Image URLs</span> column.
+          Sheet URLs replace this gallery on the next sync only when that cell is not empty.
+        </p>
         
         {/* Upload Area */}
         <div

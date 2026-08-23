@@ -124,7 +124,7 @@ class GoogleSheetProductRowSyncServiceTest {
     @Test
     void skipsIncompleteRowsWithoutWriting() {
         SheetProductRow row = new SheetProductRow(5, "", "Product", "", "", "",
-                BigDecimal.TEN, BigDecimal.valueOf(100), 1);
+                BigDecimal.TEN, BigDecimal.valueOf(100), 1, null);
 
         SheetProductSyncResult result = service.sync(row);
 
@@ -149,6 +149,73 @@ class GoogleSheetProductRowSyncServiceTest {
         verify(productRepository, never()).save(any());
     }
 
+    @Test
+    void createsQuoteOnRequestWhenWebsitePriceIsMissing() {
+        SheetProductRow row = new SheetProductRow(
+                8, "J007", "Mini Pond", "", "", "",
+                BigDecimal.valueOf(16.30), null, 0, null);
+        when(productRepository.findBySheetSkuIgnoreCase("J007")).thenReturn(Optional.empty());
+        when(productRepository.findAllByNameIgnoreCase("Mini Pond")).thenReturn(List.of());
+        when(productRepository.existsBySlug("mini-pond")).thenReturn(false);
+        when(productRepository.save(any(Product.class))).thenAnswer(invocation -> {
+            Product product = invocation.getArgument(0);
+            product.setId(8L);
+            return product;
+        });
+        when(variantRepository.findByProductIdWithDetails(8L)).thenReturn(List.of());
+
+        SheetProductSyncResult result = service.sync(row);
+
+        assertThat(result.status()).isEqualTo("created");
+        ArgumentCaptor<Product> productCaptor = ArgumentCaptor.forClass(Product.class);
+        verify(productRepository).save(productCaptor.capture());
+        Product product = productCaptor.getValue();
+        assertThat(product.getPricingOnRequest()).isTrue();
+        assertThat(product.getPrice()).isEqualByComparingTo("0");
+        assertThat(product.getBaseCost()).isEqualByComparingTo("16.30");
+    }
+
+    @Test
+    void replacesImagesWhenSheetUrlsArePresentAndKeepsAdminImagesWhenBlank() {
+        Product product = Product.builder()
+                .id(7L)
+                .name("Gulab Ishq")
+                .slug("gulab-ishq")
+                .sheetSku("J001")
+                .price(BigDecimal.TEN)
+                .stockQty(1)
+                .active(true)
+                .images(new ArrayList<>(List.of("https://admin.example/a.jpg")))
+                .options(new ArrayList<>())
+                .build();
+        ProductVariant variant = ProductVariant.builder()
+                .id(9L)
+                .product(product)
+                .sku("J001")
+                .price(BigDecimal.TEN)
+                .stockQty(1)
+                .active(true)
+                .optionValues(new java.util.HashMap<>())
+                .images(new ArrayList<>())
+                .build();
+        when(productRepository.findBySheetSkuIgnoreCase("J001")).thenReturn(Optional.of(product));
+        when(productRepository.save(product)).thenReturn(product);
+        when(variantRepository.findByProductIdWithDetails(7L)).thenReturn(List.of(variant));
+
+        service.sync(new SheetProductRow(
+                5, "J001", "Gulab Ishq", "Large", "Rose", "Red",
+                BigDecimal.ONE, BigDecimal.TEN, 1, null));
+        assertThat(product.getImages()).containsExactly("https://admin.example/a.jpg");
+
+        service.sync(new SheetProductRow(
+                5, "J001", "Gulab Ishq", "Large", "Rose", "Red",
+                BigDecimal.ONE, BigDecimal.TEN, 1,
+                List.of("https://cdn.example/front.jpg\nhttps://cdn.example/side.jpg")));
+        assertThat(product.getImages()).containsExactly(
+                "https://cdn.example/front.jpg",
+                "https://cdn.example/side.jpg");
+    }
+
     private static SheetProductRow row(String sku, String name, int price, int cost, int stock) {
         return new SheetProductRow(
                 5,
@@ -159,7 +226,8 @@ class GoogleSheetProductRowSyncServiceTest {
                 "Red",
                 BigDecimal.valueOf(cost),
                 BigDecimal.valueOf(price),
-                stock
+                stock,
+                null
         );
     }
 }

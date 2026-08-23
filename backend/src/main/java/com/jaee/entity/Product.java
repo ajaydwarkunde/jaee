@@ -95,6 +95,11 @@ public class Product {
     @Builder.Default
     private Boolean active = true;
 
+    /** When true, storefront shows a quote inquiry instead of a sellable price. */
+    @Builder.Default
+    @Column(name = "pricing_on_request", nullable = false)
+    private Boolean pricingOnRequest = false;
+
     /** When true, customers must enter customization text before add-to-cart. */
     @Builder.Default
     @Column(name = "customization_enabled", nullable = false)

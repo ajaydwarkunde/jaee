@@ -10,6 +10,7 @@ import { useCartStore } from '@/stores/cartStore'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed'
 import { formatPrice, productDiscountPercentOff } from '@/lib/utils'
+import InstagramQuoteButton from '@/components/product/InstagramQuoteButton'
 import { optimizeImageUrl, PRODUCT_GRID_IMAGE_CLASS, productListingImageProps } from '@/lib/imageUrl'
 import { prefetchProductBySlug } from '@/lib/shopPrefetch'
 import { defaultVariantIdForProduct } from '@/lib/cartHelpers'
@@ -157,6 +158,7 @@ function FrequentlyBoughtTogether({ product, onAddToCart }: { product: Product; 
   })
 
   const handleAddItem = (p: Product) => {
+    if (p.pricingOnRequest) return
     if (isAuthenticated) {
       addToCartMutation.mutate(p)
     } else {
@@ -171,6 +173,7 @@ function FrequentlyBoughtTogether({ product, onAddToCart }: { product: Product; 
   }
 
   if (relatedProducts.length === 0) return null
+  if (product.pricingOnRequest) return null
 
   const totalPrice = product.price + relatedProducts.filter(p => p.inStock).reduce((sum, p) => sum + p.price, 0)
 
@@ -642,7 +645,7 @@ export default function ProductPage() {
   const { isAuthenticated } = useAuthStore()
   const addToGuestCart = useCartStore((state) => state.addToGuestCart)
   const queryClient = useQueryClient()
-  const { freeShippingThreshold, returnDays, returnPolicyEnabled, returnPolicyText } =
+  const { freeShippingThreshold, returnDays, returnPolicyEnabled, returnPolicyText, instagramHandle } =
     useStoreSettings()
 
   const productTrustFeatures = useMemo(() => {
@@ -770,6 +773,7 @@ export default function ProductPage() {
 
   const handleAddToCart = () => {
     if (!product) return
+    if (product.pricingOnRequest) return
     if (product.customizationEnabled && !customizationText.trim()) {
       toast.error('Please add your customization details before adding to cart')
       return
@@ -928,10 +932,14 @@ export default function ProductPage() {
             )}
 
             <div className="flex items-center gap-4 mb-6 flex-wrap">
-              <span className="text-3xl font-semibold text-rose tabular-nums">
-                {formatPrice(Number(effectivePrice), product.currency)}
-              </span>
-              {effectiveComparePrice != null &&
+              {product.pricingOnRequest ? (
+                <span className="text-2xl font-semibold text-rose">Contact us for pricing</span>
+              ) : (
+                <span className="text-3xl font-semibold text-rose tabular-nums">
+                  {formatPrice(Number(effectivePrice), product.currency)}
+                </span>
+              )}
+              {!product.pricingOnRequest && effectiveComparePrice != null &&
                 Number(effectiveComparePrice) > Number(effectivePrice) &&
                 discountDisplay != null && (
                 <>
@@ -947,14 +955,14 @@ export default function ProductPage() {
                   </Badge>
                 </>
               )}
-              {!effectiveInStock ? (
+              {!product.pricingOnRequest && (!effectiveInStock ? (
                 <Badge variant="error" size="md">Out of Stock</Badge>
               ) : effectiveStock <= 5 ? (
                 <Badge variant="warning" size="md">Only {effectiveStock} left</Badge>
               ) : (
                 <Badge variant="success" size="md">In Stock</Badge>
-              )}
-              {hasVariants && !selectedVariant && (
+              ))}
+              {hasVariants && !selectedVariant && !product.pricingOnRequest && (
                 <span className="text-sm text-warm-gray italic">Select options for exact price</span>
               )}
             </div>
@@ -978,8 +986,21 @@ export default function ProductPage() {
               </div>
             )}
 
+            {product.pricingOnRequest && (
+              <InstagramQuoteButton
+                className="mb-8"
+                handle={instagramHandle}
+                productName={product.name}
+                sku={selectedVariant?.sku || product.sheetSku}
+                size={selectedVariant?.optionValues?.Size}
+                fragrance={selectedVariant?.optionValues?.Scent}
+                color={selectedVariant?.optionValues?.Color}
+                productUrl={productUrl}
+              />
+            )}
+
             {/* Quantity & Add to Cart */}
-            {effectiveInStock && (
+            {!product.pricingOnRequest && effectiveInStock && (
               <div className="space-y-4 mb-8">
                 {product.customizationEnabled && (
                   <div>
@@ -1044,7 +1065,7 @@ export default function ProductPage() {
             )}
 
             {/* Notify Me (Out of Stock) */}
-            {!effectiveInStock && (
+            {!product.pricingOnRequest && !effectiveInStock && (
               <NotifyMeForm productId={product.id} productName={product.name} />
             )}
 

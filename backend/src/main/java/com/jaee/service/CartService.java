@@ -84,6 +84,9 @@ public class CartService {
         if (!product.getActive()) {
             throw new BadRequestException("Product is not available");
         }
+        if (Boolean.TRUE.equals(product.getPricingOnRequest())) {
+            throw new BadRequestException("This product is priced on request. Message us on Instagram for a quote.");
+        }
 
         long variantCount = productVariantRepository.countByProduct_Id(product.getId());
         Long variantId = request.getVariantId();
