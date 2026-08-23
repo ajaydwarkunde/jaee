@@ -39,7 +39,10 @@ class GoogleSheetProductRowSyncServiceTest {
 
     @Test
     void createsInactiveDraftAndMapsSheetFields() {
-        SheetProductRow row = row("j001", "Gulab Ishq", 149, 29, 12);
+        SheetProductRow row = new SheetProductRow(
+                5, "j001", "Gulab Ishq", "A floral, hand-poured candle.",
+                "Large", "Rose", "Red", BigDecimal.valueOf(29),
+                BigDecimal.valueOf(149), 12, null);
         when(productRepository.findBySheetSkuIgnoreCase("J001")).thenReturn(Optional.empty());
         when(productRepository.findAllByNameIgnoreCase("Gulab Ishq")).thenReturn(List.of());
         when(productRepository.existsBySlug("gulab-ishq")).thenReturn(false);
@@ -60,6 +63,7 @@ class GoogleSheetProductRowSyncServiceTest {
         Product product = productCaptor.getValue();
         assertThat(product.getSheetSku()).isEqualTo("J001");
         assertThat(product.getName()).isEqualTo("Gulab Ishq");
+        assertThat(product.getDescription()).isEqualTo("A floral, hand-poured candle.");
         assertThat(product.getPrice()).isEqualByComparingTo("149");
         assertThat(product.getBaseCost()).isEqualByComparingTo("29");
         assertThat(product.getStockQty()).isEqualTo(12);
@@ -123,7 +127,7 @@ class GoogleSheetProductRowSyncServiceTest {
 
     @Test
     void skipsIncompleteRowsWithoutWriting() {
-        SheetProductRow row = new SheetProductRow(5, "", "Product", "", "", "",
+        SheetProductRow row = new SheetProductRow(5, "", "Product", null, "", "", "",
                 BigDecimal.TEN, BigDecimal.valueOf(100), 1, null);
 
         SheetProductSyncResult result = service.sync(row);
@@ -152,7 +156,7 @@ class GoogleSheetProductRowSyncServiceTest {
     @Test
     void createsQuoteOnRequestWhenWebsitePriceIsMissing() {
         SheetProductRow row = new SheetProductRow(
-                8, "J007", "Mini Pond", "", "", "",
+                8, "J007", "Mini Pond", null, "", "", "",
                 BigDecimal.valueOf(16.30), null, 0, null);
         when(productRepository.findBySheetSkuIgnoreCase("J007")).thenReturn(Optional.empty());
         when(productRepository.findAllByNameIgnoreCase("Mini Pond")).thenReturn(List.of());
@@ -203,12 +207,12 @@ class GoogleSheetProductRowSyncServiceTest {
         when(variantRepository.findByProductIdWithDetails(7L)).thenReturn(List.of(variant));
 
         service.sync(new SheetProductRow(
-                5, "J001", "Gulab Ishq", "Large", "Rose", "Red",
+                5, "J001", "Gulab Ishq", null, "Large", "Rose", "Red",
                 BigDecimal.ONE, BigDecimal.TEN, 1, null));
         assertThat(product.getImages()).containsExactly("https://admin.example/a.jpg");
 
         service.sync(new SheetProductRow(
-                5, "J001", "Gulab Ishq", "Large", "Rose", "Red",
+                5, "J001", "Gulab Ishq", null, "Large", "Rose", "Red",
                 BigDecimal.ONE, BigDecimal.TEN, 1,
                 List.of("https://cdn.example/front.jpg\nhttps://cdn.example/side.jpg")));
         assertThat(product.getImages()).containsExactly(
@@ -221,6 +225,7 @@ class GoogleSheetProductRowSyncServiceTest {
                 5,
                 sku,
                 name,
+                null,
                 "Large",
                 "Rose",
                 "Red",

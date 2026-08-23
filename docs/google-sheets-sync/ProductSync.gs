@@ -172,6 +172,7 @@ function readRows_(sheet, firstRow, lastRow) {
       rowNumber: firstRow + offset,
       sku: sku,
       productName: text_(display[indexes['Product Name']]),
+      description: text_(cell_(display, indexes['Description'])),
       size: text_(cell_(display, indexes['Size'])),
       fragrance: text_(cell_(display, indexes['Fragrance'])),
       color: text_(cell_(display, indexes['Color'])),

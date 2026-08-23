@@ -8,6 +8,7 @@ public record SheetProductRow(
         Integer rowNumber,
         String sku,
         String productName,
+        String description,
         String size,
         String fragrance,
         String color,
