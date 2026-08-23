@@ -11,8 +11,8 @@ values by header name.
 
 | Sheet header | Website field |
 |---|---|
-| `SKU` | Stable product identity |
-| `Product Name` | Product name |
+| `SKU` | Stable identity for one product variant; every row must have a unique SKU |
+| `Product Name` | Product grouping key. Rows with the same name appear as variants on one product page |
 | `Description` | Optional storefront description. A non-empty value updates the website; blank preserves the description entered in admin. |
 | `Size` | Variant option `Size` |
 | `Fragrance` | Variant option `Scent` |
@@ -87,10 +87,12 @@ Cell edits and **Jaai Catalog → Sync all products (staging)** always go to `BA
 4. Complete newly created inactive drafts in website admin by adding category,
    description (if absent from the sheet) and images, then activate them.
 
-The first full sync links a sheet row to an existing unlinked website product
-only when there is exactly one case-insensitive product-name match. Ambiguous
-matches are skipped. Unmatched SKUs create inactive drafts. Re-running the sync
-is safe because all later updates use SKU.
+The first row for a new Product Name creates an inactive product draft. Other
+rows with the same case-insensitive Product Name add or update variants under
+that product. Each row's Size, Fragrance, Color, price, cost and stock belong to
+its SKU. Product stock is the sum of its variants and the listing price is the
+lowest sellable variant price. Re-running the sync is safe because later variant
+updates use SKU.
 
 ## Ongoing behavior
 
@@ -102,7 +104,9 @@ is safe because all later updates use SKU.
   always preserved.
 - Sheet-owned fields are overwritten on every sync.
 - Treat SKU as immutable after the first sync. Changing it creates/links a
-  different product and leaves the old product untouched.
+  different variant and leaves the old variant untouched.
+- When renaming a product, update the Product Name on all of its variant rows
+  together so they continue to share one product page.
 - Deleting a row does not delete or deactivate its website product.
 - Transient `429` and `5xx` responses are retried up to three times.
 

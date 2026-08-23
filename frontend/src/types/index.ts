@@ -69,6 +69,7 @@ export interface ProductVariant {
   /** Matches admin drag-and-drop ordering when present */
   sortOrder?: number | null
   price: number
+  pricingOnRequest?: boolean
   /** Per-unit shipping weight (kg) */
   weightKg?: number | null
   compareAtPrice: number | null

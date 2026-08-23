@@ -16,10 +16,13 @@ import java.math.BigDecimal;
 import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 @Service
@@ -44,57 +47,70 @@ public class GoogleSheetProductRowSyncService {
             return result(row, normalizedSku, "skipped", null, validationError);
         }
 
-        Product product = productRepository.findBySheetSkuIgnoreCase(normalizedSku).orElse(null);
+        ProductVariant existingVariant = variantRepository.findBySkuIgnoreCase(normalizedSku).orElse(null);
+        Product legacySkuOwner = existingVariant == null
+                ? productRepository.findBySheetSkuIgnoreCase(normalizedSku).orElse(null)
+                : existingVariant.getProduct();
+        List<Product> nameMatches = productRepository.findAllByNameIgnoreCase(row.productName().trim());
+
+        if (nameMatches.size() > 1 && nameMatches.stream().anyMatch(product -> !isSheetManaged(product))) {
+            return result(row, normalizedSku, "skipped", null,
+                    "More than one existing product has this name; rename duplicates before syncing variants");
+        }
+
+        Product product = chooseCanonicalProduct(nameMatches);
+        if (product == null && legacySkuOwner != null) {
+            product = legacySkuOwner;
+        }
+
         boolean linked = false;
         boolean created = false;
 
         if (product == null) {
-            List<Product> nameMatches = productRepository.findAllByNameIgnoreCase(row.productName().trim())
-                    .stream()
-                    .filter(candidate -> candidate.getSheetSku() == null || candidate.getSheetSku().isBlank())
-                    .toList();
-            if (nameMatches.size() > 1) {
+            product = createDraft(row, normalizedSku);
+            created = true;
+        } else if (existingVariant == null) {
+            linked = true;
+        }
+
+        if (existingVariant != null && !existingVariant.getProduct().getId().equals(product.getId())) {
+            Product duplicate = existingVariant.getProduct();
+            if (!isSafeSheetDuplicate(duplicate)) {
                 return result(row, normalizedSku, "skipped", null,
-                        "More than one existing product has this name; link the SKU manually");
+                        "SKU already belongs to another active or manually managed product");
             }
-            if (nameMatches.size() == 1) {
-                product = nameMatches.getFirst();
-                linked = true;
-            } else {
-                product = createDraft(row, normalizedSku);
-                created = true;
-            }
+            mergeProductMetadata(product, duplicate);
+            existingVariant.setProduct(product);
+            variantRepository.saveAndFlush(existingVariant);
+            productRepository.delete(duplicate);
+            productRepository.flush();
+            linked = true;
+        }
+
+        Map<String, String> rowOptions = optionValues(row);
+        if (existingVariant == null
+                && product.getId() != null
+                && variantRepository.findByProductIdWithDetails(product.getId()).stream()
+                .anyMatch(variant -> normalizedOptions(variant.getOptionValues()).equals(rowOptions))) {
+            return result(row, normalizedSku, "skipped", product.getId(),
+                    "Another SKU already uses the same Size, Fragrance and Color combination");
         }
 
         int oldStock = product.getStockQty() == null ? 0 : product.getStockQty();
-        boolean pricingOnRequest = row.websitePrice() == null
-                || row.websitePrice().compareTo(BigDecimal.ZERO) <= 0;
-        int stock = row.stockQuantity() == null ? 0 : row.stockQuantity();
-        product.setSheetSku(normalizedSku);
+        if (product.getSheetSku() == null || product.getSheetSku().isBlank()) {
+            product.setSheetSku(normalizedSku);
+        }
         product.setSheetLastSyncedAt(LocalDateTime.now());
         product.setName(row.productName().trim());
         applyDescriptionIfPresent(product, row.description());
-        product.setPricingOnRequest(pricingOnRequest);
-        product.setPrice(pricingOnRequest ? BigDecimal.ZERO : row.websitePrice());
-        product.setBaseCost(row.totalCost());
-        product.setStockQty(stock);
         applyImagesIfPresent(product, row);
 
-        Map<String, String> optionValues = optionValues(row);
-        List<String> optionNames = optionValues.isEmpty()
-                ? List.of("Default")
-                : new ArrayList<>(optionValues.keySet());
-        if (product.getOptions() == null) {
-            product.setOptions(new ArrayList<>());
-        } else {
-            product.getOptions().clear();
-        }
-        product.getOptions().addAll(optionNames);
-
         product = productRepository.save(product);
-        upsertSingleVariant(product, row, normalizedSku, optionValues, linked);
+        upsertSingleVariant(product, row, normalizedSku, rowOptions, existingVariant);
+        aggregateProductFromVariants(product);
+        product = productRepository.save(product);
 
-        if (oldStock <= 0 && stock > 0 && Boolean.TRUE.equals(product.getActive())) {
+        if (oldStock <= 0 && product.getStockQty() > 0 && Boolean.TRUE.equals(product.getActive())) {
             stockNotificationService.notifySubscribers(product.getId());
         }
 
@@ -147,35 +163,32 @@ public class GoogleSheetProductRowSyncService {
             SheetProductRow row,
             String sku,
             Map<String, String> optionValues,
-            boolean newlyLinked
+            ProductVariant variant
     ) {
-        List<ProductVariant> variants = variantRepository.findByProductIdWithDetails(product.getId());
-        ProductVariant variant = variants.stream()
-                .filter(candidate -> candidate.getSku() != null && candidate.getSku().equalsIgnoreCase(sku))
-                .findFirst()
-                .orElse(null);
-
-        if (variant == null && variants.size() == 1 && newlyLinked) {
-            variant = variants.getFirst();
-        }
-        if (variant == null && !variants.isEmpty()) {
-            throw new IllegalStateException(
-                    "Product has existing variants that do not match SKU " + sku + "; no changes were applied");
+        if (variant == null) {
+            variant = variantRepository.findByProductIdWithDetails(product.getId()).stream()
+                    .filter(candidate -> candidate.getSku() != null
+                            && candidate.getSku().equalsIgnoreCase(sku))
+                    .findFirst()
+                    .orElse(null);
         }
         if (variant == null) {
             variant = ProductVariant.builder()
                     .product(product)
-                    .sortOrder(0)
-                    .active(Boolean.TRUE.equals(product.getActive()))
+                    .sortOrder((int) variantRepository.countByProduct_Id(product.getId()))
+                    .active(true)
                     .build();
         }
 
         boolean pricingOnRequest = row.websitePrice() == null
                 || row.websitePrice().compareTo(BigDecimal.ZERO) <= 0;
+        variant.setProduct(product);
         variant.setSku(sku);
         variant.setPrice(pricingOnRequest ? BigDecimal.ZERO : row.websitePrice());
+        variant.setPricingOnRequest(pricingOnRequest);
         variant.setExpense(row.totalCost());
         variant.setStockQty(row.stockQuantity() == null ? 0 : row.stockQuantity());
+        variant.setActive(true);
         if (variant.getWeightKg() == null) {
             variant.setWeightKg(product.getWeightKg());
         }
@@ -189,7 +202,95 @@ public class GoogleSheetProductRowSyncService {
         } else {
             variant.getOptionValues().putAll(optionValues);
         }
-        variantRepository.save(variant);
+        variantRepository.saveAndFlush(variant);
+    }
+
+    private void aggregateProductFromVariants(Product product) {
+        List<ProductVariant> variants = variantRepository.findByProductIdWithDetails(product.getId());
+        int totalStock = variants.stream()
+                .filter(variant -> Boolean.TRUE.equals(variant.getActive()))
+                .map(ProductVariant::getStockQty)
+                .filter(java.util.Objects::nonNull)
+                .mapToInt(Integer::intValue)
+                .sum();
+
+        List<BigDecimal> sellablePrices = variants.stream()
+                .filter(variant -> Boolean.TRUE.equals(variant.getActive()))
+                .filter(variant -> !Boolean.TRUE.equals(variant.getPricingOnRequest()))
+                .map(ProductVariant::getPrice)
+                .filter(java.util.Objects::nonNull)
+                .filter(price -> price.compareTo(BigDecimal.ZERO) > 0)
+                .toList();
+
+        product.setStockQty(totalStock);
+        product.setPricingOnRequest(sellablePrices.isEmpty());
+        product.setPrice(sellablePrices.stream().min(BigDecimal::compareTo).orElse(BigDecimal.ZERO));
+        product.setBaseCost(variants.stream()
+                .map(ProductVariant::getExpense)
+                .filter(java.util.Objects::nonNull)
+                .min(BigDecimal::compareTo)
+                .orElse(null));
+
+        Set<String> optionNames = new LinkedHashSet<>();
+        for (String preferred : List.of("Size", "Scent", "Color")) {
+            if (variants.stream().anyMatch(variant ->
+                    variant.getOptionValues() != null && hasText(variant.getOptionValues().get(preferred)))) {
+                optionNames.add(preferred);
+            }
+        }
+        variants.stream()
+                .map(ProductVariant::getOptionValues)
+                .filter(java.util.Objects::nonNull)
+                .forEach(values -> optionNames.addAll(values.keySet()));
+        if (optionNames.isEmpty()) {
+            optionNames.add("Default");
+        }
+
+        if (product.getOptions() == null) {
+            product.setOptions(new ArrayList<>());
+        } else {
+            product.getOptions().clear();
+        }
+        product.getOptions().addAll(optionNames);
+    }
+
+    private static Product chooseCanonicalProduct(List<Product> matches) {
+        return matches.stream()
+                .sorted(Comparator
+                        .comparing((Product product) -> !Boolean.TRUE.equals(product.getActive()))
+                        .thenComparing(product -> product.getId() == null ? Long.MAX_VALUE : product.getId()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private static boolean isSheetManaged(Product product) {
+        return product != null && hasText(product.getSheetSku());
+    }
+
+    private static boolean isSafeSheetDuplicate(Product product) {
+        return isSheetManaged(product) && !Boolean.TRUE.equals(product.getActive());
+    }
+
+    private static void mergeProductMetadata(Product target, Product source) {
+        if ((!hasText(target.getDescription()) || DRAFT_DESCRIPTION.equals(target.getDescription()))
+                && hasText(source.getDescription())
+                && !DRAFT_DESCRIPTION.equals(source.getDescription())) {
+            target.setDescription(source.getDescription());
+        }
+        if ((target.getImages() == null || target.getImages().isEmpty())
+                && source.getImages() != null && !source.getImages().isEmpty()) {
+            target.setImages(new ArrayList<>(source.getImages()));
+        }
+        if ((target.getVideos() == null || target.getVideos().isEmpty())
+                && source.getVideos() != null && !source.getVideos().isEmpty()) {
+            target.setVideos(new ArrayList<>(source.getVideos()));
+        }
+        if (target.getCategories() != null && source.getCategories() != null) {
+            target.getCategories().addAll(source.getCategories());
+        }
+        if (Boolean.TRUE.equals(source.getCustomizationEnabled())) {
+            target.setCustomizationEnabled(true);
+        }
     }
 
     private String uniqueSlug(String productName) {
@@ -260,6 +361,14 @@ public class GoogleSheetProductRowSyncService {
         putIfPresent(values, "Scent", row.fragrance());
         putIfPresent(values, "Color", row.color());
         return values;
+    }
+
+    private static Map<String, String> normalizedOptions(Map<String, String> options) {
+        if (options == null || options.isEmpty()
+                || (options.size() == 1 && "Default".equals(options.get("Default")))) {
+            return Map.of();
+        }
+        return options;
     }
 
     private static void putIfPresent(Map<String, String> target, String key, String value) {

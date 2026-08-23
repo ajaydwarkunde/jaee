@@ -773,7 +773,7 @@ export default function ProductPage() {
 
   const handleAddToCart = () => {
     if (!product) return
-    if (product.pricingOnRequest) return
+    if (product.pricingOnRequest || selectedVariant?.pricingOnRequest) return
     if (product.customizationEnabled && !customizationText.trim()) {
       toast.error('Please add your customization details before adding to cart')
       return
@@ -831,6 +831,8 @@ export default function ProductPage() {
   const hasVariants = (product.variants?.length ?? 0) > 0
 
   const effectivePrice = selectedVariant?.price ?? product.price
+  const effectivePricingOnRequest =
+    selectedVariant?.pricingOnRequest ?? product.pricingOnRequest
   const effectiveComparePrice = selectedVariant?.compareAtPrice ?? product.compareAtPrice
   const effectiveStock = selectedVariant?.stockQty ?? product.stockQty
   const discountDisplay = selectedVariant
@@ -932,14 +934,14 @@ export default function ProductPage() {
             )}
 
             <div className="flex items-center gap-4 mb-6 flex-wrap">
-              {product.pricingOnRequest ? (
+              {effectivePricingOnRequest ? (
                 <span className="text-2xl font-semibold text-rose">Contact us for pricing</span>
               ) : (
                 <span className="text-3xl font-semibold text-rose tabular-nums">
                   {formatPrice(Number(effectivePrice), product.currency)}
                 </span>
               )}
-              {!product.pricingOnRequest && effectiveComparePrice != null &&
+              {!effectivePricingOnRequest && effectiveComparePrice != null &&
                 Number(effectiveComparePrice) > Number(effectivePrice) &&
                 discountDisplay != null && (
                 <>
@@ -955,14 +957,14 @@ export default function ProductPage() {
                   </Badge>
                 </>
               )}
-              {!product.pricingOnRequest && (!effectiveInStock ? (
+              {!effectivePricingOnRequest && (!effectiveInStock ? (
                 <Badge variant="error" size="md">Out of Stock</Badge>
               ) : effectiveStock <= 5 ? (
                 <Badge variant="warning" size="md">Only {effectiveStock} left</Badge>
               ) : (
                 <Badge variant="success" size="md">In Stock</Badge>
               ))}
-              {hasVariants && !selectedVariant && !product.pricingOnRequest && (
+              {hasVariants && !selectedVariant && !effectivePricingOnRequest && (
                 <span className="text-sm text-warm-gray italic">Select options for exact price</span>
               )}
             </div>
@@ -986,7 +988,7 @@ export default function ProductPage() {
               </div>
             )}
 
-            {product.pricingOnRequest && (
+            {effectivePricingOnRequest && (
               <InstagramQuoteButton
                 className="mb-8"
                 handle={instagramHandle}
@@ -1000,7 +1002,7 @@ export default function ProductPage() {
             )}
 
             {/* Quantity & Add to Cart */}
-            {!product.pricingOnRequest && effectiveInStock && (
+            {!effectivePricingOnRequest && effectiveInStock && (
               <div className="space-y-4 mb-8">
                 {product.customizationEnabled && (
                   <div>
@@ -1065,7 +1067,7 @@ export default function ProductPage() {
             )}
 
             {/* Notify Me (Out of Stock) */}
-            {!product.pricingOnRequest && !effectiveInStock && (
+            {!effectivePricingOnRequest && !effectiveInStock && (
               <NotifyMeForm productId={product.id} productName={product.name} />
             )}
 

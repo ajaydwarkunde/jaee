@@ -207,7 +207,7 @@ export default function ProductForm({
             <FileSpreadsheet className="h-5 w-5 shrink-0 text-success mt-0.5" />
             <div>
               <p className="text-sm font-semibold text-charcoal">
-                Managed by Google Sheet · SKU {product.sheetSku}
+                Managed by Google Sheet · Variant group (initial SKU {product.sheetSku})
               </p>
               <p className="mt-1 text-xs text-warm-gray">
                 Name, selling price, stock, cost and variant options are sheet-owned. Description

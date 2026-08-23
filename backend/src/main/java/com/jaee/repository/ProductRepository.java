@@ -34,10 +34,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // Admin catalog management must also surface inactive drafts, including the ones the
     // Google Sheet sync creates, so they can be reviewed and published.
-    @Query("SELECT p FROM Product p WHERE " +
+    @Query("SELECT DISTINCT p FROM Product p WHERE " +
            "(:search IS NULL OR :search = '' OR " +
            "LOWER(COALESCE(p.name, '')) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-           "LOWER(COALESCE(p.sheetSku, '')) LIKE LOWER(CONCAT('%', :search, '%')))")
+           "LOWER(COALESCE(p.sheetSku, '')) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "EXISTS (SELECT 1 FROM ProductVariant v WHERE v.product = p " +
+           "AND LOWER(COALESCE(v.sku, '')) LIKE LOWER(CONCAT('%', :search, '%'))))")
     Page<Product> findAllForAdmin(@Param("search") String search, Pageable pageable);
     
     @Query("SELECT DISTINCT p FROM Product p JOIN p.categories c WHERE p.active = true AND c.id = :categoryId")
