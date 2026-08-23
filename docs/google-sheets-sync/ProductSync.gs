@@ -2,10 +2,14 @@
  * Jaai Google Sheet → website catalog synchronization.
  *
  * Required Script Properties:
- *   BACKEND_URL      e.g. https://jaee-backend.onrender.com
- *   SHEET_SYNC_SECRET (must equal GOOGLE_SHEETS_SYNC_SECRET on Render)
+ *   BACKEND_URL               staging API, e.g. https://jaee.onrender.com
+ *   SHEET_SYNC_SECRET         must equal GOOGLE_SHEETS_SYNC_SECRET on staging Render
  * Optional:
- *   PRODUCT_SHEET_NAME (defaults to the first sheet)
+ *   BACKEND_URL_PRODUCTION    production API, e.g. https://jaee-backend.onrender.com
+ *   SHEET_SYNC_SECRET_PRODUCTION  production Render secret; falls back to SHEET_SYNC_SECRET
+ *   PRODUCT_SHEET_NAME        defaults to the first sheet
+ *
+ * Cell edits and "Sync all products" always hit staging. Production is menu-only.
  */
 const HEADER_ROW = 4;
 const FIRST_DATA_ROW = 5;
@@ -22,7 +26,8 @@ function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('Jaai Catalog')
     .addItem('Install edit trigger', 'installProductSyncTrigger')
-    .addItem('Sync all products', 'syncAllProducts')
+    .addItem('Sync all products (staging)', 'syncAllProducts')
+    .addItem('Sync all products (production)', 'syncAllProductsToProduction')
     .addSeparator()
     .addItem('Generate sync secret', 'generateSyncSecret')
     .addItem('Open sync log', 'openSyncLog')
@@ -34,7 +39,7 @@ function onOpen() {
  * because simple onEdit triggers cannot call UrlFetchApp.
  */
 function installProductSyncTrigger() {
-  assertConfigured_();
+  assertConfigured_('staging');
   const spreadsheet = SpreadsheetApp.getActive();
   ScriptApp.getProjectTriggers()
     .filter((trigger) => trigger.getHandlerFunction() === 'handleProductEdit')
@@ -65,18 +70,32 @@ function handleProductEdit(event) {
   try {
     const rows = readRows_(sheet, firstRow, lastRow);
     if (rows.length === 0) return;
-    const response = syncRows_(rows);
-    writeLog_('Edit rows ' + firstRow + '-' + lastRow, response);
+    const response = syncRows_(rows, 'staging');
+    writeLog_('Edit rows staging ' + firstRow + '-' + lastRow, response);
     showSummary_(response);
   } catch (error) {
-    writeFailureLog_('Edit rows ' + firstRow + '-' + lastRow, error);
+    writeFailureLog_('Edit rows staging ' + firstRow + '-' + lastRow, error);
     throw error;
   }
 }
 
 /** Initial import and recovery action. Safe to run repeatedly (SKU-idempotent). */
 function syncAllProducts() {
-  assertConfigured_();
+  syncAllProductsTo_('staging');
+}
+
+function syncAllProductsToProduction() {
+  const ui = SpreadsheetApp.getUi();
+  const confirmed = ui.alert(
+    'This will update the live production catalog from this sheet. Continue?',
+    ui.ButtonSet.YES_NO
+  );
+  if (confirmed !== ui.Button.YES) return;
+  syncAllProductsTo_('production');
+}
+
+function syncAllProductsTo_(target) {
+  assertConfigured_(target);
   const sheet = getProductSheet_();
   SpreadsheetApp.flush();
 
@@ -94,10 +113,10 @@ function syncAllProducts() {
 
   const combined = emptyResponse_();
   for (let start = 0; start < rows.length; start += BATCH_SIZE) {
-    mergeResponse_(combined, syncRows_(rows.slice(start, start + BATCH_SIZE)));
+    mergeResponse_(combined, syncRows_(rows.slice(start, start + BATCH_SIZE), target));
   }
 
-  writeLog_('Full sync (' + rows.length + ' rows)', combined);
+  writeLog_('Full sync ' + target + ' (' + rows.length + ' rows)', combined);
   showSummary_(combined);
 }
 
@@ -164,11 +183,10 @@ function readRows_(sheet, firstRow, lastRow) {
   }).filter(Boolean);
 }
 
-function syncRows_(rows) {
-  assertConfigured_();
-  const properties = PropertiesService.getScriptProperties();
-  const backendUrl = properties.getProperty('BACKEND_URL').replace(/\/+$/, '');
-  const secret = properties.getProperty('SHEET_SYNC_SECRET');
+function syncRows_(rows, target) {
+  assertConfigured_(target);
+  const backendUrl = backendUrlFor_(target);
+  const secret = secretFor_(target);
   const url = backendUrl + '/integrations/google-sheets/products/sync';
 
   let lastError = null;
@@ -221,10 +239,30 @@ function headerIndexes_(headers) {
   }, {});
 }
 
-function assertConfigured_() {
+function backendUrlFor_(target) {
   const properties = PropertiesService.getScriptProperties();
-  const missing = ['BACKEND_URL', 'SHEET_SYNC_SECRET']
-    .filter((key) => !properties.getProperty(key));
+  const key = target === 'production' ? 'BACKEND_URL_PRODUCTION' : 'BACKEND_URL';
+  return String(properties.getProperty(key) || '').replace(/\/+$/, '');
+}
+
+function secretFor_(target) {
+  const properties = PropertiesService.getScriptProperties();
+  if (target === 'production') {
+    return properties.getProperty('SHEET_SYNC_SECRET_PRODUCTION')
+      || properties.getProperty('SHEET_SYNC_SECRET');
+  }
+  return properties.getProperty('SHEET_SYNC_SECRET');
+}
+
+function assertConfigured_(target) {
+  const missing = [];
+  if (target === 'production') {
+    if (!backendUrlFor_('production')) missing.push('BACKEND_URL_PRODUCTION');
+    if (!secretFor_('production')) missing.push('SHEET_SYNC_SECRET or SHEET_SYNC_SECRET_PRODUCTION');
+  } else {
+    if (!backendUrlFor_('staging')) missing.push('BACKEND_URL');
+    if (!secretFor_('staging')) missing.push('SHEET_SYNC_SECRET');
+  }
   if (missing.length > 0) {
     throw new Error('Missing Apps Script property/properties: ' + missing.join(', '));
   }
