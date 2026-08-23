@@ -46,6 +46,22 @@ export const productService = {
   },
 
   // Admin endpoints
+  /** Admin catalog listing. Includes inactive drafts, which `getProducts` filters out. */
+  getAdminProducts: async (
+    filters: Pick<ProductFilters, 'search' | 'sortBy' | 'sortDir' | 'page' | 'pageSize'> = {},
+  ): Promise<PageResponse<Product>> => {
+    const params = new URLSearchParams()
+
+    if (filters.search) params.append('search', filters.search)
+    if (filters.sortBy) params.append('sortBy', filters.sortBy)
+    if (filters.sortDir) params.append('sortDir', filters.sortDir)
+    params.append('page', (filters.page ?? 0).toString())
+    params.append('pageSize', (filters.pageSize ?? 10).toString())
+
+    const response = await api.get<ApiResponse<PageResponse<Product>>>(`/admin/products?${params}`)
+    return response.data.data
+  },
+
   createProduct: async (data: ProductFormData): Promise<Product> => {
     const response = await api.post<ApiResponse<Product>>('/admin/products', data)
     return response.data.data

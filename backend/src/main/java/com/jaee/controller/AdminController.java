@@ -70,6 +70,20 @@ public class AdminController {
     }
 
     // Product endpoints
+    @GetMapping("/products")
+    @Operation(summary = "List all products, including inactive drafts")
+    public ResponseEntity<ApiResponse<PageResponse<ProductDto>>> getProducts(
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "newest") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int pageSize
+    ) {
+        PageResponse<ProductDto> products =
+                productService.getProductsForAdmin(search, sortBy, sortDir, page, pageSize);
+        return ResponseEntity.ok(ApiResponse.success(products));
+    }
+
     @PostMapping("/products")
     @Operation(summary = "Create a new product")
     public ResponseEntity<ApiResponse<ProductDto>> createProduct(@Valid @RequestBody ProductCreateRequest request) {
