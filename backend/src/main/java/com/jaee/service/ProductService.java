@@ -73,6 +73,27 @@ public class ProductService {
         return PageResponse.from(productPage, ProductDto::fromListingEntity);
     }
 
+    /**
+     * Admin catalog listing. Unlike {@link #getProducts}, this returns inactive products and is
+     * not cached, so newly synced drafts and activation changes are visible immediately.
+     */
+    @Transactional(readOnly = true)
+    public PageResponse<ProductDto> getProductsForAdmin(
+            String search,
+            String sortBy,
+            String sortDir,
+            int page,
+            int pageSize
+    ) {
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), getSortField(sortBy));
+        Pageable pageable = PageRequest.of(page, pageSize, sort);
+
+        String normalizedSearch = (search == null || search.isBlank()) ? null : search.trim();
+        Page<Product> productPage = productRepository.findAllForAdmin(normalizedSearch, pageable);
+
+        return PageResponse.from(productPage, ProductDto::fromListingEntity);
+    }
+
     @Transactional(readOnly = true)
     public FilterOptionsDto getFilterOptions() {
         return FilterOptionsDto.builder()

@@ -22,7 +22,8 @@ export default function AdminProducts() {
 
   const { data: productsData, isLoading } = useQuery({
     queryKey: ['admin-products', { search, page }],
-    queryFn: () => productService.getProducts({ search: search || undefined, page, pageSize: 10 }),
+    queryFn: () =>
+      productService.getAdminProducts({ search: search || undefined, page, pageSize: 10 }),
   })
 
   const deleteMutation = useMutation({
