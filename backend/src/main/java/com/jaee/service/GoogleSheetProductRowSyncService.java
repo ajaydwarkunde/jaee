@@ -58,8 +58,10 @@ public class GoogleSheetProductRowSyncService {
                     "More than one existing product has this name; rename duplicates before syncing variants");
         }
 
+        String rowProductName = row.productName().trim();
         Product product = chooseCanonicalProduct(nameMatches);
-        if (product == null && legacySkuOwner != null) {
+        if (product == null && legacySkuOwner != null
+                && legacySkuOwner.getName().equalsIgnoreCase(rowProductName)) {
             product = legacySkuOwner;
         }
 
@@ -90,7 +92,11 @@ public class GoogleSheetProductRowSyncService {
                 return result(row, normalizedSku, "skipped", null,
                         "SKU already belongs to another active or manually managed product");
             }
-            absorbSheetDuplicate(product, duplicate);
+            if (shouldAbsorbDuplicate(product, duplicate)) {
+                absorbSheetDuplicate(product, duplicate);
+            } else {
+                reassignVariantToProduct(existingVariant, product);
+            }
             existingVariant = variantRepository.findBySkuIgnoreCase(normalizedSku).orElse(null);
         }
 
@@ -117,7 +123,7 @@ public class GoogleSheetProductRowSyncService {
 
         int oldStock = product.getStockQty() == null ? 0 : product.getStockQty();
         product.setSheetLastSyncedAt(LocalDateTime.now());
-        product.setName(row.productName().trim());
+        product.setName(rowProductName);
         product.setActive(true);
         applyDescriptionIfPresent(product, row.description());
         applyImagesIfPresent(product, row);
@@ -330,6 +336,45 @@ public class GoogleSheetProductRowSyncService {
     }
 
     /**
+     * Same-name sheet orphans from the old one-SKU model can be merged wholesale. When the sheet
+     * Product Name differs, only move the matching SKU — never pull every variant from another
+     * product (e.g. Rope Jar rows must not stay under Vanilla Whisper).
+     */
+    private boolean shouldAbsorbDuplicate(Product target, Product source) {
+        if (target == null || source == null) {
+            return false;
+        }
+        if (target.getId() != null && source.getId() != null && target.getId().equals(source.getId())) {
+            return false;
+        }
+        if (target.getName().equalsIgnoreCase(source.getName())) {
+            return true;
+        }
+        return variantRepository.countByProduct_Id(source.getId()) <= 1;
+    }
+
+    private void reassignVariantToProduct(ProductVariant variant, Product target) {
+        Product source = variant.getProduct();
+        variant.setProduct(target);
+        variantRepository.save(variant);
+        if (source != null && source.getId() != null && !source.getId().equals(target.getId())) {
+            refreshProductAggregates(source);
+        }
+    }
+
+    private void refreshProductAggregates(Product product) {
+        List<ProductVariant> remaining = variantRepository.findByProductIdWithDetails(product.getId());
+        if (remaining.isEmpty()) {
+            product.setActive(false);
+            product.setStockQty(0);
+            productRepository.save(product);
+            return;
+        }
+        aggregateProductFromVariants(product, null);
+        productRepository.save(product);
+    }
+
+    /**
      * Move every variant from a same-name sheet orphan onto the canonical product, then delete the
      * orphan. Metadata such as images is merged first so nothing storefront-owned is lost.
      * The orphan's sheet_sku is cleared before delete so the unique index never sees two owners.
@@ -374,7 +419,12 @@ public class GoogleSheetProductRowSyncService {
             if (!isSafeSheetDuplicate(sheetSkuOwner)) {
                 return "SKU already belongs to another active or manually managed product";
             }
-            absorbSheetDuplicate(product, sheetSkuOwner);
+            if (shouldAbsorbDuplicate(product, sheetSkuOwner)) {
+                absorbSheetDuplicate(product, sheetSkuOwner);
+            } else {
+                sheetSkuOwner.setSheetSku(null);
+                productRepository.saveAndFlush(sheetSkuOwner);
+            }
         }
 
         if (!hasText(product.getSheetSku())) {
