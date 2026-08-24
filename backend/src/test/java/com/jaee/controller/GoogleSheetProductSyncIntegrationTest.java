@@ -47,7 +47,7 @@ class GoogleSheetProductSyncIntegrationTest {
                 .andExpect(jsonPath("$.data.failed").value(0));
 
         Product created = productRepository.findBySheetSkuIgnoreCase("J001").orElseThrow();
-        assertThat(created.getActive()).isFalse();
+        assertThat(created.getActive()).isTrue();
         assertThat(created.getPrice()).isEqualByComparingTo("149");
         assertThat(variantRepository.findByProductIdWithDetails(created.getId())).hasSize(1);
 
@@ -68,26 +68,26 @@ class GoogleSheetProductSyncIntegrationTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void syncedDraftIsHiddenPubliclyButVisibleToAdmin() throws Exception {
+    void syncedProductIsVisiblePubliclyAndToAdmin() throws Exception {
         mockMvc.perform(post("/integrations/google-sheets/products/sync")
                         .header("X-Sheet-Sync-Secret", "test-sheet-secret")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload(149, 29, 4)))
                 .andExpect(status().isOk());
 
-        Product draft = productRepository.findBySheetSkuIgnoreCase("J001").orElseThrow();
-        assertThat(draft.getActive()).isFalse();
+        Product product = productRepository.findBySheetSkuIgnoreCase("J001").orElseThrow();
+        assertThat(product.getActive()).isTrue();
 
-        // The public catalog must never leak an unpublished draft.
+        // Sheet products are published automatically.
         mockMvc.perform(get("/products").param("search", "Gulab Ishq Wax Sachet").param("pageSize", "50"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.content[?(@.sheetSku == 'J001')]").isEmpty());
+                .andExpect(jsonPath("$.data.content[?(@.sheetSku == 'J001')]").isNotEmpty());
 
-        // Admin must see it, otherwise there is no way to publish it.
+        // Admin sees the same published state.
         mockMvc.perform(get("/admin/products").param("search", "J001").param("pageSize", "50"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content[?(@.sheetSku == 'J001')]").isNotEmpty())
-                .andExpect(jsonPath("$.data.content[0].active").value(false))
+                .andExpect(jsonPath("$.data.content[0].active").value(true))
                 .andExpect(jsonPath("$.data.content[0].name").value("Gulab Ishq Wax Sachet"));
     }
 

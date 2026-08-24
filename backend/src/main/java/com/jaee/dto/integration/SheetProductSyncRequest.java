@@ -2,5 +2,11 @@ package com.jaee.dto.integration;
 
 import java.util.List;
 
-public record SheetProductSyncRequest(List<SheetProductRow> rows) {
+public record SheetProductSyncRequest(
+        List<SheetProductRow> rows,
+        List<String> catalogSkus
+) {
+    public SheetProductSyncRequest(List<SheetProductRow> rows) {
+        this(rows, null);
+    }
 }
