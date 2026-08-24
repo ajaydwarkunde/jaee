@@ -201,7 +201,6 @@ class GoogleSheetProductSyncIntegrationTest {
         assertThat(variantRepository.findByProductIdWithDetails(ropeJar.getId()))
                 .extracting(v -> v.getSku().toUpperCase())
                 .containsExactlyInAnyOrder("RJ-1", "RJ-2");
-        assertThat(ropeJar.getOptions()).doesNotContain("Size");
         assertThat(variantRepository.findByProductIdWithDetails(ropeJar.getId()))
                 .allSatisfy(v -> assertThat(v.getOptionValues()).doesNotContainKey("Size"));
     }

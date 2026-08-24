@@ -210,7 +210,6 @@ class GoogleSheetProductRowSyncServiceTest {
         when(productRepository.findBySheetSkuIgnoreCase("J001")).thenReturn(Optional.of(product));
         when(variantRepository.findBySkuIgnoreCase("J001")).thenReturn(Optional.of(variant));
         when(productRepository.findAllByNameIgnoreCase("Gulab Ishq")).thenReturn(List.of(product));
-        when(variantRepository.countByProduct_Id(7L)).thenReturn(1L);
         when(productRepository.save(product)).thenReturn(product);
         when(variantRepository.findByProductIdWithDetails(7L)).thenReturn(List.of(variant));
 
