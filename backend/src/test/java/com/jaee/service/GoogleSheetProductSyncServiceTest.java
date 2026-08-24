@@ -50,6 +50,7 @@ class GoogleSheetProductSyncServiceTest {
         assertThat(response.created()).isEqualTo(1);
         assertThat(response.updated()).isEqualTo(1);
         assertThat(response.failed()).isZero();
+        verify(rowSyncService).reconcileBatchVariantPlacement(List.of(first, second));
         verify(catalogCacheService).evictAll();
     }
 

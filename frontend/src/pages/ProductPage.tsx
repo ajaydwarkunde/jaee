@@ -542,7 +542,9 @@ function VariantSelector({
   selectedVariant: ProductVariant | null
   onSelect: (variant: ProductVariant | null) => void
 }) {
-  const variants = [...(product.variants || [])].sort((a, b) => {
+  const variants = [...(product.variants || [])]
+    .filter((v) => v.active !== false)
+    .sort((a, b) => {
     const ao = a.sortOrder ?? 0
     const bo = b.sortOrder ?? 0
     if (ao !== bo) return ao - bo

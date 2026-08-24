@@ -107,7 +107,7 @@ public class ProductService {
     public ProductDto getProductBySlug(String slug) {
         Product product = productRepository.findBySlugWithDetails(slug)
                 .orElseThrow(() -> new NotFoundException("Product not found"));
-        return ProductDto.fromEntity(product);
+        return ProductDto.fromStorefrontEntity(product);
     }
 
     @Transactional(readOnly = true)

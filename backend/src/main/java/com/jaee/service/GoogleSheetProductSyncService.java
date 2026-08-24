@@ -68,6 +68,9 @@ public class GoogleSheetProductSyncService {
         if (catalogStatusChanged || rowsChanged) {
             catalogCacheService.evictAll();
         }
+        if (!rows.isEmpty()) {
+            rowSyncService.reconcileBatchVariantPlacement(rows);
+        }
         return SheetProductSyncResponse.from(results);
     }
 
