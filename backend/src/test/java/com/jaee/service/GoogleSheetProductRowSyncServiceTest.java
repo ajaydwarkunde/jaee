@@ -43,7 +43,7 @@ class GoogleSheetProductRowSyncServiceTest {
         SheetProductRow row = new SheetProductRow(
                 5, "j001", "Gulab Ishq", "A floral, hand-poured candle.",
                 "Large", "Rose", "Red", BigDecimal.valueOf(29),
-                BigDecimal.valueOf(149), 12, null);
+                BigDecimal.valueOf(149), 12, null, null);
         when(productRepository.findBySheetSkuIgnoreCase("J001")).thenReturn(Optional.empty());
         when(productRepository.findAllByNameIgnoreCase("Gulab Ishq")).thenReturn(List.of());
         when(productRepository.existsBySlug("gulab-ishq")).thenReturn(false);
@@ -133,7 +133,7 @@ class GoogleSheetProductRowSyncServiceTest {
     @Test
     void skipsIncompleteRowsWithoutWriting() {
         SheetProductRow row = new SheetProductRow(5, "", "Product", null, "", "", "",
-                BigDecimal.TEN, BigDecimal.valueOf(100), 1, null);
+                BigDecimal.TEN, BigDecimal.valueOf(100), 1, null, null);
 
         SheetProductSyncResult result = service.sync(row);
 
@@ -162,7 +162,7 @@ class GoogleSheetProductRowSyncServiceTest {
     void createsQuoteOnRequestWhenWebsitePriceIsMissing() {
         SheetProductRow row = new SheetProductRow(
                 8, "J007", "Mini Pond", null, "", "", "",
-                BigDecimal.valueOf(16.30), null, 0, null);
+                BigDecimal.valueOf(16.30), null, 0, null, null);
         when(productRepository.findBySheetSkuIgnoreCase("J007")).thenReturn(Optional.empty());
         when(productRepository.findAllByNameIgnoreCase("Mini Pond")).thenReturn(List.of());
         when(productRepository.existsBySlug("mini-pond")).thenReturn(false);
@@ -215,12 +215,12 @@ class GoogleSheetProductRowSyncServiceTest {
 
         service.sync(new SheetProductRow(
                 5, "J001", "Gulab Ishq", null, "Large", "Rose", "Red",
-                BigDecimal.ONE, BigDecimal.TEN, 1, null));
+                BigDecimal.ONE, BigDecimal.TEN, 1, null, null));
         assertThat(product.getImages()).containsExactly("https://admin.example/a.jpg");
 
         service.sync(new SheetProductRow(
                 5, "J001", "Gulab Ishq", null, "Large", "Rose", "Red",
-                BigDecimal.ONE, BigDecimal.TEN, 1,
+                BigDecimal.ONE, BigDecimal.TEN, 1, null,
                 List.of("https://cdn.example/front.jpg\nhttps://cdn.example/side.jpg")));
         assertThat(product.getImages()).containsExactly(
                 "https://cdn.example/front.jpg",
@@ -239,7 +239,42 @@ class GoogleSheetProductRowSyncServiceTest {
                 BigDecimal.valueOf(cost),
                 BigDecimal.valueOf(price),
                 stock,
+                null,
                 null
         );
+    }
+
+    @Test
+    void honoursActiveColumnNo() {
+        SheetProductRow row = new SheetProductRow(
+                5, "J002", "Hidden Candle", null, "Large", "Rose", "Red",
+                BigDecimal.TEN, BigDecimal.valueOf(100), 1, false, null);
+        when(productRepository.findBySheetSkuIgnoreCase("J002")).thenReturn(Optional.empty());
+        when(variantRepository.findBySkuIgnoreCase("J002")).thenReturn(Optional.empty());
+        when(productRepository.findAllByNameIgnoreCase("Hidden Candle")).thenReturn(List.of());
+        when(productRepository.existsBySlug("hidden-candle")).thenReturn(false);
+        when(productRepository.save(any(Product.class))).thenAnswer(invocation -> {
+            Product product = invocation.getArgument(0);
+            product.setId(99L);
+            return product;
+        });
+        when(variantRepository.findByProductIdWithDetails(99L)).thenReturn(List.of());
+
+        service.sync(row);
+
+        ArgumentCaptor<ProductVariant> variantCaptor = ArgumentCaptor.forClass(ProductVariant.class);
+        verify(variantRepository).save(variantCaptor.capture());
+        assertThat(variantCaptor.getValue().getActive()).isFalse();
+
+        ArgumentCaptor<Product> productCaptor = ArgumentCaptor.forClass(Product.class);
+        verify(productRepository, atLeastOnce()).save(productCaptor.capture());
+        assertThat(productCaptor.getValue().getActive()).isFalse();
+    }
+
+    @Test
+    void parseSheetActiveTreatsBlankAsYes() {
+        assertThat(GoogleSheetProductRowSyncService.parseSheetActive((Boolean) null)).isTrue();
+        assertThat(GoogleSheetProductRowSyncService.parseSheetActive(true)).isTrue();
+        assertThat(GoogleSheetProductRowSyncService.parseSheetActive(false)).isFalse();
     }
 }

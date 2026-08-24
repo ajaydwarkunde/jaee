@@ -15,6 +15,7 @@ public record SheetProductRow(
         BigDecimal totalCost,
         BigDecimal websitePrice,
         Integer stockQuantity,
+        Boolean active,
         List<String> imageUrls
 ) {
 }

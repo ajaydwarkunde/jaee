@@ -62,7 +62,7 @@ public class GoogleSheetProductSyncService {
         if (request != null && request.catalogSkus() != null) {
             catalogStatusChanged = publishOnlySheetCatalog(request.catalogSkus());
         } else if (rowsChanged) {
-            catalogStatusChanged = hideNonSheetProducts();
+            catalogStatusChanged = deleteNonSheetProducts();
         }
 
         if (catalogStatusChanged || rowsChanged) {
@@ -75,10 +75,9 @@ public class GoogleSheetProductSyncService {
     }
 
     /**
-     * Completes an explicit full-sheet sync. Sheet-managed variants missing from the supplied
-     * catalog are retired, their parent products are hidden, and every non-sheet product is
-     * hidden. Single-row edit-trigger syncs omit catalogSkus and therefore never perform this
-     * global catalog switch.
+     * Completes an explicit full-sheet sync. Products with no SKUs left in the sheet catalog are
+     * deleted. Variant and product active flags come from each row's Active column and are not
+     * overridden here.
      */
     private boolean publishOnlySheetCatalog(List<String> catalogSkus) {
         if (catalogSkus.size() > MAX_ROWS_PER_REQUEST) {
@@ -95,74 +94,67 @@ public class GoogleSheetProductSyncService {
         }
 
         List<Product> products = productRepository.findAll();
-        Set<Long> sheetManagedProductIds = new HashSet<>();
-        for (Product product : products) {
-            if (product.getSheetSku() != null && !product.getSheetSku().isBlank()) {
-                sheetManagedProductIds.add(product.getId());
-            }
-        }
+        List<Product> deletedProducts = new ArrayList<>();
+        List<Product> changedProducts = new ArrayList<>();
 
-        Set<Long> publishedProductIds = new HashSet<>();
-        List<ProductVariant> changedVariants = new ArrayList<>();
-        for (ProductVariant variant : variantRepository.findAll()) {
-            Long productId = variant.getProduct().getId();
-            if (!sheetManagedProductIds.contains(productId)) {
+        for (Product product : products) {
+            if (!isSheetManaged(product)) {
+                deletedProducts.add(product);
                 continue;
             }
 
-            boolean shouldBeActive = normalizedSkus.contains(
-                    GoogleSheetProductRowSyncService.normalizeSku(variant.getSku()));
-            if (shouldBeActive) {
-                publishedProductIds.add(productId);
+            List<ProductVariant> variants = variantRepository.findByProductIdWithDetails(product.getId());
+            boolean hasCatalogVariant = variants.stream()
+                    .anyMatch(variant -> normalizedSkus.contains(
+                            GoogleSheetProductRowSyncService.normalizeSku(variant.getSku())));
+            if (!hasCatalogVariant) {
+                deletedProducts.add(product);
+                continue;
             }
-            if (!Boolean.valueOf(shouldBeActive).equals(variant.getActive())) {
-                variant.setActive(shouldBeActive);
-                changedVariants.add(variant);
-            }
-        }
 
-        List<Product> changedProducts = new ArrayList<>();
-        for (Product product : products) {
-            boolean shouldBeActive = publishedProductIds.contains(product.getId());
-            if (!Boolean.valueOf(shouldBeActive).equals(product.getActive())) {
-                product.setActive(shouldBeActive);
+            boolean anyActive = variants.stream()
+                    .anyMatch(variant -> normalizedSkus.contains(
+                            GoogleSheetProductRowSyncService.normalizeSku(variant.getSku()))
+                            && Boolean.TRUE.equals(variant.getActive()));
+            if (!Boolean.valueOf(anyActive).equals(product.getActive())) {
+                product.setActive(anyActive);
                 changedProducts.add(product);
             }
         }
 
-        if (!changedVariants.isEmpty()) {
-            variantRepository.saveAll(changedVariants);
+        if (!deletedProducts.isEmpty()) {
+            productRepository.deleteAll(deletedProducts);
         }
         if (!changedProducts.isEmpty()) {
             productRepository.saveAll(changedProducts);
         }
 
         log.info(
-                "Published Google Sheet catalog: {} SKUs, {} products active, {} products changed, {} variants changed",
+                "Published Google Sheet catalog: {} SKUs, {} products kept, {} products updated, {} products deleted",
                 normalizedSkus.size(),
-                publishedProductIds.size(),
+                products.size() - deletedProducts.size(),
                 changedProducts.size(),
-                changedVariants.size()
+                deletedProducts.size()
         );
-        return !changedProducts.isEmpty() || !changedVariants.isEmpty();
+        return !deletedProducts.isEmpty() || !changedProducts.isEmpty();
     }
 
-    /**
-     * Any successful sheet update establishes the sheet as the publication source, even when an
-     * older Apps Script does not yet send the full catalog SKU list. A later explicit full sync
-     * additionally retires sheet-managed variants that were removed from the sheet.
-     */
-    private boolean hideNonSheetProducts() {
-        List<Product> changedProducts = productRepository.findAll().stream()
-                .filter(product -> product.getSheetSku() == null || product.getSheetSku().isBlank())
-                .filter(product -> Boolean.TRUE.equals(product.getActive()))
-                .peek(product -> product.setActive(false))
+    /** Any successful sheet update removes legacy admin/seed products from the database. */
+    private boolean deleteNonSheetProducts() {
+        List<Product> legacyProducts = productRepository.findAll().stream()
+                .filter(product -> !isSheetManaged(product))
                 .toList();
-        if (changedProducts.isEmpty()) {
+        if (legacyProducts.isEmpty()) {
             return false;
         }
-        productRepository.saveAll(changedProducts);
-        log.info("Made {} non-sheet products inactive", changedProducts.size());
+        productRepository.deleteAll(legacyProducts);
+        log.info("Deleted {} non-sheet products", legacyProducts.size());
         return true;
+    }
+
+    private static boolean isSheetManaged(Product product) {
+        return product != null
+                && product.getSheetSku() != null
+                && !product.getSheetSku().isBlank();
     }
 }

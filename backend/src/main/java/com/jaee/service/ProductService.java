@@ -107,6 +107,12 @@ public class ProductService {
     public ProductDto getProductBySlug(String slug) {
         Product product = productRepository.findBySlugWithDetails(slug)
                 .orElseThrow(() -> new NotFoundException("Product not found"));
+        if (!isSheetCatalogProduct(product)) {
+            throw new NotFoundException("Product not found");
+        }
+        if (!Boolean.TRUE.equals(product.getActive())) {
+            throw new NotFoundException("Product not found");
+        }
         return ProductDto.fromStorefrontEntity(product);
     }
 
@@ -307,6 +313,10 @@ public class ProductService {
             case "newest" -> "createdAt";
             default -> "createdAt";
         };
+    }
+
+    private static boolean isSheetCatalogProduct(Product product) {
+        return product.getSheetSku() != null && !product.getSheetSku().isBlank();
     }
 
     private String toSlug(String input) {

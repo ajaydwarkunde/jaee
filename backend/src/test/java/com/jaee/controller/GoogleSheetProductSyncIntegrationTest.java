@@ -47,6 +47,9 @@ class GoogleSheetProductSyncIntegrationTest {
                 .forEach(productRepository::delete);
         productRepository.findAllByNameIgnoreCase("Rope Jar")
                 .forEach(productRepository::delete);
+        productRepository.findAllByNameIgnoreCase("Hidden Sheet Product")
+                .forEach(productRepository::delete);
+        productRepository.findBySheetSkuIgnoreCase("J-INACTIVE").ifPresent(productRepository::delete);
     }
 
     @Test
@@ -363,6 +366,38 @@ class GoogleSheetProductSyncIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload(149, 29, 4)))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void webhookHonoursActiveColumnNo() throws Exception {
+        mockMvc.perform(post("/integrations/google-sheets/products/sync")
+                        .header("X-Sheet-Sync-Secret", "test-sheet-secret")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "rows": [{
+                                    "rowNumber": 5,
+                                    "sku": "J-INACTIVE",
+                                    "productName": "Hidden Sheet Product",
+                                    "fragrance": "Rose",
+                                    "totalCost": 10,
+                                    "websitePrice": 100,
+                                    "stockQuantity": 1,
+                                    "active": false
+                                  }]
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.created").value(1));
+
+        Product product = productRepository.findAllByNameIgnoreCase("Hidden Sheet Product").getFirst();
+        assertThat(product.getActive()).isFalse();
+        assertThat(variantRepository.findByProductIdWithDetails(product.getId()))
+                .singleElement()
+                .matches(variant -> Boolean.FALSE.equals(variant.getActive()));
+
+        mockMvc.perform(get("/products/" + product.getSlug()))
+                .andExpect(status().isNotFound());
     }
 
     private static String payload(int price, int cost, int stock) {

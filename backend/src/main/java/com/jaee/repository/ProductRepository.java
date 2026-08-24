@@ -26,15 +26,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query("SELECT p FROM Product p LEFT JOIN FETCH p.categories LEFT JOIN FETCH p.variants WHERE p.id = :id")
     Optional<Product> findByIdWithDetails(@Param("id") Long id);
-    
-    boolean existsBySlug(String slug);
-    
-    @Query("SELECT p FROM Product p WHERE p.active = true")
+
+    /** Storefront catalog: active products that originated from the Google Sheet sync. */
+    @Query("SELECT p FROM Product p WHERE p.active = true AND p.sheetSku IS NOT NULL AND p.sheetSku <> ''")
     Page<Product> findAllActive(Pageable pageable);
 
-    // Admin catalog management must also surface inactive drafts, including the ones the
-    // Google Sheet sync creates, so they can be reviewed and published.
-    @Query("SELECT DISTINCT p FROM Product p WHERE " +
+    // Admin catalog: sheet-synced products only (active and inactive).
+    @Query("SELECT DISTINCT p FROM Product p WHERE p.sheetSku IS NOT NULL AND p.sheetSku <> '' AND " +
            "(:search IS NULL OR :search = '' OR " +
            "LOWER(COALESCE(p.name, '')) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(COALESCE(p.sheetSku, '')) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
@@ -42,20 +40,22 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
            "AND LOWER(COALESCE(v.sku, '')) LIKE LOWER(CONCAT('%', :search, '%'))))")
     Page<Product> findAllForAdmin(@Param("search") String search, Pageable pageable);
     
-    @Query("SELECT DISTINCT p FROM Product p JOIN p.categories c WHERE p.active = true AND c.id = :categoryId")
+    @Query("SELECT DISTINCT p FROM Product p JOIN p.categories c " +
+           "WHERE p.active = true AND p.sheetSku IS NOT NULL AND p.sheetSku <> '' AND c.id = :categoryId")
     Page<Product> findAllActiveByCategoryId(@Param("categoryId") Long categoryId, Pageable pageable);
 
-    @Query("SELECT COUNT(DISTINCT p.id) FROM Product p JOIN p.categories c WHERE c.id = :categoryId AND p.active = true")
+    @Query("SELECT COUNT(DISTINCT p.id) FROM Product p JOIN p.categories c " +
+           "WHERE c.id = :categoryId AND p.active = true AND p.sheetSku IS NOT NULL AND p.sheetSku <> ''")
     long countActiveProductsForCategory(@Param("categoryId") Long categoryId);
     
-    @Query("SELECT p FROM Product p WHERE p.active = true AND " +
+    @Query("SELECT p FROM Product p WHERE p.active = true AND p.sheetSku IS NOT NULL AND p.sheetSku <> '' AND " +
            "(LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(p.description) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Product> searchProducts(@Param("search") String search, Pageable pageable);
     
     @Query("SELECT DISTINCT p FROM Product p " +
            "LEFT JOIN p.categories c " +
-           "WHERE p.active = true AND " +
+           "WHERE p.active = true AND p.sheetSku IS NOT NULL AND p.sheetSku <> '' AND " +
            "(:categoryId IS NULL OR c.id = :categoryId) AND " +
            "(:minPrice IS NULL OR p.price >= :minPrice) AND " +
            "(:maxPrice IS NULL OR p.price <= :maxPrice) AND " +
@@ -83,24 +83,28 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
         Pageable pageable
     );
     
-    @Query("SELECT p FROM Product p WHERE p.active = true ORDER BY p.createdAt DESC")
+    @Query("SELECT p FROM Product p WHERE p.active = true AND p.sheetSku IS NOT NULL AND p.sheetSku <> '' " +
+           "ORDER BY p.createdAt DESC")
     List<Product> findFeaturedProducts(Pageable pageable);
 
-    @Query("SELECT p FROM Product p WHERE p.active = true AND p.compareAtPrice IS NOT NULL AND p.compareAtPrice > p.price")
+    @Query("SELECT p FROM Product p WHERE p.active = true AND p.sheetSku IS NOT NULL AND p.sheetSku <> '' " +
+           "AND p.compareAtPrice IS NOT NULL AND p.compareAtPrice > p.price")
     Page<Product> findOnSaleProducts(Pageable pageable);
     
     // DISTINCT + ORDER BY RANDOM() is invalid in PostgreSQL; de-dupe ids in a subquery, then shuffle outer rows.
-    @Query("SELECT p FROM Product p WHERE p.active = true AND p.id IN " +
+    @Query("SELECT p FROM Product p WHERE p.active = true AND p.sheetSku IS NOT NULL AND p.sheetSku <> '' AND p.id IN " +
            "(SELECT DISTINCT p2.id FROM Product p2 JOIN p2.categories c " +
-           "WHERE p2.active = true AND c.id IN :categoryIds AND p2.id <> :productId) " +
+           "WHERE p2.active = true AND p2.sheetSku IS NOT NULL AND p2.sheetSku <> '' AND c.id IN :categoryIds AND p2.id <> :productId) " +
            "ORDER BY function('random')")
     List<Product> findRelatedProducts(@Param("categoryIds") Set<Long> categoryIds, @Param("productId") Long productId, Pageable pageable);
 
     @Query("SELECT DISTINCT ov FROM Product p JOIN p.variants v JOIN v.optionValues ov " +
-           "WHERE p.active = true AND KEY(ov) = 'Color' ORDER BY ov")
+           "WHERE p.active = true AND p.sheetSku IS NOT NULL AND p.sheetSku <> '' AND KEY(ov) = 'Color' ORDER BY ov")
     List<String> findDistinctColors();
 
     @Query("SELECT DISTINCT ov FROM Product p JOIN p.variants v JOIN v.optionValues ov " +
-           "WHERE p.active = true AND KEY(ov) = 'Size' ORDER BY ov")
+           "WHERE p.active = true AND p.sheetSku IS NOT NULL AND p.sheetSku <> '' AND KEY(ov) = 'Size' ORDER BY ov")
     List<String> findDistinctSizes();
+
+    boolean existsBySlug(String slug);
 }

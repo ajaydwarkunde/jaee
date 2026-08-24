@@ -70,14 +70,25 @@ class ProductServiceTest {
     }
 
     @Test
-    void getProductBySlug_returnsProduct() {
+    void getProductBySlug_returnsSheetProduct() {
         Product product = createProduct(1L, "Test Product", "test-product", BigDecimal.TEN);
+        product.setSheetSku("J001");
         when(productRepository.findBySlugWithDetails("test-product")).thenReturn(Optional.of(product));
 
         ProductDto result = productService.getProductBySlug("test-product");
 
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getSlug()).isEqualTo("test-product");
+    }
+
+    @Test
+    void getProductBySlug_hidesNonSheetProduct() {
+        Product product = createProduct(1L, "Legacy Product", "legacy-product", BigDecimal.TEN);
+        when(productRepository.findBySlugWithDetails("legacy-product")).thenReturn(Optional.of(product));
+
+        assertThatThrownBy(() -> productService.getProductBySlug("legacy-product"))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("Product not found");
     }
 
     @Test
