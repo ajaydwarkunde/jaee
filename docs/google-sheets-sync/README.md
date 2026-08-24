@@ -20,6 +20,7 @@ values by header name.
 | `Total Cost` | Internal base cost (optional; never shown to customers) |
 | `Website Pricing` | Selling price. Blank means “Contact us for pricing” |
 | `Stock Quantity` | Inventory. Optional; defaults to 0 |
+| `Active` | `Yes` publishes the row; `No` keeps the SKU synced but hidden on the shop. Blank defaults to `Yes` |
 | `Image URLs` | Optional. Public `https://` image URLs, one per line (max 10). First URL is the primary image. Leave blank to keep admin uploads. |
 
 Rows with an SKU and product name can sync even when cost, website price, or stock is blank.

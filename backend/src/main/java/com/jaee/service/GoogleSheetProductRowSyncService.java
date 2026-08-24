@@ -145,7 +145,6 @@ public class GoogleSheetProductRowSyncService {
         product.setSheetLastSyncedAt(LocalDateTime.now());
         clearStaleStorefrontMetadataIfProductLineChanged(product, row, rowProductName);
         product.setName(rowProductName);
-        product.setActive(true);
         applyDescriptionIfPresent(product, row.description());
         applyImagesIfPresent(product, row);
 
@@ -197,7 +196,7 @@ public class GoogleSheetProductRowSyncService {
                 .weightKg(new BigDecimal("0.500"))
                 .currency("INR")
                 .stockQty(row.stockQuantity() == null ? 0 : row.stockQuantity())
-                .active(true)
+                .active(parseSheetActive(row.active()))
                 .options(new ArrayList<>())
                 .images(new ArrayList<>(parseImageUrls(row.imageUrls())))
                 .build();
@@ -226,7 +225,7 @@ public class GoogleSheetProductRowSyncService {
         variant.setPricingOnRequest(pricingOnRequest);
         variant.setExpense(row.totalCost());
         variant.setStockQty(row.stockQuantity() == null ? 0 : row.stockQuantity());
-        variant.setActive(true);
+        variant.setActive(parseSheetActive(row.active()));
         if (variant.getWeightKg() == null) {
             variant.setWeightKg(product.getWeightKg());
         }
@@ -337,6 +336,7 @@ public class GoogleSheetProductRowSyncService {
             product.getOptions().clear();
         }
         product.getOptions().addAll(optionNames);
+        product.setActive(!activeVariants.isEmpty());
     }
 
     private static Product chooseCanonicalProduct(List<Product> matches) {
@@ -649,6 +649,10 @@ public class GoogleSheetProductRowSyncService {
                 "--",
                 "default"
         ).contains(normalized);
+    }
+
+    static boolean parseSheetActive(Boolean active) {
+        return active == null || active;
     }
 
     static String normalizeSku(String sku) {

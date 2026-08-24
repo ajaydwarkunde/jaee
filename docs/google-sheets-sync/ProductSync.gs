@@ -188,6 +188,7 @@ function readRows_(sheet, firstRow, lastRow) {
       totalCost: number_(cell_(raw, indexes['Total Cost'])),
       websitePrice: number_(cell_(raw, indexes['Website Pricing'])),
       stockQuantity: integer_(cell_(raw, indexes['Stock Quantity'])),
+      active: yesNo_(cell_(display, indexes['Active'])),
       imageUrls: imageUrls_(cell_(display, indexes['Image URLs'])),
     };
   }).filter(Boolean);
@@ -389,4 +390,12 @@ function number_(value) {
 function integer_(value) {
   const parsed = number_(value);
   return parsed === null ? null : Math.trunc(parsed);
+}
+
+/** Sheet Active column: Yes (default) or No. Blank means Yes. */
+function yesNo_(value) {
+  const text = text_(value).toLowerCase();
+  if (!text) return true;
+  if (text === 'no' || text === 'n' || text === 'false' || text === '0') return false;
+  return true;
 }

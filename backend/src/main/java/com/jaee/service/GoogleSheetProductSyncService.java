@@ -75,10 +75,9 @@ public class GoogleSheetProductSyncService {
     }
 
     /**
-     * Completes an explicit full-sheet sync. Variants absent from the sheet catalog are retired,
-     * their parent products are removed when no catalog SKUs remain, and every non-sheet product
-     * is deleted. Single-row edit-trigger syncs omit catalogSkus and therefore only delete legacy
-     * non-sheet products — run an explicit full sync to retire sheet rows removed from the sheet.
+     * Completes an explicit full-sheet sync. Products with no SKUs left in the sheet catalog are
+     * deleted. Variant and product active flags come from each row's Active column and are not
+     * overridden here.
      */
     private boolean publishOnlySheetCatalog(List<String> catalogSkus) {
         if (catalogSkus.size() > MAX_ROWS_PER_REQUEST) {
@@ -95,47 +94,49 @@ public class GoogleSheetProductSyncService {
         }
 
         List<Product> products = productRepository.findAll();
-        Set<Long> publishedProductIds = new HashSet<>();
-        List<ProductVariant> changedVariants = new ArrayList<>();
-        for (ProductVariant variant : variantRepository.findAll()) {
-            Product product = variant.getProduct();
+        List<Product> deletedProducts = new ArrayList<>();
+        List<Product> changedProducts = new ArrayList<>();
+
+        for (Product product : products) {
             if (!isSheetManaged(product)) {
+                deletedProducts.add(product);
                 continue;
             }
 
-            boolean shouldBeActive = normalizedSkus.contains(
-                    GoogleSheetProductRowSyncService.normalizeSku(variant.getSku()));
-            if (shouldBeActive) {
-                publishedProductIds.add(product.getId());
-            }
-            if (!Boolean.valueOf(shouldBeActive).equals(variant.getActive())) {
-                variant.setActive(shouldBeActive);
-                changedVariants.add(variant);
-            }
-        }
-
-        if (!changedVariants.isEmpty()) {
-            variantRepository.saveAll(changedVariants);
-        }
-
-        List<Product> deletedProducts = new ArrayList<>();
-        for (Product product : products) {
-            if (!isSheetManaged(product) || !publishedProductIds.contains(product.getId())) {
+            List<ProductVariant> variants = variantRepository.findByProductIdWithDetails(product.getId());
+            boolean hasCatalogVariant = variants.stream()
+                    .anyMatch(variant -> normalizedSkus.contains(
+                            GoogleSheetProductRowSyncService.normalizeSku(variant.getSku())));
+            if (!hasCatalogVariant) {
                 deletedProducts.add(product);
+                continue;
+            }
+
+            boolean anyActive = variants.stream()
+                    .anyMatch(variant -> normalizedSkus.contains(
+                            GoogleSheetProductRowSyncService.normalizeSku(variant.getSku()))
+                            && Boolean.TRUE.equals(variant.getActive()));
+            if (!Boolean.valueOf(anyActive).equals(product.getActive())) {
+                product.setActive(anyActive);
+                changedProducts.add(product);
             }
         }
+
         if (!deletedProducts.isEmpty()) {
             productRepository.deleteAll(deletedProducts);
         }
+        if (!changedProducts.isEmpty()) {
+            productRepository.saveAll(changedProducts);
+        }
 
         log.info(
-                "Published Google Sheet catalog: {} SKUs, {} products kept, {} variants changed, {} products deleted",
+                "Published Google Sheet catalog: {} SKUs, {} products kept, {} products updated, {} products deleted",
                 normalizedSkus.size(),
-                publishedProductIds.size(),
-                changedVariants.size(),
+                products.size() - deletedProducts.size(),
+                changedProducts.size(),
                 deletedProducts.size()
         );
-        return !deletedProducts.isEmpty() || !changedVariants.isEmpty();
+        return !deletedProducts.isEmpty() || !changedProducts.isEmpty();
     }
 
     /** Any successful sheet update removes legacy admin/seed products from the database. */
