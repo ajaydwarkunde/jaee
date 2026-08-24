@@ -94,6 +94,19 @@ its SKU. Product stock is the sum of its variants and the listing price is the
 lowest sellable variant price. Re-running the sync is safe because later variant
 updates use SKU.
 
+### Example: one product, two variants
+
+| SKU | Product Name | Size | Fragrance | Color | Website Pricing | Stock Quantity |
+|---|---|---|---|---|---|---|
+| `VT-A` | `Variant Group Candle` | `Small` | `Rose` | `Red` | `199` | `3` |
+| `VT-B` | `Variant Group Candle` | `Large` | `Jasmine` | `White` | `299` | `5` |
+
+After **Sync all products**, the storefront has **one** product page for
+`Variant Group Candle` with Size / Scent / Color selectors for both SKUs.
+Product Name must match exactly (case does not matter). Each row needs its own
+SKU. If those SKUs were previously synced as separate products, re-sync folds
+them into one product by name.
+
 ## Ongoing behavior
 
 - Manual edits and multi-row pastes trigger synchronization within seconds.

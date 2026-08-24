@@ -68,6 +68,20 @@ public class GoogleSheetProductRowSyncService {
         if (product == null) {
             product = createDraft(row, normalizedSku);
             created = true;
+        } else if (!nameMatches.isEmpty()) {
+            // Older one-SKU-one-product syncs left multiple sheet products with the same name.
+            // Fold them into the canonical product so later rows become variants, not siblings.
+            for (Product duplicate : nameMatches) {
+                if (duplicate.getId() == null || duplicate.getId().equals(product.getId())) {
+                    continue;
+                }
+                if (!isSheetManaged(duplicate)) {
+                    continue;
+                }
+                absorbSheetDuplicate(product, duplicate);
+            }
+            // Variant instances loaded before the merge may still point at a deleted product.
+            existingVariant = variantRepository.findBySkuIgnoreCase(normalizedSku).orElse(null);
         }
 
         if (existingVariant != null && !existingVariant.getProduct().getId().equals(product.getId())) {
@@ -76,11 +90,8 @@ public class GoogleSheetProductRowSyncService {
                 return result(row, normalizedSku, "skipped", null,
                         "SKU already belongs to another active or manually managed product");
             }
-            mergeProductMetadata(product, duplicate);
-            existingVariant.setProduct(product);
-            variantRepository.saveAndFlush(existingVariant);
-            productRepository.delete(duplicate);
-            productRepository.flush();
+            absorbSheetDuplicate(product, duplicate);
+            existingVariant = variantRepository.findBySkuIgnoreCase(normalizedSku).orElse(null);
         }
 
         // Variants created before SKUs were globally unique are invisible to the lookup above,
@@ -309,7 +320,29 @@ public class GoogleSheetProductRowSyncService {
     }
 
     private static boolean isSafeSheetDuplicate(Product product) {
-        return isSheetManaged(product) && !Boolean.TRUE.equals(product.getActive());
+        // Active sheet-managed orphans (created before name-based variant grouping) are safe to
+        // fold into the canonical product for the shared Product Name.
+        return isSheetManaged(product);
+    }
+
+    /**
+     * Move every variant from a same-name sheet orphan onto the canonical product, then delete the
+     * orphan. Metadata such as images is merged first so nothing storefront-owned is lost.
+     */
+    private void absorbSheetDuplicate(Product target, Product source) {
+        if (target.getId() == null) {
+            target = productRepository.saveAndFlush(target);
+        }
+        mergeProductMetadata(target, source);
+        List<ProductVariant> variants = variantRepository.findByProductIdWithDetails(source.getId());
+        for (ProductVariant variant : variants) {
+            variant.setProduct(target);
+            variantRepository.save(variant);
+        }
+        variantRepository.flush();
+        productRepository.delete(source);
+        productRepository.flush();
+        log.info("Merged sheet duplicate product {} into {}", source.getId(), target.getId());
     }
 
     private static void mergeProductMetadata(Product target, Product source) {
@@ -409,7 +442,13 @@ public class GoogleSheetProductRowSyncService {
                 || (options.size() == 1 && "Default".equals(options.get("Default")))) {
             return Map.of();
         }
-        return options;
+        Map<String, String> normalized = new LinkedHashMap<>();
+        options.forEach((key, value) -> {
+            if (!"Default".equals(key) && isApplicableOptionValue(value)) {
+                normalized.put(key, value.trim());
+            }
+        });
+        return normalized;
     }
 
     private static void putIfPresent(Map<String, String> target, String key, String value) {

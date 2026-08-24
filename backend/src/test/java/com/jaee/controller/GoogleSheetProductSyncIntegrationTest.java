@@ -34,6 +34,77 @@ class GoogleSheetProductSyncIntegrationTest {
     @AfterEach
     void cleanUp() {
         productRepository.findBySheetSkuIgnoreCase("J001").ifPresent(productRepository::delete);
+        productRepository.findAllByNameIgnoreCase("Variant Group Candle")
+                .forEach(productRepository::delete);
+        productRepository.findBySheetSkuIgnoreCase("VT-A").ifPresent(productRepository::delete);
+    }
+
+    @Test
+    void sameProductNameWithDifferentOptionsCreatesOneProductWithTwoVariants() throws Exception {
+        String payload = """
+                {
+                  "rows": [
+                    {
+                      "rowNumber": 5,
+                      "sku": "VT-A",
+                      "productName": "Variant Group Candle",
+                      "size": "Small",
+                      "fragrance": "Rose",
+                      "color": "Red",
+                      "totalCost": 20,
+                      "websitePrice": 199,
+                      "stockQuantity": 3
+                    },
+                    {
+                      "rowNumber": 6,
+                      "sku": "VT-B",
+                      "productName": "Variant Group Candle",
+                      "size": "Large",
+                      "fragrance": "Jasmine",
+                      "color": "White",
+                      "totalCost": 35,
+                      "websitePrice": 299,
+                      "stockQuantity": 5
+                    }
+                  ]
+                }
+                """;
+
+        mockMvc.perform(post("/integrations/google-sheets/products/sync")
+                        .header("X-Sheet-Sync-Secret", "test-sheet-secret")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.created").value(1))
+                .andExpect(jsonPath("$.data.linked").value(1))
+                .andExpect(jsonPath("$.data.failed").value(0))
+                .andExpect(jsonPath("$.data.skipped").value(0));
+
+        assertThat(productRepository.findAllByNameIgnoreCase("Variant Group Candle")).hasSize(1);
+        Product product = productRepository.findAllByNameIgnoreCase("Variant Group Candle").getFirst();
+        assertThat(product.getActive()).isTrue();
+        assertThat(product.getStockQty()).isEqualTo(8);
+
+        var variants = variantRepository.findByProductIdWithDetails(product.getId());
+        assertThat(variants).hasSize(2);
+        assertThat(variants).extracting(v -> v.getSku().toUpperCase())
+                .containsExactlyInAnyOrder("VT-A", "VT-B");
+        assertThat(variants)
+                .anySatisfy(v -> assertThat(v.getOptionValues())
+                        .containsEntry("Size", "Small")
+                        .containsEntry("Scent", "Rose")
+                        .containsEntry("Color", "Red"));
+        assertThat(variants)
+                .anySatisfy(v -> assertThat(v.getOptionValues())
+                        .containsEntry("Size", "Large")
+                        .containsEntry("Scent", "Jasmine")
+                        .containsEntry("Color", "White"));
+
+        mockMvc.perform(get("/products/" + product.getSlug()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.variants.length()").value(2))
+                .andExpect(jsonPath("$.data.options").value(org.hamcrest.Matchers.containsInAnyOrder(
+                        "Size", "Scent", "Color")));
     }
 
     @Test
