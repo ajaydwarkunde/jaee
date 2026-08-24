@@ -115,19 +115,20 @@ them into one product by name.
   sheet cell updates the website, while a blank cell preserves the admin value.
 - Website-only fields—categories, videos and customization—are preserved.
 - A full staging or production sync makes the sheet the published catalog:
-  products and variants represented by sheet SKUs are activated, while products
-  and sheet-managed variants absent from the sheet are made inactive. A normal
-  edit-trigger sync publishes the edited sheet product and hides non-sheet
-  products; the explicit full sync is still required to retire sheet variants
-  removed from the sheet.
+  products represented by sheet SKUs are kept active, while products and variants
+  absent from the sheet are deleted. A normal edit-trigger sync publishes the
+  edited sheet product and deletes any legacy non-sheet products still in the
+  database; run an explicit full sync to retire sheet rows removed from the sheet.
+- Legacy seed/admin products were removed in migration `V50`. The storefront and
+  admin catalog only list products with a `sheet_sku` set by the sync.
 - Sheet-owned fields are overwritten on every sync.
 - Treat SKU as immutable after the first sync. Changing it creates/links a
   different variant and leaves the old variant untouched.
 - When renaming a product, update the Product Name on all of its variant rows
   together so they continue to share one product page.
 - Deleting a row takes effect after the next explicit **Sync all products** run;
-  the missing variant is deactivated, and its product is deactivated when no
-  sheet variants remain.
+  the missing variant is deactivated, and its product is deleted when no sheet
+  variants remain in the catalog.
 - Transient `429` and `5xx` responses are retried up to three times.
 
 ## Disable or roll back
