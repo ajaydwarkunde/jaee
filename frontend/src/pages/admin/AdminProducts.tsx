@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Pencil, Trash2, Search, Layers, FileSpreadsheet } from 'lucide-react'
 import { productService } from '@/services/productService'
 import { formatPrice } from '@/lib/utils'
@@ -17,13 +17,24 @@ export default function AdminProducts() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [page, setPage] = useState(0)
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null)
 
-  const { data: productsData, isLoading } = useQuery({
-    queryKey: ['admin-products', { search, page }],
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 350)
+    return () => window.clearTimeout(timer)
+  }, [search])
+
+  const { data: productsData, isLoading, isFetching } = useQuery({
+    queryKey: ['admin-products', { search: debouncedSearch, page }],
     queryFn: () =>
-      productService.getAdminProducts({ search: search || undefined, page, pageSize: 10 }),
+      productService.getAdminProducts({
+        search: debouncedSearch || undefined,
+        page,
+        pageSize: 10,
+      }),
+    placeholderData: keepPreviousData,
   })
 
   const deleteMutation = useMutation({
@@ -65,6 +76,11 @@ export default function AdminProducts() {
             icon={<Search className="w-5 h-5" />}
             className="max-w-md"
           />
+          {isFetching && !isLoading && (
+            <p className="mt-2 text-xs text-warm-gray" role="status">
+              Updating results…
+            </p>
+          )}
         </div>
 
         <div className="bg-soft-white rounded-xl shadow-soft overflow-hidden">

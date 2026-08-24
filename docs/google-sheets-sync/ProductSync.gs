@@ -113,7 +113,16 @@ function syncAllProductsTo_(target) {
 
   const combined = emptyResponse_();
   for (let start = 0; start < rows.length; start += BATCH_SIZE) {
-    mergeResponse_(combined, syncRows_(rows.slice(start, start + BATCH_SIZE), target));
+    const end = Math.min(start + BATCH_SIZE, rows.length);
+    const isFinalBatch = end === rows.length;
+    mergeResponse_(
+      combined,
+      syncRows_(
+        rows.slice(start, end),
+        target,
+        isFinalBatch ? rows.map((row) => row.sku) : null
+      )
+    );
   }
 
   writeLog_('Full sync ' + target + ' (' + rows.length + ' rows)', combined);
@@ -184,7 +193,7 @@ function readRows_(sheet, firstRow, lastRow) {
   }).filter(Boolean);
 }
 
-function syncRows_(rows, target) {
+function syncRows_(rows, target, catalogSkus) {
   assertConfigured_(target);
   const backendUrl = backendUrlFor_(target);
   const secret = secretFor_(target);
@@ -197,7 +206,12 @@ function syncRows_(rows, target) {
         method: 'post',
         contentType: 'application/json',
         headers: { 'X-Sheet-Sync-Secret': secret },
-        payload: JSON.stringify({ rows: rows }),
+        payload: JSON.stringify({
+          rows: rows,
+          // Present only on the final batch of an explicit full sync. The backend
+          // then publishes this sheet catalog and retires products absent from it.
+          catalogSkus: catalogSkus || null,
+        }),
         muteHttpExceptions: true,
       });
 

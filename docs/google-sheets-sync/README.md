@@ -47,11 +47,11 @@ trigger:
 curl -X POST "$BACKEND_URL/integrations/google-sheets/products/sync" \
   -H "Content-Type: application/json" \
   -H "X-Sheet-Sync-Secret: $GOOGLE_SHEETS_SYNC_SECRET" \
-  -d '{"rows":[{"rowNumber":5,"sku":"SYNC-TEST","productName":"Sync Test Draft","size":"Small","fragrance":"Rose","color":"Red","totalCost":10,"websitePrice":20,"stockQuantity":0}]}'
+  -d '{"rows":[{"rowNumber":5,"sku":"SYNC-TEST","productName":"Sync Test Product","size":"Small","fragrance":"Rose","color":"Red","totalCost":10,"websitePrice":20,"stockQuantity":0}]}'
 ```
 
 Expect HTTP 200 with `created: 1` on the first call and `updated: 1` on a
-repeat. Delete the inactive `SYNC-TEST` draft from admin after verification.
+repeat. Delete the active `SYNC-TEST` product from admin after verification.
 
 ## 2. Install the Apps Script
 
@@ -84,10 +84,10 @@ Cell edits and **Jaai Catalog → Sync all products (staging)** always go to `BA
 1. Select **Jaai Catalog → Sync all products (staging)**.
 2. Review the toast summary.
 3. Open **Jaai Catalog → Open sync log** for skipped or failed rows.
-4. Complete newly created inactive drafts in website admin by adding category,
-   description (if absent from the sheet) and images, then activate them.
+4. Sheet products are published automatically. Add categories, a description
+   (if absent from the sheet), and images in website admin as needed.
 
-The first row for a new Product Name creates an inactive product draft. Other
+The first row for a new Product Name creates and publishes a product. Other
 rows with the same case-insensitive Product Name add or update variants under
 that product. Each row's Size, Fragrance, Color, price, cost and stock belong to
 its SKU. Product stock is the sum of its variants and the listing price is the
@@ -100,14 +100,21 @@ updates use SKU.
 - Formula results are flushed before the edited rows are read.
 - Description and images use non-destructive optional ownership: a non-empty
   sheet cell updates the website, while a blank cell preserves the admin value.
-- Website-only fields—categories, videos, customization and active status—are
-  always preserved.
+- Website-only fields—categories, videos and customization—are preserved.
+- A full staging or production sync makes the sheet the published catalog:
+  products and variants represented by sheet SKUs are activated, while products
+  and sheet-managed variants absent from the sheet are made inactive. A normal
+  edit-trigger sync publishes the edited sheet product and hides non-sheet
+  products; the explicit full sync is still required to retire sheet variants
+  removed from the sheet.
 - Sheet-owned fields are overwritten on every sync.
 - Treat SKU as immutable after the first sync. Changing it creates/links a
   different variant and leaves the old variant untouched.
 - When renaming a product, update the Product Name on all of its variant rows
   together so they continue to share one product page.
-- Deleting a row does not delete or deactivate its website product.
+- Deleting a row takes effect after the next explicit **Sync all products** run;
+  the missing variant is deactivated, and its product is deactivated when no
+  sheet variants remain.
 - Transient `429` and `5xx` responses are retried up to three times.
 
 ## Disable or roll back

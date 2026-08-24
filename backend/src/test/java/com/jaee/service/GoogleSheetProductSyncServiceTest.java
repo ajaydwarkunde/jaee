@@ -4,6 +4,8 @@ import com.jaee.dto.integration.SheetProductRow;
 import com.jaee.dto.integration.SheetProductSyncRequest;
 import com.jaee.dto.integration.SheetProductSyncResponse;
 import com.jaee.dto.integration.SheetProductSyncResult;
+import com.jaee.repository.ProductRepository;
+import com.jaee.repository.ProductVariantRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,6 +27,10 @@ class GoogleSheetProductSyncServiceTest {
     private GoogleSheetProductRowSyncService rowSyncService;
     @Mock
     private CatalogCacheService catalogCacheService;
+    @Mock
+    private ProductRepository productRepository;
+    @Mock
+    private ProductVariantRepository variantRepository;
 
     @InjectMocks
     private GoogleSheetProductSyncService service;

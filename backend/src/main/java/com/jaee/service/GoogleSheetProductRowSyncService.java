@@ -103,6 +103,7 @@ public class GoogleSheetProductRowSyncService {
         }
         product.setSheetLastSyncedAt(LocalDateTime.now());
         product.setName(row.productName().trim());
+        product.setActive(true);
         applyDescriptionIfPresent(product, row.description());
         applyImagesIfPresent(product, row);
 
@@ -119,7 +120,7 @@ public class GoogleSheetProductRowSyncService {
         String status = created ? "created" : linked ? "linked" : "updated";
         log.info("Google Sheet {} product {} ({})", status, product.getId(), normalizedSku);
         return result(row, normalizedSku, status, product.getId(),
-                created ? "Inactive draft created" : linked ? "Linked by exact product name" : "Product updated");
+                created ? "Product created and published" : linked ? "Linked by exact product name" : "Product updated");
     }
 
     static String validate(SheetProductRow row) {
@@ -154,7 +155,7 @@ public class GoogleSheetProductRowSyncService {
                 .weightKg(new BigDecimal("0.500"))
                 .currency("INR")
                 .stockQty(row.stockQuantity() == null ? 0 : row.stockQuantity())
-                .active(false)
+                .active(true)
                 .options(new ArrayList<>())
                 .images(new ArrayList<>(parseImageUrls(row.imageUrls())))
                 .build();

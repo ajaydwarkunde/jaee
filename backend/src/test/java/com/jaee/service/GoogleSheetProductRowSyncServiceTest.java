@@ -39,7 +39,7 @@ class GoogleSheetProductRowSyncServiceTest {
     private GoogleSheetProductRowSyncService service;
 
     @Test
-    void createsInactiveDraftAndMapsSheetFields() {
+    void createsPublishedProductAndMapsSheetFields() {
         SheetProductRow row = new SheetProductRow(
                 5, "j001", "Gulab Ishq", "A floral, hand-poured candle.",
                 "Large", "Rose", "Red", BigDecimal.valueOf(29),
@@ -69,7 +69,7 @@ class GoogleSheetProductRowSyncServiceTest {
         assertThat(product.getPrice()).isEqualByComparingTo("149");
         assertThat(product.getBaseCost()).isEqualByComparingTo("29");
         assertThat(product.getStockQty()).isEqualTo(12);
-        assertThat(product.getActive()).isFalse();
+        assertThat(product.getActive()).isTrue();
         assertThat(product.getOptions()).containsExactly("Size", "Scent", "Color");
 
         ArgumentCaptor<ProductVariant> variantCaptor = ArgumentCaptor.forClass(ProductVariant.class);
