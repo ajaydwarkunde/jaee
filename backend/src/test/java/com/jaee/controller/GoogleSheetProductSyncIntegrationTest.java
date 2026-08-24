@@ -43,6 +43,10 @@ class GoogleSheetProductSyncIntegrationTest {
         productRepository.findBySheetSkuIgnoreCase("VT-A").ifPresent(productRepository::delete);
         productRepository.findBySheetSkuIgnoreCase("J010").ifPresent(productRepository::delete);
         productRepository.findBySheetSkuIgnoreCase("J010-BASE").ifPresent(productRepository::delete);
+        productRepository.findAllByNameIgnoreCase("Vanilla Whisper")
+                .forEach(productRepository::delete);
+        productRepository.findAllByNameIgnoreCase("Rope Jar")
+                .forEach(productRepository::delete);
     }
 
     @Test
@@ -113,6 +117,92 @@ class GoogleSheetProductSyncIntegrationTest {
         assertThat(variantRepository.findByProductIdWithDetails(grouped.getId()))
                 .extracting(v -> v.getSku().toUpperCase())
                 .contains("J010", "J010-BASE");
+    }
+
+    @Test
+    void differentProductNameMovesSingleVariantWithoutAbsorbingSiblings() throws Exception {
+        mockMvc.perform(post("/integrations/google-sheets/products/sync")
+                        .header("X-Sheet-Sync-Secret", "test-sheet-secret")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "rows": [
+                                    {
+                                      "rowNumber": 5,
+                                      "sku": "VW-1",
+                                      "productName": "Vanilla Whisper",
+                                      "size": "Small",
+                                      "fragrance": "Vanilla",
+                                      "color": "White",
+                                      "totalCost": 10,
+                                      "websitePrice": 100,
+                                      "stockQuantity": 1
+                                    },
+                                    {
+                                      "rowNumber": 6,
+                                      "sku": "RJ-1",
+                                      "productName": "Vanilla Whisper",
+                                      "size": "Medium",
+                                      "fragrance": "Unscented",
+                                      "color": "Cream",
+                                      "totalCost": 12,
+                                      "websitePrice": 120,
+                                      "stockQuantity": 2
+                                    }
+                                  ]
+                                }
+                                """))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/integrations/google-sheets/products/sync")
+                        .header("X-Sheet-Sync-Secret", "test-sheet-secret")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "rows": [
+                                    {
+                                      "rowNumber": 7,
+                                      "sku": "RJ-1",
+                                      "productName": "Rope Jar",
+                                      "size": "Not Applicable",
+                                      "fragrance": "Lavender",
+                                      "color": "Cream",
+                                      "totalCost": 12,
+                                      "websitePrice": 120,
+                                      "stockQuantity": 2
+                                    },
+                                    {
+                                      "rowNumber": 8,
+                                      "sku": "RJ-2",
+                                      "productName": "Rope Jar",
+                                      "size": "N/A",
+                                      "fragrance": "Rose",
+                                      "color": "Cream",
+                                      "totalCost": 12,
+                                      "websitePrice": 120,
+                                      "stockQuantity": 3
+                                    }
+                                  ]
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.failed").value(0))
+                .andExpect(jsonPath("$.data.skipped").value(0));
+
+        assertThat(productRepository.findAllByNameIgnoreCase("Vanilla Whisper")).hasSize(1);
+        assertThat(productRepository.findAllByNameIgnoreCase("Rope Jar")).hasSize(1);
+
+        Product vanilla = productRepository.findAllByNameIgnoreCase("Vanilla Whisper").getFirst();
+        Product ropeJar = productRepository.findAllByNameIgnoreCase("Rope Jar").getFirst();
+
+        assertThat(variantRepository.findByProductIdWithDetails(vanilla.getId()))
+                .extracting(v -> v.getSku().toUpperCase())
+                .containsExactly("VW-1");
+        assertThat(variantRepository.findByProductIdWithDetails(ropeJar.getId()))
+                .extracting(v -> v.getSku().toUpperCase())
+                .containsExactlyInAnyOrder("RJ-1", "RJ-2");
+        assertThat(variantRepository.findByProductIdWithDetails(ropeJar.getId()))
+                .allSatisfy(v -> assertThat(v.getOptionValues()).doesNotContainKey("Size"));
     }
 
     @Test
