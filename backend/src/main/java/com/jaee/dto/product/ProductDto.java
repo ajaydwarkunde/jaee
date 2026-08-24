@@ -63,6 +63,25 @@ public class ProductDto {
     }
 
     public static ProductDto fromEntity(Product product) {
+        return fromEntity(product, true);
+    }
+
+    /** Storefront mapping hides inactive variants and recomputes option axes from active variants only. */
+    public static ProductDto fromStorefrontEntity(Product product) {
+        return fromEntity(product, false);
+    }
+
+    private static ProductDto fromEntity(Product product, boolean includeInactiveVariants) {
+        List<VariantDto> variants = product.getVariants() != null
+                ? product.getVariants().stream()
+                        .filter(v -> includeInactiveVariants || Boolean.TRUE.equals(v.getActive()))
+                        .map(VariantDto::fromEntity)
+                        .collect(Collectors.toList())
+                : List.of();
+        List<String> options = includeInactiveVariants
+                ? copyUrlList(product.getOptions())
+                : optionsFromVariants(variants);
+
         return ProductDto.builder()
                 .id(product.getId())
                 .name(product.getName())
@@ -83,10 +102,8 @@ public class ProductDto {
                         : List.of())
                 .images(copyUrlList(product.getImages()))
                 .videos(copyUrlList(product.getVideos()))
-                .options(copyUrlList(product.getOptions()))
-                .variants(product.getVariants() != null
-                        ? product.getVariants().stream().map(VariantDto::fromEntity).collect(Collectors.toList())
-                        : List.of())
+                .options(options)
+                .variants(variants)
                 .stockQty(product.getStockQty())
                 .active(product.getActive())
                 .pricingOnRequest(Boolean.TRUE.equals(product.getPricingOnRequest()))
@@ -96,6 +113,44 @@ public class ProductDto {
                 .avgRating(product.getAvgRating())
                 .reviewCount(product.getReviewCount())
                 .build();
+    }
+
+    private static List<String> optionsFromVariants(List<VariantDto> variants) {
+        if (variants.isEmpty()) {
+            return List.of();
+        }
+        java.util.LinkedHashSet<String> optionNames = new java.util.LinkedHashSet<>();
+        for (String preferred : List.of("Size", "Scent", "Color")) {
+            boolean present = variants.stream().anyMatch(variant ->
+                    variant.getOptionValues() != null
+                            && isApplicableOptionValue(variant.getOptionValues().get(preferred)));
+            if (present) {
+                optionNames.add(preferred);
+            }
+        }
+        variants.stream()
+                .map(VariantDto::getOptionValues)
+                .filter(java.util.Objects::nonNull)
+                .flatMap(values -> values.entrySet().stream())
+                .filter(entry -> !"Default".equals(entry.getKey()))
+                .filter(entry -> isApplicableOptionValue(entry.getValue()))
+                .map(java.util.Map.Entry::getKey)
+                .forEach(optionNames::add);
+        if (optionNames.isEmpty()) {
+            optionNames.add("Default");
+        }
+        return new ArrayList<>(optionNames);
+    }
+
+    private static boolean isApplicableOptionValue(String value) {
+        if (value == null || value.isBlank()) {
+            return false;
+        }
+        String normalized = value.trim().toLowerCase(java.util.Locale.ENGLISH);
+        return !java.util.Set.of(
+                "n/a", "na", "n.a.", "n.a", "not applicable", "not applicable.",
+                "none", "nil", "-", "--", "default"
+        ).contains(normalized);
     }
 
     /**

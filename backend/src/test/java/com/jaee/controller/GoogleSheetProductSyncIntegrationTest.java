@@ -201,8 +201,11 @@ class GoogleSheetProductSyncIntegrationTest {
         assertThat(variantRepository.findByProductIdWithDetails(ropeJar.getId()))
                 .extracting(v -> v.getSku().toUpperCase())
                 .containsExactlyInAnyOrder("RJ-1", "RJ-2");
-        assertThat(variantRepository.findByProductIdWithDetails(ropeJar.getId()))
-                .allSatisfy(v -> assertThat(v.getOptionValues()).doesNotContainKey("Size"));
+
+        mockMvc.perform(get("/products/" + ropeJar.getSlug()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.variants.length()").value(2))
+                .andExpect(jsonPath("$.data.options").value(org.hamcrest.Matchers.not(org.hamcrest.Matchers.hasItem("Size"))));
     }
 
     @Test

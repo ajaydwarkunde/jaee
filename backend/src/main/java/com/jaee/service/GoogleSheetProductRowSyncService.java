@@ -60,6 +60,19 @@ public class GoogleSheetProductRowSyncService {
 
         String rowProductName = row.productName().trim();
         Product product = chooseCanonicalProduct(nameMatches);
+
+        // A SKU synced under "Vanilla Whisper" must not stay on a container already named "Rope Jar".
+        if (existingVariant != null) {
+            Product currentOwner = existingVariant.getProduct();
+            if (currentOwner != null
+                    && !currentOwner.getName().equalsIgnoreCase(rowProductName)
+                    && product != null
+                    && product.getId() != null
+                    && product.getId().equals(currentOwner.getId())) {
+                product = null;
+            }
+        }
+
         if (product == null && legacySkuOwner != null) {
             boolean sameName = legacySkuOwner.getName().equalsIgnoreCase(rowProductName);
             boolean singleVariantOwner = legacySkuOwner.getId() != null
@@ -130,6 +143,7 @@ public class GoogleSheetProductRowSyncService {
 
         int oldStock = product.getStockQty() == null ? 0 : product.getStockQty();
         product.setSheetLastSyncedAt(LocalDateTime.now());
+        clearStaleStorefrontMetadataIfProductLineChanged(product, row, rowProductName);
         product.setName(rowProductName);
         product.setActive(true);
         applyDescriptionIfPresent(product, row.description());
@@ -271,15 +285,17 @@ public class GoogleSheetProductRowSyncService {
             variants.add(justSaved);
         }
 
-        int totalStock = variants.stream()
+        List<ProductVariant> activeVariants = variants.stream()
                 .filter(variant -> Boolean.TRUE.equals(variant.getActive()))
+                .toList();
+
+        int totalStock = activeVariants.stream()
                 .map(ProductVariant::getStockQty)
                 .filter(java.util.Objects::nonNull)
                 .mapToInt(Integer::intValue)
                 .sum();
 
-        List<BigDecimal> sellablePrices = variants.stream()
-                .filter(variant -> Boolean.TRUE.equals(variant.getActive()))
+        List<BigDecimal> sellablePrices = activeVariants.stream()
                 .filter(variant -> !Boolean.TRUE.equals(variant.getPricingOnRequest()))
                 .map(ProductVariant::getPrice)
                 .filter(java.util.Objects::nonNull)
@@ -289,7 +305,7 @@ public class GoogleSheetProductRowSyncService {
         product.setStockQty(totalStock);
         product.setPricingOnRequest(sellablePrices.isEmpty());
         product.setPrice(sellablePrices.stream().min(BigDecimal::compareTo).orElse(BigDecimal.ZERO));
-        product.setBaseCost(variants.stream()
+        product.setBaseCost(activeVariants.stream()
                 .map(ProductVariant::getExpense)
                 .filter(java.util.Objects::nonNull)
                 .min(BigDecimal::compareTo)
@@ -297,13 +313,13 @@ public class GoogleSheetProductRowSyncService {
 
         Set<String> optionNames = new LinkedHashSet<>();
         for (String preferred : List.of("Size", "Scent", "Color")) {
-            if (variants.stream().anyMatch(variant ->
+            if (activeVariants.stream().anyMatch(variant ->
                     variant.getOptionValues() != null
                             && isApplicableOptionValue(variant.getOptionValues().get(preferred)))) {
                 optionNames.add(preferred);
             }
         }
-        variants.stream()
+        activeVariants.stream()
                 .map(ProductVariant::getOptionValues)
                 .filter(java.util.Objects::nonNull)
                 .flatMap(values -> values.entrySet().stream())
@@ -496,6 +512,71 @@ public class GoogleSheetProductRowSyncService {
     private static void applyDescriptionIfPresent(Product product, String description) {
         if (hasText(description)) {
             product.setDescription(description.trim());
+        }
+    }
+
+    /**
+     * When a sheet row renames a product line but the slug still reflects an older name (e.g. slug
+     * {@code vanilla-whisper} with display name {@code Rope Jar}), drop storefront copy/images that
+     * belonged to the previous line unless the row supplies replacements.
+     */
+    private static void clearStaleStorefrontMetadataIfProductLineChanged(
+            Product product,
+            SheetProductRow row,
+            String rowProductName
+    ) {
+        if (product == null || product.getId() == null || !hasText(rowProductName)) {
+            return;
+        }
+        // Renaming in progress — slug is often kept for SEO; do not wipe admin copy yet.
+        if (product.getName() == null || !product.getName().equalsIgnoreCase(rowProductName)) {
+            return;
+        }
+        String expectedSlug = toSlug(rowProductName);
+        String currentSlug = product.getSlug();
+        if (currentSlug == null || currentSlug.equals(expectedSlug) || currentSlug.startsWith(expectedSlug + "-")) {
+            return;
+        }
+        if (!hasText(row.description())
+                && hasText(product.getDescription())
+                && !DRAFT_DESCRIPTION.equals(product.getDescription())) {
+            product.setDescription(DRAFT_DESCRIPTION);
+        }
+        if (parseImageUrls(row.imageUrls()).isEmpty()
+                && product.getImages() != null
+                && !product.getImages().isEmpty()) {
+            product.getImages().clear();
+        }
+    }
+
+    /**
+     * After a multi-row batch, ensure every synced SKU sits under the product named in its sheet row.
+     * Catches legacy merges where unrelated variants were folded into one product page.
+     */
+    public void reconcileBatchVariantPlacement(List<SheetProductRow> rows) {
+        if (rows == null || rows.isEmpty()) {
+            return;
+        }
+        Map<String, SheetProductRow> rowBySku = new LinkedHashMap<>();
+        for (SheetProductRow row : rows) {
+            String sku = normalizeSku(row == null ? null : row.sku());
+            if (sku.isBlank() || row == null || !hasText(row.productName())) {
+                continue;
+            }
+            rowBySku.putIfAbsent(sku, row);
+        }
+        for (SheetProductRow row : rowBySku.values()) {
+            String sku = normalizeSku(row.sku());
+            ProductVariant variant = variantRepository.findBySkuIgnoreCase(sku).orElse(null);
+            if (variant == null) {
+                continue;
+            }
+            Product owner = variant.getProduct();
+            String expectedName = row.productName().trim();
+            if (owner == null || owner.getName().equalsIgnoreCase(expectedName)) {
+                continue;
+            }
+            sync(row);
         }
     }
 
