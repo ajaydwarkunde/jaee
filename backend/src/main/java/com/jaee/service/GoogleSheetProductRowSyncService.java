@@ -528,6 +528,10 @@ public class GoogleSheetProductRowSyncService {
         if (product == null || product.getId() == null || !hasText(rowProductName)) {
             return;
         }
+        // Renaming in progress — slug is often kept for SEO; do not wipe admin copy yet.
+        if (product.getName() == null || !product.getName().equalsIgnoreCase(rowProductName)) {
+            return;
+        }
         String expectedSlug = toSlug(rowProductName);
         String currentSlug = product.getSlug();
         if (currentSlug == null || currentSlug.equals(expectedSlug) || currentSlug.startsWith(expectedSlug + "-")) {
