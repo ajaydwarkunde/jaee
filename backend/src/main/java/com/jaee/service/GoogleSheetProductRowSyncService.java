@@ -60,9 +60,13 @@ public class GoogleSheetProductRowSyncService {
 
         String rowProductName = row.productName().trim();
         Product product = chooseCanonicalProduct(nameMatches);
-        if (product == null && legacySkuOwner != null
-                && legacySkuOwner.getName().equalsIgnoreCase(rowProductName)) {
-            product = legacySkuOwner;
+        if (product == null && legacySkuOwner != null) {
+            boolean sameName = legacySkuOwner.getName().equalsIgnoreCase(rowProductName);
+            boolean singleVariantOwner = legacySkuOwner.getId() != null
+                    && variantRepository.countByProduct_Id(legacySkuOwner.getId()) <= 1;
+            if (sameName || singleVariantOwner) {
+                product = legacySkuOwner;
+            }
         }
 
         boolean created = false;
@@ -95,6 +99,9 @@ public class GoogleSheetProductRowSyncService {
             if (shouldAbsorbDuplicate(product, duplicate)) {
                 absorbSheetDuplicate(product, duplicate);
             } else {
+                if (product.getId() == null) {
+                    product = productRepository.saveAndFlush(product);
+                }
                 reassignVariantToProduct(existingVariant, product);
             }
             existingVariant = variantRepository.findBySkuIgnoreCase(normalizedSku).orElse(null);

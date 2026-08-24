@@ -43,6 +43,10 @@ class GoogleSheetProductSyncIntegrationTest {
         productRepository.findBySheetSkuIgnoreCase("VT-A").ifPresent(productRepository::delete);
         productRepository.findBySheetSkuIgnoreCase("J010").ifPresent(productRepository::delete);
         productRepository.findBySheetSkuIgnoreCase("J010-BASE").ifPresent(productRepository::delete);
+        productRepository.findAllByNameIgnoreCase("Vanilla Whisper")
+                .forEach(productRepository::delete);
+        productRepository.findAllByNameIgnoreCase("Rope Jar")
+                .forEach(productRepository::delete);
     }
 
     @Test
