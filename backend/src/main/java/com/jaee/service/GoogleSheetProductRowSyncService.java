@@ -270,15 +270,18 @@ public class GoogleSheetProductRowSyncService {
         Set<String> optionNames = new LinkedHashSet<>();
         for (String preferred : List.of("Size", "Scent", "Color")) {
             if (variants.stream().anyMatch(variant ->
-                    variant.getOptionValues() != null && hasText(variant.getOptionValues().get(preferred)))) {
+                    variant.getOptionValues() != null
+                            && isApplicableOptionValue(variant.getOptionValues().get(preferred)))) {
                 optionNames.add(preferred);
             }
         }
         variants.stream()
                 .map(ProductVariant::getOptionValues)
                 .filter(java.util.Objects::nonNull)
-                .flatMap(values -> values.keySet().stream())
-                .filter(name -> !"Default".equals(name))
+                .flatMap(values -> values.entrySet().stream())
+                .filter(entry -> !"Default".equals(entry.getKey()))
+                .filter(entry -> isApplicableOptionValue(entry.getValue()))
+                .map(Map.Entry::getKey)
                 .forEach(optionNames::add);
         if (optionNames.isEmpty()) {
             optionNames.add("Default");
@@ -410,7 +413,26 @@ public class GoogleSheetProductRowSyncService {
     }
 
     private static void putIfPresent(Map<String, String> target, String key, String value) {
-        if (value != null && !value.isBlank()) target.put(key, value.trim());
+        if (!isApplicableOptionValue(value)) return;
+        target.put(key, value.trim());
+    }
+
+    private static boolean isApplicableOptionValue(String value) {
+        if (value == null || value.isBlank()) return false;
+        String normalized = value.trim().toLowerCase(Locale.ENGLISH);
+        return !Set.of(
+                "n/a",
+                "na",
+                "n.a.",
+                "n.a",
+                "not applicable",
+                "not applicable.",
+                "none",
+                "nil",
+                "-",
+                "--",
+                "default"
+        ).contains(normalized);
     }
 
     static String normalizeSku(String sku) {

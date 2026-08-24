@@ -505,6 +505,34 @@ function buildVariantsSnapshotKey(variants: Product['variants'] | undefined): st
     .join('|')
 }
 
+/** Blank or placeholder option values (e.g. Size N/A) should not appear on the PDP. */
+function isApplicableOptionValue(value: string | null | undefined): boolean {
+  if (value == null) return false
+  const normalized = value.trim().toLowerCase()
+  if (!normalized) return false
+  return ![
+    'n/a',
+    'na',
+    'n.a.',
+    'n.a',
+    'not applicable',
+    'not applicable.',
+    'none',
+    'nil',
+    '-',
+    '--',
+    'default',
+  ].includes(normalized)
+}
+
+function applicableOptionValue(
+  optionValues: Record<string, string> | undefined,
+  optionName: string,
+): string | undefined {
+  const value = optionValues?.[optionName]
+  return isApplicableOptionValue(value) ? value!.trim() : undefined
+}
+
 function VariantSelector({
   product,
   selectedVariant,
@@ -514,22 +542,55 @@ function VariantSelector({
   selectedVariant: ProductVariant | null
   onSelect: (variant: ProductVariant | null) => void
 }) {
-  const options = product.options || []
   const variants = [...(product.variants || [])].sort((a, b) => {
     const ao = a.sortOrder ?? 0
     const bo = b.sortOrder ?? 0
     if (ao !== bo) return ao - bo
     return a.id - b.id
   })
+
+  const getAvailableValues = (optionName: string): string[] => {
+    const values = new Set<string>()
+    variants.forEach((v) => {
+      const val = applicableOptionValue(v.optionValues, optionName)
+      if (val) values.add(val)
+    })
+    return Array.from(values)
+  }
+
+  // Only show option axes that have at least one real value across variants.
+  const options = (product.options || []).filter(
+    (optionName) => optionName !== 'Default' && getAvailableValues(optionName).length > 0,
+  )
   const optionKeys = options.join('|')
   const [selected, setSelected] = useState<Record<string, string>>(() => {
-    if (selectedVariant) return { ...selectedVariant.optionValues }
+    if (selectedVariant) {
+      const init: Record<string, string> = {}
+      options.forEach((opt) => {
+        init[opt] = applicableOptionValue(selectedVariant.optionValues, opt) || ''
+      })
+      return init
+    }
     const init: Record<string, string> = {}
-    options.forEach(opt => { init[opt] = '' })
+    options.forEach((opt) => {
+      init[opt] = ''
+    })
     return init
   })
 
   useEffect(() => {
+    // No customer-facing options (e.g. Size is blank/N/A) — auto-pick the first sellable variant.
+    if (options.length === 0 && variants.length > 0) {
+      if (!selectedVariant) {
+        const auto =
+          variants.find((v) => v.active !== false && v.inStock) ||
+          variants.find((v) => v.active !== false) ||
+          variants[0]
+        onSelect(auto)
+      }
+      return
+    }
+
     if (selectedVariant == null) {
       const init: Record<string, string> = {}
       options.forEach((opt) => {
@@ -538,25 +599,21 @@ function VariantSelector({
       setSelected(init)
       return
     }
-    setSelected({ ...selectedVariant.optionValues })
-  }, [selectedVariant, product.id, optionKeys])
-
-  const getAvailableValues = (optionName: string): string[] => {
-    const values = new Set<string>()
-    variants.forEach(v => {
-      const val = v.optionValues[optionName]
-      if (val) values.add(val)
+    const next: Record<string, string> = {}
+    options.forEach((opt) => {
+      next[opt] = applicableOptionValue(selectedVariant.optionValues, opt) || ''
     })
-    return Array.from(values)
-  }
+    setSelected(next)
+  }, [selectedVariant, product.id, optionKeys, variants.length])
 
   const isValueAvailable = (optionName: string, value: string): boolean => {
-    return variants.some(v => {
-      if (v.optionValues[optionName] !== value) return false
-      return Object.entries(selected).every(([key, sel]) => {
+    return variants.some((v) => {
+      if (applicableOptionValue(v.optionValues, optionName) !== value) return false
+      return options.every((key) => {
         if (key === optionName) return true
+        const sel = selected[key]
         if (!sel) return true
-        return v.optionValues[key] === sel
+        return applicableOptionValue(v.optionValues, key) === sel
       })
     })
   }
@@ -565,10 +622,10 @@ function VariantSelector({
     const next = { ...selected, [optionName]: selected[optionName] === value ? '' : value }
     setSelected(next)
 
-    const allFilled = options.every(opt => next[opt])
+    const allFilled = options.every((opt) => next[opt])
     if (allFilled) {
-      const match = variants.find(v =>
-        options.every(opt => v.optionValues[opt] === next[opt])
+      const match = variants.find((v) =>
+        options.every((opt) => applicableOptionValue(v.optionValues, opt) === next[opt]),
       )
       onSelect(match || null)
     } else {
@@ -576,11 +633,11 @@ function VariantSelector({
     }
   }
 
-  if (options.length === 0 || variants.length === 0) return null
+  if (variants.length === 0 || options.length === 0) return null
 
   return (
     <div className="space-y-4 mb-6">
-      {options.map(optionName => {
+      {options.map((optionName) => {
         const values = getAvailableValues(optionName)
         return (
           <div key={optionName}>
@@ -591,7 +648,7 @@ function VariantSelector({
               )}
             </p>
             <div className="flex flex-wrap gap-2">
-              {values.map(val => {
+              {values.map((val) => {
                 const isSelected = selected[optionName] === val
                 const available = isValueAvailable(optionName, val)
                 return (
@@ -622,7 +679,10 @@ function VariantSelector({
         <div className="flex items-center gap-3 p-3 bg-blush/30 rounded-lg text-sm">
           <span className="text-charcoal font-medium">Selected:</span>
           <span className="text-warm-gray">
-            {options.map(o => selectedVariant.optionValues[o]).join(' / ')}
+            {options
+              .map((o) => applicableOptionValue(selectedVariant.optionValues, o))
+              .filter(Boolean)
+              .join(' / ')}
           </span>
           {selectedVariant.sku && (
             <span className="text-xs text-warm-gray/70 ml-auto">SKU: {selectedVariant.sku}</span>
@@ -994,9 +1054,9 @@ export default function ProductPage() {
                 handle={instagramHandle}
                 productName={product.name}
                 sku={selectedVariant?.sku || product.sheetSku}
-                size={selectedVariant?.optionValues?.Size}
-                fragrance={selectedVariant?.optionValues?.Scent}
-                color={selectedVariant?.optionValues?.Color}
+                size={applicableOptionValue(selectedVariant?.optionValues, 'Size')}
+                fragrance={applicableOptionValue(selectedVariant?.optionValues, 'Scent')}
+                color={applicableOptionValue(selectedVariant?.optionValues, 'Color')}
                 productUrl={productUrl}
               />
             )}
