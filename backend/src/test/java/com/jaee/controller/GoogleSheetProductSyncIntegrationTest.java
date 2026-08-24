@@ -36,7 +36,83 @@ class GoogleSheetProductSyncIntegrationTest {
         productRepository.findBySheetSkuIgnoreCase("J001").ifPresent(productRepository::delete);
         productRepository.findAllByNameIgnoreCase("Variant Group Candle")
                 .forEach(productRepository::delete);
+        productRepository.findAllByNameIgnoreCase("Grouped Pond")
+                .forEach(productRepository::delete);
+        productRepository.findAllByNameIgnoreCase("Legacy J010 Name")
+                .forEach(productRepository::delete);
         productRepository.findBySheetSkuIgnoreCase("VT-A").ifPresent(productRepository::delete);
+        productRepository.findBySheetSkuIgnoreCase("J010").ifPresent(productRepository::delete);
+        productRepository.findBySheetSkuIgnoreCase("J010-BASE").ifPresent(productRepository::delete);
+    }
+
+    @Test
+    void sameProductNameClaimsLegacySheetSkuWithoutUniqueViolation() throws Exception {
+        // Legacy one-SKU product that still owns sheet_sku J010 under a different display name.
+        mockMvc.perform(post("/integrations/google-sheets/products/sync")
+                        .header("X-Sheet-Sync-Secret", "test-sheet-secret")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "rows": [{
+                                    "rowNumber": 5,
+                                    "sku": "J010",
+                                    "productName": "Legacy J010 Name",
+                                    "size": "Small",
+                                    "fragrance": "Rose",
+                                    "color": "Red",
+                                    "totalCost": 10,
+                                    "websitePrice": 100,
+                                    "stockQuantity": 1
+                                  }]
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.created").value(1));
+
+        // Group that SKU under a shared Product Name that already has another variant.
+        String payload = """
+                {
+                  "rows": [
+                    {
+                      "rowNumber": 6,
+                      "sku": "J010-BASE",
+                      "productName": "Grouped Pond",
+                      "size": "Medium",
+                      "fragrance": "Lotus",
+                      "color": "Blue",
+                      "totalCost": 20,
+                      "websitePrice": 200,
+                      "stockQuantity": 2
+                    },
+                    {
+                      "rowNumber": 7,
+                      "sku": "J010",
+                      "productName": "Grouped Pond",
+                      "size": "Large",
+                      "fragrance": "Jasmine",
+                      "color": "White",
+                      "totalCost": 30,
+                      "websitePrice": 300,
+                      "stockQuantity": 4
+                    }
+                  ]
+                }
+                """;
+
+        mockMvc.perform(post("/integrations/google-sheets/products/sync")
+                        .header("X-Sheet-Sync-Secret", "test-sheet-secret")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.failed").value(0))
+                .andExpect(jsonPath("$.data.skipped").value(0));
+
+        assertThat(productRepository.findAllByNameIgnoreCase("Grouped Pond")).hasSize(1);
+        assertThat(productRepository.findAllByNameIgnoreCase("Legacy J010 Name")).isEmpty();
+        Product grouped = productRepository.findAllByNameIgnoreCase("Grouped Pond").getFirst();
+        assertThat(variantRepository.findByProductIdWithDetails(grouped.getId()))
+                .extracting(v -> v.getSku().toUpperCase())
+                .contains("J010", "J010-BASE");
     }
 
     @Test

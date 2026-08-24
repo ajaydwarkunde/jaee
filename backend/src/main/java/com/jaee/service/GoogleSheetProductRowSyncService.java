@@ -94,6 +94,13 @@ public class GoogleSheetProductRowSyncService {
             existingVariant = variantRepository.findBySkuIgnoreCase(normalizedSku).orElse(null);
         }
 
+        // sheet_sku is unique on products. A legacy one-SKU product may still own this SKU even
+        // when the row is being grouped under a different same-name product — absorb it first.
+        String sheetSkuClaimError = claimSheetSku(product, normalizedSku);
+        if (sheetSkuClaimError != null) {
+            return result(row, normalizedSku, "skipped", product.getId(), sheetSkuClaimError);
+        }
+
         // Variants created before SKUs were globally unique are invisible to the lookup above,
         // so fall back to matching by SKU within the resolved product.
         if (existingVariant == null && product.getId() != null) {
@@ -109,9 +116,6 @@ public class GoogleSheetProductRowSyncService {
         }
 
         int oldStock = product.getStockQty() == null ? 0 : product.getStockQty();
-        if (product.getSheetSku() == null || product.getSheetSku().isBlank()) {
-            product.setSheetSku(normalizedSku);
-        }
         product.setSheetLastSyncedAt(LocalDateTime.now());
         product.setName(row.productName().trim());
         product.setActive(true);
@@ -328,12 +332,23 @@ public class GoogleSheetProductRowSyncService {
     /**
      * Move every variant from a same-name sheet orphan onto the canonical product, then delete the
      * orphan. Metadata such as images is merged first so nothing storefront-owned is lost.
+     * The orphan's sheet_sku is cleared before delete so the unique index never sees two owners.
      */
     private void absorbSheetDuplicate(Product target, Product source) {
         if (target.getId() == null) {
             target = productRepository.saveAndFlush(target);
         }
         mergeProductMetadata(target, source);
+
+        String releasedSheetSku = source.getSheetSku();
+        source.setSheetSku(null);
+        productRepository.saveAndFlush(source);
+
+        if (!hasText(target.getSheetSku()) && hasText(releasedSheetSku)) {
+            target.setSheetSku(releasedSheetSku);
+            productRepository.saveAndFlush(target);
+        }
+
         List<ProductVariant> variants = variantRepository.findByProductIdWithDetails(source.getId());
         for (ProductVariant variant : variants) {
             variant.setProduct(target);
@@ -343,6 +358,30 @@ public class GoogleSheetProductRowSyncService {
         productRepository.delete(source);
         productRepository.flush();
         log.info("Merged sheet duplicate product {} into {}", source.getId(), target.getId());
+    }
+
+    /**
+     * Ensure this product may safely use {@code sku} as its sheet_sku. Absorbs a legacy product
+     * that still owns the value, otherwise leaves an existing non-blank sheet_sku untouched.
+     */
+    private String claimSheetSku(Product product, String sku) {
+        if (product.getId() == null) {
+            productRepository.saveAndFlush(product);
+        }
+
+        Product sheetSkuOwner = productRepository.findBySheetSkuIgnoreCase(sku).orElse(null);
+        if (sheetSkuOwner != null && !sheetSkuOwner.getId().equals(product.getId())) {
+            if (!isSafeSheetDuplicate(sheetSkuOwner)) {
+                return "SKU already belongs to another active or manually managed product";
+            }
+            absorbSheetDuplicate(product, sheetSkuOwner);
+        }
+
+        if (!hasText(product.getSheetSku())) {
+            product.setSheetSku(sku);
+            productRepository.saveAndFlush(product);
+        }
+        return null;
     }
 
     private static void mergeProductMetadata(Product target, Product source) {
