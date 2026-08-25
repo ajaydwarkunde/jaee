@@ -50,6 +50,9 @@ class GoogleSheetProductSyncIntegrationTest {
         productRepository.findAllByNameIgnoreCase("Hidden Sheet Product")
                 .forEach(productRepository::delete);
         productRepository.findBySheetSkuIgnoreCase("J-INACTIVE").ifPresent(productRepository::delete);
+        productRepository.findAllByNameIgnoreCase("Category Mapped Candle")
+                .forEach(productRepository::delete);
+        productRepository.findBySheetSkuIgnoreCase("J-CAT").ifPresent(productRepository::delete);
     }
 
     @Test
@@ -366,6 +369,40 @@ class GoogleSheetProductSyncIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload(149, 29, 4)))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void webhookAssignsCategoriesFromSheetColumn() throws Exception {
+        mockMvc.perform(post("/integrations/google-sheets/products/sync")
+                        .header("X-Sheet-Sync-Secret", "test-sheet-secret")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "rows": [{
+                                    "rowNumber": 5,
+                                    "sku": "J-CAT",
+                                    "productName": "Category Mapped Candle",
+                                    "fragrance": "Rose",
+                                    "totalCost": 10,
+                                    "websitePrice": 149,
+                                    "stockQuantity": 2,
+                                    "active": true,
+                                    "categories": ["Candle", "Gift Hamper"]
+                                  }]
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.created").value(1));
+
+        Product product = productRepository.findAllByNameIgnoreCase("Category Mapped Candle").getFirst();
+        assertThat(product.getCategories())
+                .extracting(c -> c.getSlug())
+                .contains("candles", "gift-sets");
+
+        mockMvc.perform(get("/products/" + product.getSlug()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.categoryNames").isArray())
+                .andExpect(jsonPath("$.data.categoryNames.length()").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)));
     }
 
     @Test

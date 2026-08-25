@@ -11,6 +11,7 @@ import java.util.Optional;
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
     Optional<Category> findBySlug(String slug);
+    Optional<Category> findByNameIgnoreCase(String name);
     boolean existsBySlug(String slug);
 
     @Query("SELECT DISTINCT c FROM Category c JOIN c.products p WHERE p.active = true ORDER BY c.name ASC")

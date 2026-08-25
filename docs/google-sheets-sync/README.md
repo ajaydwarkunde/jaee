@@ -21,6 +21,7 @@ values by header name.
 | `Website Pricing` | Selling price. Blank means “Contact us for pricing” |
 | `Stock Quantity` | Inventory. Optional; defaults to 0. Aliases also accepted: `Quantity`, `Stock Qty`, `Stock`, `Qty`. Blank syncs as 0 (shows Out of Stock). |
 | `Active` | `Yes` publishes the row; `No` keeps the SKU synced but hidden on the shop. Blank defaults to `Yes` |
+| `Category` | Optional. One or more category names, separated by comma (e.g. `Candle, Gift Hamper`). Matches existing categories by name/slug (or creates them). Blank preserves admin categories. Aliases: `Categories`. |
 | `Image URLs` | Optional. Public `https://` image URLs, one per line (max 10). First URL is the primary image. Leave blank to keep admin uploads. |
 
 Rows with an SKU and product name can sync even when cost, website price, or stock is blank.
@@ -85,8 +86,9 @@ Cell edits and **Jaai Catalog → Sync all products (staging)** always go to `BA
 1. Select **Jaai Catalog → Sync all products (staging)**.
 2. Review the toast summary.
 3. Open **Jaai Catalog → Open sync log** for skipped or failed rows.
-4. Sheet products are published automatically. Add categories, a description
-   (if absent from the sheet), and images in website admin as needed.
+4. Sheet products are published automatically. Add a description
+   (if absent from the sheet), images, and categories via the sheet `Category`
+   column (or in admin if that cell is blank).
 
 The first row for a new Product Name creates and publishes a product. Other
 rows with the same case-insensitive Product Name add or update variants under
@@ -114,7 +116,9 @@ them into one product by name.
 - Formula results are flushed before the edited rows are read.
 - Description and images use non-destructive optional ownership: a non-empty
   sheet cell updates the website, while a blank cell preserves the admin value.
-- Website-only fields—categories, videos and customization—are preserved.
+- Website-only fields—videos and customization—are preserved. Categories are
+  owned by the sheet when the Category column is filled; blank cells keep the
+  admin category assignment.
 - A full staging or production sync makes the sheet the published catalog:
   products represented by sheet SKUs are kept active, while products and variants
   absent from the sheet are deleted. A normal edit-trigger sync publishes the

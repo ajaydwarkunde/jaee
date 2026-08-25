@@ -2,8 +2,10 @@ package com.jaee.service;
 
 import com.jaee.dto.integration.SheetProductRow;
 import com.jaee.dto.integration.SheetProductSyncResult;
+import com.jaee.entity.Category;
 import com.jaee.entity.Product;
 import com.jaee.entity.ProductVariant;
+import com.jaee.repository.CategoryRepository;
 import com.jaee.repository.ProductRepository;
 import com.jaee.repository.ProductVariantRepository;
 import org.junit.jupiter.api.Test;
@@ -15,8 +17,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -33,6 +37,8 @@ class GoogleSheetProductRowSyncServiceTest {
     @Mock
     private ProductVariantRepository variantRepository;
     @Mock
+    private CategoryRepository categoryRepository;
+    @Mock
     private StockNotificationService stockNotificationService;
 
     @InjectMocks
@@ -43,7 +49,7 @@ class GoogleSheetProductRowSyncServiceTest {
         SheetProductRow row = new SheetProductRow(
                 5, "j001", "Gulab Ishq", "A floral, hand-poured candle.",
                 "Large", "Rose", "Red", BigDecimal.valueOf(29),
-                BigDecimal.valueOf(149), 12, null, null);
+                BigDecimal.valueOf(149), 12, null, null, null);
         when(productRepository.findBySheetSkuIgnoreCase("J001")).thenReturn(Optional.empty());
         when(productRepository.findAllByNameIgnoreCase("Gulab Ishq")).thenReturn(List.of());
         when(productRepository.existsBySlug("gulab-ishq")).thenReturn(false);
@@ -59,7 +65,6 @@ class GoogleSheetProductRowSyncServiceTest {
         assertThat(result.status()).isEqualTo("created");
         assertThat(result.productId()).isEqualTo(42L);
 
-        // Saved once to obtain an id for the variant, then again after variant aggregation.
         ArgumentCaptor<Product> productCaptor = ArgumentCaptor.forClass(Product.class);
         verify(productRepository, atLeastOnce()).save(productCaptor.capture());
         Product product = productCaptor.getValue();
@@ -133,7 +138,7 @@ class GoogleSheetProductRowSyncServiceTest {
     @Test
     void skipsIncompleteRowsWithoutWriting() {
         SheetProductRow row = new SheetProductRow(5, "", "Product", null, "", "", "",
-                BigDecimal.TEN, BigDecimal.valueOf(100), 1, null, null);
+                BigDecimal.TEN, BigDecimal.valueOf(100), 1, null, null, null);
 
         SheetProductSyncResult result = service.sync(row);
 
@@ -162,7 +167,7 @@ class GoogleSheetProductRowSyncServiceTest {
     void createsQuoteOnRequestWhenWebsitePriceIsMissing() {
         SheetProductRow row = new SheetProductRow(
                 8, "J007", "Mini Pond", null, "", "", "",
-                BigDecimal.valueOf(16.30), null, 0, null, null);
+                BigDecimal.valueOf(16.30), null, 0, null, null, null);
         when(productRepository.findBySheetSkuIgnoreCase("J007")).thenReturn(Optional.empty());
         when(productRepository.findAllByNameIgnoreCase("Mini Pond")).thenReturn(List.of());
         when(productRepository.existsBySlug("mini-pond")).thenReturn(false);
@@ -215,16 +220,50 @@ class GoogleSheetProductRowSyncServiceTest {
 
         service.sync(new SheetProductRow(
                 5, "J001", "Gulab Ishq", null, "Large", "Rose", "Red",
-                BigDecimal.ONE, BigDecimal.TEN, 1, null, null));
+                BigDecimal.ONE, BigDecimal.TEN, 1, null, null, null));
         assertThat(product.getImages()).containsExactly("https://admin.example/a.jpg");
 
         service.sync(new SheetProductRow(
                 5, "J001", "Gulab Ishq", null, "Large", "Rose", "Red",
-                BigDecimal.ONE, BigDecimal.TEN, 1, null,
+                BigDecimal.ONE, BigDecimal.TEN, 1, null, null,
                 List.of("https://cdn.example/front.jpg\nhttps://cdn.example/side.jpg")));
         assertThat(product.getImages()).containsExactly(
                 "https://cdn.example/front.jpg",
                 "https://cdn.example/side.jpg");
+    }
+
+    @Test
+    void assignsMultipleCategoriesFromSheet() {
+        Category candles = Category.builder().id(1L).name("Candles").slug("candles").build();
+        Category giftSets = Category.builder().id(2L).name("Gift Sets").slug("gift-sets").build();
+        when(categoryRepository.findByNameIgnoreCase("Candle")).thenReturn(Optional.empty());
+        when(categoryRepository.findBySlug("candle")).thenReturn(Optional.empty());
+        when(categoryRepository.findBySlug("candles")).thenReturn(Optional.of(candles));
+        when(categoryRepository.findByNameIgnoreCase("Gift Hamper")).thenReturn(Optional.empty());
+        when(categoryRepository.findBySlug("gift-hamper")).thenReturn(Optional.empty());
+        when(categoryRepository.findBySlug("gift-sets")).thenReturn(Optional.of(giftSets));
+
+        when(productRepository.findBySheetSkuIgnoreCase("J010")).thenReturn(Optional.empty());
+        when(productRepository.findAllByNameIgnoreCase("Gift Candle")).thenReturn(List.of());
+        when(productRepository.existsBySlug("gift-candle")).thenReturn(false);
+        when(productRepository.save(any(Product.class))).thenAnswer(invocation -> {
+            Product product = invocation.getArgument(0);
+            product.setId(55L);
+            return product;
+        });
+        when(variantRepository.findByProductIdWithDetails(55L)).thenReturn(List.of());
+
+        service.sync(new SheetProductRow(
+                5, "J010", "Gift Candle", null, "Large", "Rose", "Red",
+                BigDecimal.TEN, BigDecimal.valueOf(199), 3, true,
+                List.of("Candle, Gift Hamper"), null));
+
+        ArgumentCaptor<Product> productCaptor = ArgumentCaptor.forClass(Product.class);
+        verify(productRepository, atLeastOnce()).save(productCaptor.capture());
+        Set<String> categoryNames = new HashSet<>();
+        productCaptor.getValue().getCategories()
+                .forEach(category -> categoryNames.add(category.getName()));
+        assertThat(categoryNames).containsExactlyInAnyOrder("Candles", "Gift Sets");
     }
 
     private static SheetProductRow row(String sku, String name, int price, int cost, int stock) {
@@ -240,6 +279,7 @@ class GoogleSheetProductRowSyncServiceTest {
                 BigDecimal.valueOf(price),
                 stock,
                 null,
+                null,
                 null
         );
     }
@@ -248,7 +288,7 @@ class GoogleSheetProductRowSyncServiceTest {
     void honoursActiveColumnNo() {
         SheetProductRow row = new SheetProductRow(
                 5, "J002", "Hidden Candle", null, "Large", "Rose", "Red",
-                BigDecimal.TEN, BigDecimal.valueOf(100), 1, false, null);
+                BigDecimal.TEN, BigDecimal.valueOf(100), 1, false, null, null);
         when(productRepository.findBySheetSkuIgnoreCase("J002")).thenReturn(Optional.empty());
         when(variantRepository.findBySkuIgnoreCase("J002")).thenReturn(Optional.empty());
         when(productRepository.findAllByNameIgnoreCase("Hidden Candle")).thenReturn(List.of());
@@ -276,5 +316,12 @@ class GoogleSheetProductRowSyncServiceTest {
         assertThat(GoogleSheetProductRowSyncService.parseSheetActive((Boolean) null)).isTrue();
         assertThat(GoogleSheetProductRowSyncService.parseSheetActive(true)).isTrue();
         assertThat(GoogleSheetProductRowSyncService.parseSheetActive(false)).isFalse();
+    }
+
+    @Test
+    void parseCategoryNamesSplitsCommaSeparatedValues() {
+        assertThat(GoogleSheetProductRowSyncService.parseCategoryNames(List.of("Candle, Gift Hamper")))
+                .containsExactly("Candle", "Gift Hamper");
+        assertThat(GoogleSheetProductRowSyncService.parseCategoryNames(null)).isEmpty();
     }
 }

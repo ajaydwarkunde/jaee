@@ -2,8 +2,11 @@ package com.jaee.service;
 
 import com.jaee.dto.integration.SheetProductRow;
 import com.jaee.dto.integration.SheetProductSyncResult;
+import com.jaee.entity.Category;
 import com.jaee.entity.Product;
 import com.jaee.entity.ProductVariant;
+import com.jaee.entity.StoreType;
+import com.jaee.repository.CategoryRepository;
 import com.jaee.repository.ProductRepository;
 import com.jaee.repository.ProductVariantRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +20,7 @@ import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -37,6 +41,7 @@ public class GoogleSheetProductRowSyncService {
 
     private final ProductRepository productRepository;
     private final ProductVariantRepository variantRepository;
+    private final CategoryRepository categoryRepository;
     private final StockNotificationService stockNotificationService;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -147,6 +152,7 @@ public class GoogleSheetProductRowSyncService {
         product.setName(rowProductName);
         applyDescriptionIfPresent(product, row.description());
         applyImagesIfPresent(product, row);
+        applyCategoriesIfPresent(product, row.categories());
 
         product = productRepository.save(product);
         ProductVariant savedVariant =
@@ -507,6 +513,124 @@ public class GoogleSheetProductRowSyncService {
             product.getImages().clear();
         }
         product.getImages().addAll(images);
+    }
+
+    /**
+     * Non-empty Category cells replace the product's category set. Blank preserves admin assignments.
+     * Values may be comma/semicolon separated (e.g. {@code Candle, Gift Hamper}).
+     */
+    private void applyCategoriesIfPresent(Product product, List<String> categoryNames) {
+        List<String> names = parseCategoryNames(categoryNames);
+        if (names.isEmpty()) {
+            return;
+        }
+        Set<Category> resolved = new HashSet<>();
+        for (String name : names) {
+            resolved.add(resolveOrCreateCategory(name));
+        }
+        if (product.getCategories() == null) {
+            product.setCategories(new HashSet<>());
+        } else {
+            product.getCategories().clear();
+        }
+        product.getCategories().addAll(resolved);
+    }
+
+    static List<String> parseCategoryNames(List<String> rawNames) {
+        if (rawNames == null || rawNames.isEmpty()) {
+            return List.of();
+        }
+        LinkedHashSet<String> names = new LinkedHashSet<>();
+        for (String raw : rawNames) {
+            if (raw == null) continue;
+            for (String token : raw.split("[,;|/\\n]+")) {
+                String name = token.trim().replaceAll("\\s+", " ");
+                if (!name.isEmpty()) {
+                    names.add(name);
+                }
+            }
+        }
+        return new ArrayList<>(names);
+    }
+
+    private Category resolveOrCreateCategory(String rawName) {
+        String trimmed = rawName.trim().replaceAll("\\s+", " ");
+        String slug = toSlug(trimmed);
+
+        Category byName = categoryRepository.findByNameIgnoreCase(trimmed).orElse(null);
+        if (byName != null) {
+            return byName;
+        }
+        Category bySlug = categoryRepository.findBySlug(slug).orElse(null);
+        if (bySlug != null) {
+            return bySlug;
+        }
+
+        // Common sheet shorthand → existing seeded categories.
+        Category alias = resolveCategoryAlias(trimmed, slug);
+        if (alias != null) {
+            return alias;
+        }
+
+        String displayName = toTitleCase(trimmed);
+        Category created = Category.builder()
+                .name(displayName)
+                .slug(uniqueCategorySlug(slug.isBlank() ? "category" : slug))
+                .storeType(inferStoreType(displayName))
+                .build();
+        return categoryRepository.save(created);
+    }
+
+    private Category resolveCategoryAlias(String trimmed, String slug) {
+        String key = trimmed.toLowerCase(Locale.ENGLISH);
+        String mappedSlug = switch (key) {
+            case "candle", "candles" -> "candles";
+            case "gift hamper", "gift hampers", "hamper", "hampers", "gift set", "gift sets" -> "gift-sets";
+            case "diffuser", "diffusers" -> "diffusers";
+            case "home decor", "home décor", "decor", "décor" -> "home-decor";
+            default -> null;
+        };
+        if (mappedSlug == null && (slug.equals("candle") || slug.equals("candles"))) {
+            mappedSlug = "candles";
+        }
+        if (mappedSlug == null) {
+            return null;
+        }
+        return categoryRepository.findBySlug(mappedSlug).orElse(null);
+    }
+
+    private String uniqueCategorySlug(String base) {
+        String candidate = base;
+        int suffix = 1;
+        while (categoryRepository.existsBySlug(candidate)) {
+            candidate = base + "-" + suffix++;
+        }
+        return candidate;
+    }
+
+    private static StoreType inferStoreType(String name) {
+        String lower = name.toLowerCase(Locale.ENGLISH);
+        if (lower.contains("hamper") || lower.contains("gift")) {
+            return StoreType.HAMPER;
+        }
+        if (lower.contains("candle")) {
+            return StoreType.CANDLE;
+        }
+        return null;
+    }
+
+    private static String toTitleCase(String input) {
+        String[] parts = input.toLowerCase(Locale.ENGLISH).split("\\s+");
+        StringBuilder out = new StringBuilder();
+        for (String part : parts) {
+            if (part.isEmpty()) continue;
+            if (!out.isEmpty()) out.append(' ');
+            out.append(Character.toUpperCase(part.charAt(0)));
+            if (part.length() > 1) {
+                out.append(part.substring(1));
+            }
+        }
+        return out.toString();
     }
 
     private static void applyDescriptionIfPresent(Product product, String description) {
