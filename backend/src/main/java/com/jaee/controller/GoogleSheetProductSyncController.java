@@ -46,6 +46,13 @@ public class GoogleSheetProductSyncController {
             return ResponseEntity.ok(ApiResponse.success(response));
         } catch (IllegalArgumentException exception) {
             return ResponseEntity.badRequest().body(ApiResponse.error(exception.getMessage()));
+        } catch (Exception exception) {
+            // Surface a precise sync failure instead of the generic 500 wrapper.
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error(
+                            exception.getMessage() == null
+                                    ? "Product synchronization failed"
+                                    : "Product synchronization failed: " + exception.getMessage()));
         }
     }
 
