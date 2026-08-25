@@ -59,17 +59,30 @@ public class GoogleSheetProductSyncService {
 
         boolean rowsChanged = results.stream().anyMatch(SheetProductSyncResult::changed);
         boolean catalogStatusChanged = false;
-        if (request != null && request.catalogSkus() != null) {
-            catalogStatusChanged = publishOnlySheetCatalog(request.catalogSkus());
-        } else if (rowsChanged) {
-            catalogStatusChanged = deleteNonSheetProducts();
+        try {
+            if (request != null && request.catalogSkus() != null) {
+                catalogStatusChanged = publishOnlySheetCatalog(request.catalogSkus());
+            } else if (rowsChanged) {
+                catalogStatusChanged = deleteNonSheetProducts();
+            }
+        } catch (Exception exception) {
+            log.error("Google Sheet catalog publish step failed: {}", exception.getMessage(), exception);
         }
 
-        if (catalogStatusChanged || rowsChanged) {
-            catalogCacheService.evictAll();
+        try {
+            if (catalogStatusChanged || rowsChanged) {
+                catalogCacheService.evictAll();
+            }
+        } catch (Exception exception) {
+            log.error("Google Sheet catalog cache eviction failed: {}", exception.getMessage(), exception);
         }
-        if (!rows.isEmpty()) {
-            rowSyncService.reconcileBatchVariantPlacement(rows);
+
+        try {
+            if (!rows.isEmpty()) {
+                rowSyncService.reconcileBatchVariantPlacement(rows);
+            }
+        } catch (Exception exception) {
+            log.error("Google Sheet variant reconcile failed: {}", exception.getMessage(), exception);
         }
         return SheetProductSyncResponse.from(results);
     }

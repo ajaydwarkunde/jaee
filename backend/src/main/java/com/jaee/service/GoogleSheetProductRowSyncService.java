@@ -528,12 +528,8 @@ public class GoogleSheetProductRowSyncService {
         for (String name : names) {
             resolved.add(resolveOrCreateCategory(name));
         }
-        if (product.getCategories() == null) {
-            product.setCategories(new HashSet<>());
-        } else {
-            product.getCategories().clear();
-        }
-        product.getCategories().addAll(resolved);
+        // Replace the set so Hibernate never hits a stale lazy collection proxy mid-sync.
+        product.setCategories(resolved);
         log.info("Sheet categories for product {}: {}", product.getId(),
                 resolved.stream().map(Category::getName).toList());
     }
@@ -692,17 +688,22 @@ public class GoogleSheetProductRowSyncService {
             rowBySku.putIfAbsent(sku, row);
         }
         for (SheetProductRow row : rowBySku.values()) {
-            String sku = normalizeSku(row.sku());
-            ProductVariant variant = variantRepository.findBySkuIgnoreCase(sku).orElse(null);
-            if (variant == null) {
-                continue;
+            try {
+                String sku = normalizeSku(row.sku());
+                ProductVariant variant = variantRepository.findBySkuIgnoreCase(sku).orElse(null);
+                if (variant == null) {
+                    continue;
+                }
+                Product owner = variant.getProduct();
+                String expectedName = row.productName().trim();
+                if (owner == null || owner.getName().equalsIgnoreCase(expectedName)) {
+                    continue;
+                }
+                sync(row);
+            } catch (Exception exception) {
+                log.error("Failed to reconcile sheet row {} ({}): {}",
+                        row.rowNumber(), normalizeSku(row.sku()), exception.getMessage(), exception);
             }
-            Product owner = variant.getProduct();
-            String expectedName = row.productName().trim();
-            if (owner == null || owner.getName().equalsIgnoreCase(expectedName)) {
-                continue;
-            }
-            sync(row);
         }
     }
 

@@ -1,5 +1,7 @@
 package com.jaee.dto.integration;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -16,7 +18,9 @@ public record SheetProductRow(
         BigDecimal websitePrice,
         Integer stockQuantity,
         Boolean active,
+        @JsonDeserialize(using = FlexibleStringListDeserializer.class)
         List<String> categories,
+        @JsonDeserialize(using = FlexibleStringListDeserializer.class)
         List<String> imageUrls
 ) {
 }
