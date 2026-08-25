@@ -197,6 +197,7 @@ function readRows_(sheet, firstRow, lastRow) {
         'Qty'
       ))),
       active: yesNo_(cell_(display, headerIndex_(indexes, 'Active'))),
+      categories: categories_(cell_(display, headerIndex_(indexes, 'Category', 'Categories'))),
       imageUrls: imageUrls_(cell_(display, headerIndex_(indexes, 'Image URLs', 'Images', 'Image URL'))),
     };
   }).filter(Boolean);
@@ -395,6 +396,23 @@ function imageUrls_(value) {
     .map((item) => item.trim())
     .filter((item) => item.indexOf('http://') === 0 || item.indexOf('https://') === 0)
     .slice(0, 10);
+}
+
+/** Category / Categories column: comma, semicolon, pipe or newline separated. */
+function categories_(value) {
+  const text = text_(value);
+  if (!text) return [];
+  const seen = {};
+  const result = [];
+  text.split(/[,;|/\n]+/).forEach((item) => {
+    const name = String(item || '').trim().replace(/\s+/g, ' ');
+    if (!name) return;
+    const key = name.toLowerCase();
+    if (seen[key]) return;
+    seen[key] = true;
+    result.push(name);
+  });
+  return result;
 }
 
 function text_(value) {

@@ -84,6 +84,7 @@ class GoogleSheetProductSyncServiceTest {
                 BigDecimal.valueOf(100),
                 1,
                 null,
+                null,
                 null
         );
     }

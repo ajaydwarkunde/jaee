@@ -1,6 +1,8 @@
 package com.jaee.controller;
 
+import com.jaee.entity.Category;
 import com.jaee.entity.Product;
+import com.jaee.repository.CategoryRepository;
 import com.jaee.repository.ProductRepository;
 import com.jaee.repository.ProductVariantRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -30,6 +32,8 @@ class GoogleSheetProductSyncIntegrationTest {
     private ProductRepository productRepository;
     @Autowired
     private ProductVariantRepository variantRepository;
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     @AfterEach
     void cleanUp() {
@@ -50,6 +54,9 @@ class GoogleSheetProductSyncIntegrationTest {
         productRepository.findAllByNameIgnoreCase("Hidden Sheet Product")
                 .forEach(productRepository::delete);
         productRepository.findBySheetSkuIgnoreCase("J-INACTIVE").ifPresent(productRepository::delete);
+        productRepository.findAllByNameIgnoreCase("Category Mapped Candle")
+                .forEach(productRepository::delete);
+        productRepository.findBySheetSkuIgnoreCase("J-CAT").ifPresent(productRepository::delete);
     }
 
     @Test
@@ -366,6 +373,44 @@ class GoogleSheetProductSyncIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload(149, 29, 4)))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void webhookAssignsCategoriesFromSheetColumn() throws Exception {
+        if (categoryRepository.findBySlug("candles").isEmpty()) {
+            categoryRepository.save(Category.builder().name("Candles").slug("candles").build());
+        }
+        if (categoryRepository.findBySlug("gift-sets").isEmpty()) {
+            categoryRepository.save(Category.builder().name("Gift Sets").slug("gift-sets").build());
+        }
+
+        mockMvc.perform(post("/integrations/google-sheets/products/sync")
+                        .header("X-Sheet-Sync-Secret", "test-sheet-secret")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "rows": [{
+                                    "rowNumber": 5,
+                                    "sku": "J-CAT",
+                                    "productName": "Category Mapped Candle",
+                                    "fragrance": "Rose",
+                                    "totalCost": 10,
+                                    "websitePrice": 149,
+                                    "stockQuantity": 2,
+                                    "active": true,
+                                    "categories": ["Candle", "Gift Hamper"]
+                                  }]
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.created").value(1));
+
+        Product product = productRepository.findAllByNameIgnoreCase("Category Mapped Candle").getFirst();
+
+        mockMvc.perform(get("/products/" + product.getSlug()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.categoryNames").value(org.hamcrest.Matchers.containsInAnyOrder(
+                        "Candles", "Gift Sets")));
     }
 
     @Test
