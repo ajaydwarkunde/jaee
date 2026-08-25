@@ -534,6 +534,8 @@ public class GoogleSheetProductRowSyncService {
             product.getCategories().clear();
         }
         product.getCategories().addAll(resolved);
+        log.info("Sheet categories for product {}: {}", product.getId(),
+                resolved.stream().map(Category::getName).toList());
     }
 
     static List<String> parseCategoryNames(List<String> rawNames) {

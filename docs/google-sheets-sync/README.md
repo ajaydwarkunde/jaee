@@ -21,7 +21,7 @@ values by header name.
 | `Website Pricing` | Selling price. Blank means “Contact us for pricing” |
 | `Stock Quantity` | Inventory. Optional; defaults to 0. Aliases also accepted: `Quantity`, `Stock Qty`, `Stock`, `Qty`. Blank syncs as 0 (shows Out of Stock). |
 | `Active` | `Yes` publishes the row; `No` keeps the SKU synced but hidden on the shop. Blank defaults to `Yes` |
-| `Category` | Optional. One or more category names, separated by comma (e.g. `Candle, Gift Hamper`). Matches existing categories by name/slug (or creates them). Blank preserves admin categories. Aliases: `Categories`. |
+| `Category` | Optional. One or more category names, separated by comma (e.g. `Candle, Gift Hamper`). Matches existing categories by name/slug (or creates them). Blank preserves admin categories. Header aliases: `Categories`, `Product Category`. |
 | `Image URLs` | Optional. Public `https://` image URLs, one per line (max 10). First URL is the primary image. Leave blank to keep admin uploads. |
 
 Rows with an SKU and product name can sync even when cost, website price, or stock is blank.
