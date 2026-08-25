@@ -197,7 +197,13 @@ function readRows_(sheet, firstRow, lastRow) {
         'Qty'
       ))),
       active: yesNo_(cell_(display, headerIndex_(indexes, 'Active'))),
-      categories: categories_(cell_(display, headerIndex_(indexes, 'Category', 'Categories'))),
+      categories: categories_(cell_(display, headerIndex_(
+        indexes,
+        'Category',
+        'Categories',
+        'Product Category',
+        'Product Categories'
+      ))),
       imageUrls: imageUrls_(cell_(display, headerIndex_(indexes, 'Image URLs', 'Images', 'Image URL'))),
     };
   }).filter(Boolean);
