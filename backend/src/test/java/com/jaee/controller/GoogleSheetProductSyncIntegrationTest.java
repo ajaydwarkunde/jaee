@@ -395,14 +395,11 @@ class GoogleSheetProductSyncIntegrationTest {
                 .andExpect(jsonPath("$.data.created").value(1));
 
         Product product = productRepository.findAllByNameIgnoreCase("Category Mapped Candle").getFirst();
-        assertThat(product.getCategories())
-                .extracting(c -> c.getSlug())
-                .contains("candles", "gift-sets");
 
         mockMvc.perform(get("/products/" + product.getSlug()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.categoryNames").isArray())
-                .andExpect(jsonPath("$.data.categoryNames.length()").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)));
+                .andExpect(jsonPath("$.data.categoryNames").value(org.hamcrest.Matchers.containsInAnyOrder(
+                        "Candles", "Gift Sets")));
     }
 
     @Test
