@@ -19,7 +19,7 @@ values by header name.
 | `Color` | Variant option `Color` |
 | `Total Cost` | Internal base cost (optional; never shown to customers) |
 | `Website Pricing` | Selling price. Blank means “Contact us for pricing” |
-| `Stock Quantity` | Inventory. Optional; defaults to 0 |
+| `Stock Quantity` | Inventory. Optional; defaults to 0. Aliases also accepted: `Quantity`, `Stock Qty`, `Stock`, `Qty`. Blank syncs as 0 (shows Out of Stock). |
 | `Active` | `Yes` publishes the row; `No` keeps the SKU synced but hidden on the shop. Blank defaults to `Yes` |
 | `Image URLs` | Optional. Public `https://` image URLs, one per line (max 10). First URL is the primary image. Leave blank to keep admin uploads. |
 

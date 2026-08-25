@@ -185,11 +185,19 @@ function readRows_(sheet, firstRow, lastRow) {
       size: text_(cell_(display, indexes['Size'])),
       fragrance: text_(cell_(display, indexes['Fragrance'])),
       color: text_(cell_(display, indexes['Color'])),
-      totalCost: number_(cell_(raw, indexes['Total Cost'])),
-      websitePrice: number_(cell_(raw, indexes['Website Pricing'])),
-      stockQuantity: integer_(cell_(raw, indexes['Stock Quantity'])),
-      active: yesNo_(cell_(display, indexes['Active'])),
-      imageUrls: imageUrls_(cell_(display, indexes['Image URLs'])),
+      totalCost: number_(cell_(raw, headerIndex_(indexes, 'Total Cost', 'Cost'))),
+      websitePrice: number_(cell_(raw, headerIndex_(indexes, 'Website Pricing', 'Website Price', 'Price'))),
+      // Accept common aliases — a header named only "Quantity" used to sync as stock 0.
+      stockQuantity: integer_(cell_(raw, headerIndex_(
+        indexes,
+        'Stock Quantity',
+        'Quantity',
+        'Stock Qty',
+        'Stock',
+        'Qty'
+      ))),
+      active: yesNo_(cell_(display, headerIndex_(indexes, 'Active'))),
+      imageUrls: imageUrls_(cell_(display, headerIndex_(indexes, 'Image URLs', 'Images', 'Image URL'))),
     };
   }).filter(Boolean);
 }
@@ -253,6 +261,21 @@ function headerIndexes_(headers) {
     if (normalized) result[normalized] = index;
     return result;
   }, {});
+}
+
+/** First matching header, case-insensitive. */
+function headerIndex_(indexes, ...names) {
+  for (let i = 0; i < names.length; i++) {
+    if (indexes[names[i]] !== undefined) return indexes[names[i]];
+  }
+  const keys = Object.keys(indexes);
+  for (let i = 0; i < names.length; i++) {
+    const wanted = String(names[i]).toLowerCase();
+    for (let k = 0; k < keys.length; k++) {
+      if (keys[k].toLowerCase() === wanted) return indexes[keys[k]];
+    }
+  }
+  return undefined;
 }
 
 function backendUrlFor_(target) {
@@ -381,10 +404,16 @@ function text_(value) {
 function number_(value) {
   if (typeof value === 'number') return Number.isFinite(value) ? value : null;
   const normalized = String(value === null || value === undefined ? '' : value)
-    .replace(/[₹,%\s,]/g, '');
+    .replace(/[₹,%\s,]/g, '')
+    .trim();
   if (!normalized) return null;
+  // Prefer a clean number; fall back to the first numeric token ("10 pcs" → 10).
   const parsed = Number(normalized);
-  return Number.isFinite(parsed) ? parsed : null;
+  if (Number.isFinite(parsed)) return parsed;
+  const match = normalized.match(/-?\d+(\.\d+)?/);
+  if (!match) return null;
+  const fromToken = Number(match[0]);
+  return Number.isFinite(fromToken) ? fromToken : null;
 }
 
 function integer_(value) {
