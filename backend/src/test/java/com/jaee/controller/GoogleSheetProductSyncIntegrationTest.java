@@ -1,6 +1,8 @@
 package com.jaee.controller;
 
+import com.jaee.entity.Category;
 import com.jaee.entity.Product;
+import com.jaee.repository.CategoryRepository;
 import com.jaee.repository.ProductRepository;
 import com.jaee.repository.ProductVariantRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -30,6 +32,8 @@ class GoogleSheetProductSyncIntegrationTest {
     private ProductRepository productRepository;
     @Autowired
     private ProductVariantRepository variantRepository;
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     @AfterEach
     void cleanUp() {
@@ -373,6 +377,13 @@ class GoogleSheetProductSyncIntegrationTest {
 
     @Test
     void webhookAssignsCategoriesFromSheetColumn() throws Exception {
+        if (categoryRepository.findBySlug("candles").isEmpty()) {
+            categoryRepository.save(Category.builder().name("Candles").slug("candles").build());
+        }
+        if (categoryRepository.findBySlug("gift-sets").isEmpty()) {
+            categoryRepository.save(Category.builder().name("Gift Sets").slug("gift-sets").build());
+        }
+
         mockMvc.perform(post("/integrations/google-sheets/products/sync")
                         .header("X-Sheet-Sync-Secret", "test-sheet-secret")
                         .contentType(MediaType.APPLICATION_JSON)
