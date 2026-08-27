@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.2.1'
     id 'io.spring.dependency-management' version '1.1.4'
+    id 'org.graalvm.buildtools.native' version '0.10.4'
 }
 
 group = 'com.jaee'
@@ -20,6 +21,11 @@ configurations {
 
 repositories {
     mavenCentral()
+}
+
+// Spring uses spring-jcl; transitive commons-logging breaks native-image (LogFactory init at build time).
+configurations.configureEach {
+    exclude group: 'commons-logging', module: 'commons-logging'
 }
 
 ext {
@@ -92,4 +98,19 @@ tasks.named('bootJar') {
 
 bootRun {
     systemProperty 'spring.profiles.active', 'dev'
+}
+
+// GraalVM Native Image — run: ./gradlew nativeCompile (requires GraalVM JDK or NIK in PATH)
+// Smaller runtime than JRE+JAR; see Dockerfile.native for distroless-style deploy.
+graalvmNative {
+    binaries {
+        main {
+            imageName = 'jaee-backend'
+            buildArgs.add('-H:+ReportExceptionStackTraces')
+            buildArgs.add('--initialize-at-run-time=org.apache.commons.logging')
+        }
+    }
+    metadataRepository {
+        enabled = true
+    }
 }

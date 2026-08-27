@@ -1,0 +1,47 @@
+# Native image build — smaller runtime than JRE + layered JAR (typical: tens of MB binary + slim libc).
+# Build: docker build -f Dockerfile.native -t jaee-backend:native .
+# Requires network during Gradle (dependencies + native-image compile).
+#
+# Compare image size with: docker images | grep jaee-backend
+# Default Dockerfile (Temurin JRE + layers) vs this file.
+
+FROM ghcr.io/graalvm/native-image-community:21 AS build
+WORKDIR /app
+
+RUN microdnf install -y findutils wget gzip unzip && microdnf clean all
+
+COPY gradlew ./
+COPY gradle ./gradle
+COPY build.gradle settings.gradle gradle.properties* ./
+RUN chmod +x gradlew
+
+RUN ./gradlew dependencies --no-daemon -q 2>/dev/null || true
+
+COPY src ./src
+
+# Native compile is CPU/RAM heavy; tune on constrained CI with GRADLE_OPTS
+ENV GRADLE_OPTS="-Xmx6g -XX:MaxMetaspaceSize=512m"
+RUN ./gradlew nativeCompile --no-daemon -x test
+
+# Runtime: slim glibc image (native binary is dynamically linked)
+FROM debian:bookworm-slim
+WORKDIR /app
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends wget ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd -r appgroup && useradd -r -g appgroup appuser
+
+COPY --from=build --chown=appuser:appgroup /app/build/native/nativeCompile/jaee-backend /app/jaee-backend
+
+USER appuser
+
+ENV SERVER_PORT=8080
+ENV SPRING_PROFILES_ACTIVE=prod
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD wget -q --spider "http://127.0.0.1:${SERVER_PORT}/actuator/health" || exit 1
+
+ENTRYPOINT ["/app/jaee-backend"]

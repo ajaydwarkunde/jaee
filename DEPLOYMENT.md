@@ -128,3 +128,20 @@ Flyway migrations live in `backend/src/main/resources/db/migration/`. Each envir
 ## Keep-Alive
 
 The `keep-alive.yml` workflow pings both production and staging backends every 14 minutes to prevent Render free-tier services from sleeping. The staging ping is conditional on `STAGING_BACKEND_URL` being set.
+
+## GraalVM Native Image (optional, evaluation)
+
+For **smaller container images** than the default Temurin JRE + layered JAR flow:
+
+| File | Purpose |
+|------|---------|
+| [backend/Dockerfile.native](backend/Dockerfile.native) | Multi-stage build: `nativeCompile` + slim Debian runtime |
+| [backend/build.gradle](backend/build.gradle) | `org.graalvm.buildtools.native` + `graalvmNative { ... }` |
+
+**Local:** Install GraalVM JDK 21 (with `native-image`), then from `backend/`: `./gradlew nativeCompile -x test`. Binary: `build/native/nativeCompile/jaee-backend`.
+
+**Docker:** `docker build -f backend/Dockerfile.native -t jaee-backend:native backend` (context must be `backend/` so paths match).
+
+**CI:** [.github/workflows/native-image.yml](.github/workflows/native-image.yml) runs `nativeCompile` on PRs that touch `backend/` and on pushes to `feature/*` branches.
+
+Third-party SDKs (Firebase, Twilio, etc.) may need extra GraalVM reachability metadata before production use; validate all integrations against the native binary before changing Render’s Docker command.
