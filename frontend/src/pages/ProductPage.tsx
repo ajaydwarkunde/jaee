@@ -975,12 +975,6 @@ export default function ProductPage() {
 
           {/* Product Info */}
           <div className="lg:py-4">
-            {categoryNames.length > 0 && (
-              <p className="text-sm text-warm-gray uppercase tracking-wide mb-2">
-                {categoryNames.join(' · ')}
-              </p>
-            )}
-            
             <h1 className="font-serif text-3xl md:text-4xl font-semibold text-rose tracking-tight mb-4">
               {product.name}
             </h1>
