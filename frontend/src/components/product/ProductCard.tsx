@@ -118,11 +118,6 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
       {/* Info */}
       <Link to={`/product/${product.slug}`} className="block p-4">
-        {product.categoryNames?.length > 0 && (
-          <p className="text-xs text-warm-gray uppercase tracking-wide mb-1">
-            {product.categoryNames.join(' · ')}
-          </p>
-        )}
         <h3 className="font-serif text-lg font-semibold text-rose line-clamp-1 tracking-tight">
           {product.name}
         </h3>

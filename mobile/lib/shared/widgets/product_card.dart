@@ -111,16 +111,6 @@ class ProductCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (product.categoryName != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Text(
-                        product.categoryName!,
-                        style: AppTypography.caption.copyWith(color: AppColors.rose),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
                   Text(
                     product.name,
                     style: AppTypography.labelMedium,

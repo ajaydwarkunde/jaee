@@ -83,9 +83,6 @@ function SearchWithSuggestions({ query, onQueryChange, onSearch, onClose }: {
                     <p className="text-sm font-semibold text-rose truncate">{product.name}</p>
                     <div className="flex items-center gap-2 mt-0.5">
                       <p className="text-xs text-rose font-semibold tabular-nums">{formatPrice(product.price, product.currency)}</p>
-                      {product.categoryNames?.length > 0 && (
-                        <span className="text-[10px] text-warm-gray">in {product.categoryNames[0]}</span>
-                      )}
                     </div>
                   </div>
                 </button>
