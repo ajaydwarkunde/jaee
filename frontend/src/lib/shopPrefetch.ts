@@ -34,13 +34,28 @@ export function shopIndexListingFilters(): ProductFilters {
   }
 }
 
+/** Infinite-scroll query key — page is a pageParam, not part of the key. */
+export function shopListingQueryKey(filters: ProductFilters) {
+  const { page: _page, ...rest } = filters
+  return ['products', rest] as const
+}
+
+function prefetchProductListing(queryClient: QueryClient, filters: ProductFilters) {
+  return queryClient.prefetchInfiniteQuery({
+    queryKey: shopListingQueryKey(filters),
+    queryFn: ({ pageParam }) =>
+      productService.getProducts({ ...filters, page: pageParam as number }),
+    initialPageParam: 0,
+  })
+}
+
 /** Warm listing JSON cache so “View All” feels instant (hero → `/shop/candles` already used candle prefetch). */
 export function prefetchShopIndexListing(queryClient: QueryClient) {
-  const filters = shopIndexListingFilters()
-  return queryClient.prefetchQuery({
-    queryKey: ['products', filters],
-    queryFn: () => productService.getProducts(filters),
-  })
+  return prefetchProductListing(queryClient, shopIndexListingFilters())
+}
+
+export function prefetchCandleListing(queryClient: QueryClient, categoryId: number) {
+  return prefetchProductListing(queryClient, candleListingFilters(categoryId))
 }
 
 const productPageChunk = () => import('@/pages/ProductPage')

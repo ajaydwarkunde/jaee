@@ -83,8 +83,41 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
         Pageable pageable
     );
     
+    @Query("SELECT DISTINCT p FROM Product p " +
+           "LEFT JOIN p.categories c " +
+           "WHERE p.active = true AND p.sheetSku IS NOT NULL AND p.sheetSku <> '' AND " +
+           "(:categoryId IS NULL OR c.id = :categoryId) AND " +
+           "(:minPrice IS NULL OR p.price >= :minPrice) AND " +
+           "(:maxPrice IS NULL OR p.price <= :maxPrice) AND " +
+           "(:color IS NULL OR :color = '' OR EXISTS (" +
+           "  SELECT 1 FROM ProductVariant pv JOIN pv.optionValues pov " +
+           "  WHERE pv.product = p AND KEY(pov) = 'Color' AND LOWER(pov) = LOWER(:color))) AND " +
+           "(:size IS NULL OR :size = '' OR EXISTS (" +
+           "  SELECT 1 FROM ProductVariant pv2 JOIN pv2.optionValues pov2 " +
+           "  WHERE pv2.product = p AND KEY(pov2) = 'Size' AND LOWER(pov2) = LOWER(:size))) AND " +
+           "(:search IS NULL OR :search = '' OR " +
+           "LOWER(COALESCE(p.name, '')) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(COALESCE(p.description, '')) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(COALESCE(c.name, '')) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "EXISTS (SELECT 1 FROM ProductVariant sv JOIN sv.optionValues sov " +
+           "  WHERE sv.product = p AND LOWER(sov) LIKE LOWER(CONCAT('%', :search, '%'))) OR " +
+           "EXISTS (SELECT 1 FROM ProductVariant skv " +
+           "  WHERE skv.product = p AND LOWER(COALESCE(skv.sku, '')) LIKE LOWER(CONCAT('%', :search, '%')))) " +
+           "ORDER BY CASE WHEN COALESCE(p.stockQty, 0) > 0 AND SIZE(p.images) > 0 THEN 0 " +
+           "WHEN COALESCE(p.stockQty, 0) > 0 THEN 1 ELSE 2 END ASC, p.createdAt DESC")
+    Page<Product> findWithFiltersStorefrontPreferred(
+        @Param("categoryId") Long categoryId,
+        @Param("minPrice") BigDecimal minPrice,
+        @Param("maxPrice") BigDecimal maxPrice,
+        @Param("search") String search,
+        @Param("color") String color,
+        @Param("size") String size,
+        Pageable pageable
+    );
+
     @Query("SELECT p FROM Product p WHERE p.active = true AND p.sheetSku IS NOT NULL AND p.sheetSku <> '' " +
-           "ORDER BY p.createdAt DESC")
+           "ORDER BY CASE WHEN COALESCE(p.stockQty, 0) > 0 AND SIZE(p.images) > 0 THEN 0 " +
+           "WHEN COALESCE(p.stockQty, 0) > 0 THEN 1 ELSE 2 END ASC, p.createdAt DESC")
     List<Product> findFeaturedProducts(Pageable pageable);
 
     @Query("SELECT p FROM Product p WHERE p.active = true AND p.sheetSku IS NOT NULL AND p.sheetSku <> '' " +

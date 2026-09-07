@@ -70,6 +70,27 @@ class ProductServiceTest {
     }
 
     @Test
+    void getProducts_newestUsesStorefrontPreferredOrdering() {
+        Pageable pageable = PageRequest.of(0, 12);
+        Product product = createProduct(1L, "Product", "product", BigDecimal.TEN);
+        Page<Product> productPage = new PageImpl<>(List.of(product), pageable, 1);
+
+        when(productRepository.findWithFiltersStorefrontPreferred(
+                isNull(), isNull(), isNull(), eq(""), isNull(), isNull(), any(Pageable.class)))
+                .thenReturn(productPage);
+
+        PageResponse<ProductDto> result = productService.getProducts(
+                null, null, null, "", null, null, "newest", "desc", 0, 12
+        );
+
+        assertThat(result.getContent()).hasSize(1);
+        verify(productRepository).findWithFiltersStorefrontPreferred(
+                isNull(), isNull(), isNull(), eq(""), isNull(), isNull(), any(Pageable.class));
+        verify(productRepository, never()).findWithFilters(
+                isNull(), isNull(), isNull(), eq(""), isNull(), isNull(), any(Pageable.class));
+    }
+
+    @Test
     void getProductBySlug_returnsSheetProduct() {
         Product product = createProduct(1L, "Test Product", "test-product", BigDecimal.TEN);
         product.setSheetSku("J001");
