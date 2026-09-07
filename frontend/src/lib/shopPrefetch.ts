@@ -14,7 +14,7 @@ export function candleListingFilters(categoryId: number): ProductFilters {
     sortBy: 'newest',
     sortDir: 'desc',
     page: 0,
-    pageSize: 12,
+    pageSize: 24,
   }
 }
 
@@ -30,7 +30,7 @@ export function shopIndexListingFilters(): ProductFilters {
     sortBy: 'newest',
     sortDir: 'desc',
     page: 0,
-    pageSize: 12,
+    pageSize: 24,
   }
 }
 
