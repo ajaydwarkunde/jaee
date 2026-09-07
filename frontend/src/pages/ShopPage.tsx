@@ -89,7 +89,7 @@ export default function ShopPage() {
     }
   }, [searchParams])
 
-  // Infinite vertical load — avoid fetching “all products” before category route applies categoryId
+  // Amazon-style infinite vertical load (append pages as the user scrolls)
   const {
     data: productsPages,
     isLoading: productsLoading,
@@ -100,7 +100,11 @@ export default function ShopPage() {
     queryKey: shopListingQueryKey(filters),
     queryFn: ({ pageParam }) => productService.getProducts({ ...filters, page: pageParam }),
     initialPageParam: 0,
-    getNextPageParam: (lastPage) => (lastPage.last ? undefined : lastPage.page + 1),
+    getNextPageParam: (lastPage) => {
+      if (lastPage.last) return undefined
+      const next = lastPage.page + 1
+      return next < lastPage.totalPages ? next : undefined
+    },
     enabled: !categorySlug || categoriesLoaded,
   })
 
@@ -114,18 +118,40 @@ export default function ShopPage() {
   const loadMoreRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const el = loadMoreRef.current
-    if (!el || typeof IntersectionObserver === 'undefined') return
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
-          void fetchNextPage()
-        }
-      },
-      { rootMargin: '400px', threshold: 0 }
-    )
-    io.observe(el)
-    return () => io.disconnect()
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+    if (!el) return
+
+    const maybeLoadMore = () => {
+      if (!hasNextPage || isFetchingNextPage) return
+      const top = el.getBoundingClientRect().top
+      if (top < window.innerHeight + 900) {
+        void fetchNextPage()
+      }
+    }
+
+    let io: IntersectionObserver | undefined
+    if (typeof IntersectionObserver !== 'undefined') {
+      io = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+            void fetchNextPage()
+          }
+        },
+        { root: null, rootMargin: '900px 0px', threshold: 0 }
+      )
+      io.observe(el)
+    }
+
+    window.addEventListener('scroll', maybeLoadMore, { passive: true })
+    window.addEventListener('resize', maybeLoadMore)
+    // Re-check after each page — sentinel may already be on-screen without a new IO event
+    maybeLoadMore()
+
+    return () => {
+      io?.disconnect()
+      window.removeEventListener('scroll', maybeLoadMore)
+      window.removeEventListener('resize', maybeLoadMore)
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage, products.length])
 
   const gridLoading =
     (Boolean(categorySlug) && !categoriesLoaded) ||
@@ -172,7 +198,7 @@ export default function ShopPage() {
       sortBy: 'newest',
       sortDir: 'desc',
       page: 0,
-      pageSize: 12,
+      pageSize: 24,
     })
     setSearchParams({})
   }
@@ -439,7 +465,7 @@ export default function ShopPage() {
               </div>
             )}
 
-            {/* Products Grid — infinite vertical scroll */}
+            {/* Products Grid — infinite vertical scroll (no page buttons) */}
             <ProductGrid
               products={products}
               loading={gridLoading}
@@ -447,13 +473,23 @@ export default function ShopPage() {
               priorityImageCount={12}
             />
 
-            <div ref={loadMoreRef} className="h-8" aria-hidden />
-            {isFetchingNextPage && (
-              <p className="text-center text-sm text-warm-gray mt-4">Loading more products…</p>
-            )}
-            {!hasNextPage && products.length > 0 && (
-              <p className="text-center text-sm text-warm-gray mt-8">You&apos;ve seen all products</p>
-            )}
+            <div ref={loadMoreRef} className="flex flex-col items-center gap-3 py-10" aria-live="polite">
+              {isFetchingNextPage && (
+                <p className="text-sm text-warm-gray">Loading more products…</p>
+              )}
+              {hasNextPage && !isFetchingNextPage && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void fetchNextPage()}
+                >
+                  Load more products
+                </Button>
+              )}
+              {!hasNextPage && products.length > 0 && (
+                <p className="text-sm text-warm-gray">You&apos;ve seen all products</p>
+              )}
+            </div>
           </div>
         </div>
       </div>

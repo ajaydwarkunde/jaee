@@ -22,12 +22,13 @@ class ShopScreen extends ConsumerStatefulWidget {
 
 class _ShopScreenState extends ConsumerState<ShopScreen> {
   final _searchController = TextEditingController();
-  int _currentPage = 0;
+  final _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _searchController.addListener(() => setState(() {}));
+    _scrollController.addListener(_onScroll);
     if (widget.categorySlug != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final categoriesAsync = ref.read(categoriesProvider);
@@ -43,25 +44,38 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     _searchController.dispose();
     super.dispose();
   }
 
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final pos = _scrollController.position;
+    if (pos.pixels < pos.maxScrollExtent - 600) return;
+
+    if (widget.saleOnly) {
+      ref.read(saleProductsProvider.notifier).loadMore();
+    } else {
+      ref.read(productsProvider.notifier).loadMore();
+    }
+  }
+
   void _onSearch(String query) {
     ref.read(filtersProvider.notifier).state =
-        ref.read(filtersProvider).copyWith(search: query, page: 0);
+        ref.read(filtersProvider).copyWith(search: query, clearSearch: query.isEmpty);
   }
 
   @override
   Widget build(BuildContext context) {
-    // When categorySlug is set, update filter once categories load
     ref.listen(categoriesProvider, (previous, next) {
       if (widget.categorySlug != null && next.hasValue) {
         final cat = next.value!.where((c) => c.slug == widget.categorySlug).firstOrNull;
         if (cat != null) {
           final current = ref.read(filtersProvider);
           if (current.categoryId != cat.id) {
-            ref.read(filtersProvider.notifier).state = current.copyWith(categoryId: cat.id, page: 0);
+            ref.read(filtersProvider.notifier).state = current.copyWith(categoryId: cat.id);
           }
         }
       }
@@ -69,6 +83,48 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
 
     if (widget.saleOnly) return _buildSaleScreen();
     return _buildShopScreen();
+  }
+
+  Widget _buildProductGrid({
+    required ProductFeed feed,
+  }) {
+    if (feed.products.isEmpty) {
+      return const EmptyState(
+        icon: Icons.shopping_bag_outlined,
+        title: 'No Products Found',
+        subtitle: 'Try adjusting your filters or search term.',
+      );
+    }
+
+    final showFooter = feed.loadingMore;
+    final itemCount = feed.products.length + (showFooter ? 1 : 0);
+
+    return GridView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 0.62,
+      ),
+      itemCount: itemCount,
+      itemBuilder: (context, index) {
+        if (index >= feed.products.length) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          );
+        }
+        final product = feed.products[index];
+        return ProductCard(
+          product: product,
+          onTap: () => context.push('/product/${product.slug}'),
+        );
+      },
+    );
   }
 
   Widget _buildShopScreen() {
@@ -84,7 +140,6 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
       ),
       body: Column(
         children: [
-          // Search bar
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
             child: TextField(
@@ -112,8 +167,6 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
               ),
             ),
           ),
-
-          // Category chips
           categoriesAsync.when(
             data: (categories) => SizedBox(
               height: 40,
@@ -127,7 +180,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                       label: const Text('All'),
                       selected: filters.categoryId == null,
                       onSelected: (_) => ref.read(filtersProvider.notifier).state =
-                          filters.copyWith(clearCategory: true, page: 0),
+                          filters.copyWith(clearCategory: true),
                       selectedColor: AppColors.rose,
                       labelStyle: TextStyle(
                         color: filters.categoryId == null ? Colors.white : AppColors.charcoal,
@@ -136,33 +189,32 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                     ),
                   ),
                   ...categories.map((cat) => Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: FilterChip(
-                      label: Text(cat.name),
-                      selected: filters.categoryId == cat.id,
-                      onSelected: (_) => ref.read(filtersProvider.notifier).state =
-                          filters.copyWith(categoryId: cat.id, page: 0),
-                      selectedColor: AppColors.rose,
-                      labelStyle: TextStyle(
-                        color: filters.categoryId == cat.id ? Colors.white : AppColors.charcoal,
-                      ),
-                      checkmarkColor: Colors.white,
-                    ),
-                  )),
+                        padding: const EdgeInsets.only(right: 8),
+                        child: FilterChip(
+                          label: Text(cat.name),
+                          selected: filters.categoryId == cat.id,
+                          onSelected: (_) => ref.read(filtersProvider.notifier).state =
+                              filters.copyWith(categoryId: cat.id),
+                          selectedColor: AppColors.rose,
+                          labelStyle: TextStyle(
+                            color: filters.categoryId == cat.id ? Colors.white : AppColors.charcoal,
+                          ),
+                          checkmarkColor: Colors.white,
+                        ),
+                      )),
                 ],
               ),
             ),
             loading: () => const SizedBox(height: 40),
             error: (_, __) => const SizedBox(height: 40),
           ),
-
-          // Sort bar
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
             child: Row(
               children: [
                 productsAsync.when(
-                  data: (page) => Text('${page.totalElements} products', style: AppTypography.caption),
+                  data: (feed) =>
+                      Text('${feed.totalElements} products', style: AppTypography.caption),
                   loading: () => const SizedBox(),
                   error: (_, __) => const SizedBox(),
                 ),
@@ -171,7 +223,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                   onSelected: (value) {
                     final parts = value.split(':');
                     ref.read(filtersProvider.notifier).state =
-                        filters.copyWith(sortBy: parts[0], sortDir: parts[1], page: 0);
+                        filters.copyWith(sortBy: parts[0], sortDir: parts[1]);
                   },
                   itemBuilder: (_) => const [
                     PopupMenuItem(value: 'newest:desc', child: Text('Newest')),
@@ -189,66 +241,9 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
               ],
             ),
           ),
-
-          // Product grid
           Expanded(
             child: productsAsync.when(
-              data: (page) {
-                if (page.content.isEmpty) {
-                  return const EmptyState(
-                    icon: Icons.shopping_bag_outlined,
-                    title: 'No Products Found',
-                    subtitle: 'Try adjusting your filters or search term.',
-                  );
-                }
-                return Column(
-                  children: [
-                    Expanded(
-                      child: GridView.builder(
-                        padding: const EdgeInsets.all(16),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 12,
-                          crossAxisSpacing: 12,
-                          childAspectRatio: 0.62,
-                        ),
-                        itemCount: page.content.length,
-                        itemBuilder: (context, index) {
-                          final product = page.content[index];
-                          return ProductCard(
-                            product: product,
-                            onTap: () => context.push('/product/${product.slug}'),
-                          );
-                        },
-                      ),
-                    ),
-                    if (page.totalPages > 1)
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            IconButton(
-                              onPressed: page.first ? null : () {
-                                ref.read(filtersProvider.notifier).state =
-                                    filters.copyWith(page: filters.page - 1);
-                              },
-                              icon: const Icon(Icons.chevron_left),
-                            ),
-                            Text('${page.page + 1} / ${page.totalPages}', style: AppTypography.labelMedium),
-                            IconButton(
-                              onPressed: page.last ? null : () {
-                                ref.read(filtersProvider.notifier).state =
-                                    filters.copyWith(page: filters.page + 1);
-                              },
-                              icon: const Icon(Icons.chevron_right),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                );
-              },
+              data: (feed) => _buildProductGrid(feed: feed),
               loading: () => GridView.builder(
                 padding: const EdgeInsets.all(16),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -272,7 +267,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
   }
 
   Widget _buildSaleScreen() {
-    final saleAsync = ref.watch(saleProductsProvider(_currentPage));
+    final saleAsync = ref.watch(saleProductsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -281,55 +276,15 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
         centerTitle: true,
       ),
       body: saleAsync.when(
-        data: (page) {
-          if (page.content.isEmpty) {
+        data: (feed) {
+          if (feed.products.isEmpty) {
             return const EmptyState(
               icon: Icons.local_offer_outlined,
               title: 'No Sale Products',
               subtitle: 'Check back later for deals!',
             );
           }
-          return Column(
-            children: [
-              Expanded(
-                child: GridView.builder(
-                  padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 0.62,
-                  ),
-                  itemCount: page.content.length,
-                  itemBuilder: (context, index) {
-                    final product = page.content[index];
-                    return ProductCard(
-                      product: product,
-                      onTap: () => context.push('/product/${product.slug}'),
-                    );
-                  },
-                ),
-              ),
-              if (page.totalPages > 1)
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        onPressed: page.first ? null : () => setState(() => _currentPage--),
-                        icon: const Icon(Icons.chevron_left),
-                      ),
-                      Text('${page.page + 1} / ${page.totalPages}', style: AppTypography.labelMedium),
-                      IconButton(
-                        onPressed: page.last ? null : () => setState(() => _currentPage++),
-                        icon: const Icon(Icons.chevron_right),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          );
+          return _buildProductGrid(feed: feed);
         },
         loading: () => GridView.builder(
           padding: const EdgeInsets.all(16),
@@ -344,7 +299,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
         ),
         error: (e, _) => ErrorView(
           message: 'Failed to load sale products',
-          onRetry: () => ref.invalidate(saleProductsProvider(_currentPage)),
+          onRetry: () => ref.invalidate(saleProductsProvider),
         ),
       ),
     );

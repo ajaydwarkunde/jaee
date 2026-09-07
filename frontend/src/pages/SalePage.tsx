@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useEffect, useMemo, useRef } from 'react'
+import { useInfiniteQuery } from '@tanstack/react-query'
 import { Tag, Percent } from 'lucide-react'
 import { productService } from '@/services/productService'
 import ProductGrid from '@/components/product/ProductGrid'
@@ -9,7 +9,6 @@ import type { StoreSettings } from '@/services/settingsService'
 import { cmsHeroImageProps } from '@/lib/imageUrl'
 
 export default function SalePage() {
-  const [page, setPage] = useState(0)
   const { getValue } = useStoreSettings()
   const saleBannerImg = getValue('sale_page_header_image_url' as keyof StoreSettings).trim()
   const saleBannerTitle = getValue('sale_page_header_title' as keyof StoreSettings).trim()
@@ -17,15 +16,61 @@ export default function SalePage() {
 
   const saleBannerImgProps = saleBannerImg ? cmsHeroImageProps(saleBannerImg, 'full') : null
 
-  const { data: productsData, isLoading } = useQuery({
-    queryKey: ['products-on-sale', page],
-    queryFn: () => productService.getOnSaleProducts(page, 12),
+  const {
+    data: productsPages,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['products-on-sale'],
+    queryFn: ({ pageParam }) => productService.getOnSaleProducts(pageParam, 24),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => {
+      if (lastPage.last) return undefined
+      const next = lastPage.page + 1
+      return next < lastPage.totalPages ? next : undefined
+    },
   })
 
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
+  const products = useMemo(
+    () => productsPages?.pages.flatMap((page) => page.content) ?? [],
+    [productsPages]
+  )
+  const totalElements = productsPages?.pages[0]?.totalElements
+
+  const loadMoreRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = loadMoreRef.current
+    if (!el) return
+
+    const maybeLoadMore = () => {
+      if (!hasNextPage || isFetchingNextPage) return
+      if (el.getBoundingClientRect().top < window.innerHeight + 900) {
+        void fetchNextPage()
+      }
+    }
+
+    let io: IntersectionObserver | undefined
+    if (typeof IntersectionObserver !== 'undefined') {
+      io = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+            void fetchNextPage()
+          }
+        },
+        { root: null, rootMargin: '900px 0px', threshold: 0 }
+      )
+      io.observe(el)
+    }
+
+    window.addEventListener('scroll', maybeLoadMore, { passive: true })
+    maybeLoadMore()
+    return () => {
+      io?.disconnect()
+      window.removeEventListener('scroll', maybeLoadMore)
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage, products.length])
 
   return (
     <div className="min-h-screen bg-cream">
@@ -71,44 +116,31 @@ export default function SalePage() {
       </div>
 
       <div className="container-custom py-8 md:py-12">
-        {/* Results count */}
-        {productsData && (
+        {totalElements != null && (
           <p className="text-sm text-warm-gray mb-6">
-            {productsData.totalElements} {productsData.totalElements === 1 ? 'product' : 'products'} on sale
+            {totalElements} {totalElements === 1 ? 'product' : 'products'} on sale
           </p>
         )}
 
-        {/* Products Grid */}
         <ProductGrid
-          products={productsData?.content || []}
+          products={products}
           loading={isLoading}
           emptyMessage="No sale items right now. Check back soon for amazing deals!"
         />
 
-        {/* Pagination */}
-        {productsData && productsData.totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 mt-12">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(page - 1)}
-              disabled={productsData.first}
-            >
-              Previous
+        <div ref={loadMoreRef} className="flex flex-col items-center gap-3 py-10" aria-live="polite">
+          {isFetchingNextPage && (
+            <p className="text-sm text-warm-gray">Loading more products…</p>
+          )}
+          {hasNextPage && !isFetchingNextPage && (
+            <Button variant="outline" size="sm" onClick={() => void fetchNextPage()}>
+              Load more products
             </Button>
-            <span className="px-4 text-sm text-warm-gray">
-              Page {productsData.page + 1} of {productsData.totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(page + 1)}
-              disabled={productsData.last}
-            >
-              Next
-            </Button>
-          </div>
-        )}
+          )}
+          {!hasNextPage && products.length > 0 && (
+            <p className="text-sm text-warm-gray">You&apos;ve seen all products</p>
+          )}
+        </div>
       </div>
     </div>
   )
