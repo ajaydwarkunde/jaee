@@ -952,14 +952,6 @@ export default function ProductPage() {
             Back to Shop
           </Link>
           <span className="text-warm-gray">/</span>
-          {categoryNames.length > 0 && (
-            <>
-              <Link to={`/shop`} className="text-warm-gray hover:text-rose transition-colors">
-                {categoryNames.join(', ')}
-              </Link>
-              <span className="text-warm-gray">/</span>
-            </>
-          )}
           <span className="text-charcoal">{product.name}</span>
         </nav>
 

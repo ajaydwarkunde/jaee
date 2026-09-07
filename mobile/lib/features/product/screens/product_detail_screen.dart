@@ -133,13 +133,6 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       ),
                     ),
 
-                  // Category
-                  if (product.categoryName != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(product.categoryName!, style: AppTypography.labelSmall.copyWith(color: AppColors.rose)),
-                    ),
-
                   // Name
                   Text(product.name, style: AppTypography.h3),
                   const SizedBox(height: 12),
