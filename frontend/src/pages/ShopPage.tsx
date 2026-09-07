@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useParams, useSearchParams, useNavigate, useLocation } from 'react-router-dom'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
 import { SlidersHorizontal, X } from 'lucide-react'
 import { productService } from '@/services/productService'
 import { categoryService } from '@/services/categoryService'
@@ -11,7 +11,7 @@ import Select from '@/components/ui/Select'
 import Input from '@/components/ui/Input'
 import type { FilterOptions, ProductFilters } from '@/types'
 import type { StoreSettings } from '@/services/settingsService'
-import { shopIndexListingFilters } from '@/lib/shopPrefetch'
+import { shopIndexListingFilters, shopListingQueryKey } from '@/lib/shopPrefetch'
 import { cmsHeroImageProps } from '@/lib/imageUrl'
 import PageMeta from '@/components/seo/PageMeta'
 import JsonLd from '@/components/seo/JsonLd'
@@ -89,12 +89,43 @@ export default function ShopPage() {
     }
   }, [searchParams])
 
-  // Get products — avoid fetching “all products” before category route applies categoryId (matches prefetch key)
-  const { data: productsData, isLoading: productsLoading } = useQuery({
-    queryKey: ['products', filters],
-    queryFn: () => productService.getProducts(filters),
+  // Infinite vertical load — avoid fetching “all products” before category route applies categoryId
+  const {
+    data: productsPages,
+    isLoading: productsLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery({
+    queryKey: shopListingQueryKey(filters),
+    queryFn: ({ pageParam }) => productService.getProducts({ ...filters, page: pageParam }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => (lastPage.last ? undefined : lastPage.page + 1),
     enabled: !categorySlug || categoriesLoaded,
   })
+
+  const products = useMemo(
+    () => productsPages?.pages.flatMap((page) => page.content) ?? [],
+    [productsPages]
+  )
+
+  const totalElements = productsPages?.pages[0]?.totalElements
+
+  const loadMoreRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = loadMoreRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          void fetchNextPage()
+        }
+      },
+      { rootMargin: '400px', threshold: 0 }
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
   const gridLoading =
     (Boolean(categorySlug) && !categoriesLoaded) ||
@@ -146,11 +177,6 @@ export default function ShopPage() {
     setSearchParams({})
   }
 
-  const handlePageChange = (newPage: number) => {
-    setFilters((prev) => ({ ...prev, page: newPage }))
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
   const sortOptions = [
     { value: 'newest-desc', label: 'Newest First' },
     { value: 'price-asc', label: 'Price: Low to High' },
@@ -179,10 +205,9 @@ export default function ShopPage() {
   )
 
   const itemListSchema = useMemo(() => {
-    const items = productsData?.content
-    if (!items?.length) return null
-    return buildItemListSchema(shopHeaderTitle, items, shopListUrl)
-  }, [productsData?.content, shopHeaderTitle, shopListUrl])
+    if (!products.length) return null
+    return buildItemListSchema(shopHeaderTitle, products, shopListUrl)
+  }, [products, shopHeaderTitle, shopListUrl])
 
   return (
     <div className="min-h-screen bg-cream">
@@ -354,7 +379,7 @@ export default function ShopPage() {
 
                 {/* Results count */}
                 <p className="text-sm text-warm-gray">
-                  {productsData?.totalElements || 0} products
+                  {totalElements ?? 0} products
                 </p>
               </div>
 
@@ -414,37 +439,20 @@ export default function ShopPage() {
               </div>
             )}
 
-            {/* Products Grid */}
+            {/* Products Grid — infinite vertical scroll */}
             <ProductGrid
-              products={productsData?.content || []}
+              products={products}
               loading={gridLoading}
               emptyMessage="No products found. Try adjusting your filters."
               priorityImageCount={12}
             />
 
-            {/* Pagination */}
-            {productsData && productsData.totalPages > 1 && (
-              <div className="flex justify-center items-center gap-2 mt-12">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(filters.page! - 1)}
-                  disabled={productsData.first}
-                >
-                  Previous
-                </Button>
-                <span className="px-4 text-sm text-warm-gray">
-                  Page {productsData.page + 1} of {productsData.totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(filters.page! + 1)}
-                  disabled={productsData.last}
-                >
-                  Next
-                </Button>
-              </div>
+            <div ref={loadMoreRef} className="h-8" aria-hidden />
+            {isFetchingNextPage && (
+              <p className="text-center text-sm text-warm-gray mt-4">Loading more products…</p>
+            )}
+            {!hasNextPage && products.length > 0 && (
+              <p className="text-center text-sm text-warm-gray mt-8">You&apos;ve seen all products</p>
             )}
           </div>
         </div>

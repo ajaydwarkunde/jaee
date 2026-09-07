@@ -63,12 +63,21 @@ public class ProductService {
             int page,
             int pageSize
     ) {
-        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), getSortField(sortBy));
-        Pageable pageable = PageRequest.of(page, pageSize, sort);
-
-        Page<Product> productPage = productRepository.findWithFilters(
-                categoryId, minPrice, maxPrice, search, color, size, pageable
-        );
+        Pageable pageable;
+        Page<Product> productPage;
+        if ("newest".equalsIgnoreCase(sortBy) || sortBy == null || sortBy.isBlank()) {
+            // Default shop/homepage ordering: in-stock with real images first, then in-stock, then the rest.
+            pageable = PageRequest.of(page, pageSize);
+            productPage = productRepository.findWithFiltersStorefrontPreferred(
+                    categoryId, minPrice, maxPrice, search, color, size, pageable
+            );
+        } else {
+            Sort sort = Sort.by(Sort.Direction.fromString(sortDir), getSortField(sortBy));
+            pageable = PageRequest.of(page, pageSize, sort);
+            productPage = productRepository.findWithFilters(
+                    categoryId, minPrice, maxPrice, search, color, size, pageable
+            );
+        }
 
         return PageResponse.from(productPage, ProductDto::fromListingEntity);
     }

@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import type { StoreSettings } from '@/services/settingsService'
 import { BUSINESS_LOCATION_SHORT } from '@/config/business'
-import { candleListingFilters, prefetchShopIndexListing } from '@/lib/shopPrefetch'
+import { prefetchCandleListing, prefetchShopIndexListing } from '@/lib/shopPrefetch'
 import { useAuthStore } from '@/stores/authStore'
 import {
   communityExperienceService,
@@ -580,11 +580,7 @@ export default function HomePage() {
     })
     const candles = categories.find((c) => c.slug === 'candles')
     if (!candles) return
-    const filters = candleListingFilters(candles.id)
-    void queryClient.prefetchQuery({
-      queryKey: ['products', filters],
-      queryFn: () => productService.getProducts(filters),
-    })
+    void prefetchCandleListing(queryClient, candles.id)
     void queryClient.prefetchQuery({
       queryKey: ['category', 'candles'],
       queryFn: () => categoryService.getCategoryBySlug('candles'),
@@ -628,28 +624,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Four pillars */}
-      <section className="py-12 bg-soft-white border-y border-blush">
-        <div className="container-custom">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { icon: Sparkles, title: 'Premium Quality', desc: 'Hand-poured with care' },
-              { icon: Truck, title: 'Free Shipping', desc: `On orders over ₹${freeShippingThreshold}` },
-              { icon: Gift, title: 'Gift Wrapping', desc: 'Beautiful packaging' },
-              { icon: Heart, title: 'Made with Love', desc: `Handcrafted in ${BUSINESS_LOCATION_SHORT}` },
-            ].map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="text-center">
-                <div className="w-12 h-12 bg-rose/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Icon className="w-5 h-5 text-rose" />
-                </div>
-                <h3 className="font-medium text-charcoal text-sm">{title}</h3>
-                <p className="text-xs text-warm-gray mt-1">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Shop by Category */}
       {categoryRow && categoryRow.length > 0 && (
         <section className="py-16 md:py-24 bg-cream overflow-hidden">
@@ -670,6 +644,28 @@ export default function HomePage() {
           </div>
         </section>
       )}
+
+      {/* Four pillars — below Shop by Category */}
+      <section className="py-12 bg-soft-white border-y border-blush">
+        <div className="container-custom">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { icon: Sparkles, title: 'Premium Quality', desc: 'Hand-poured with care' },
+              { icon: Truck, title: 'Free Shipping', desc: `On orders over ₹${freeShippingThreshold}` },
+              { icon: Gift, title: 'Gift Wrapping', desc: 'Beautiful packaging' },
+              { icon: Heart, title: 'Made with Love', desc: `Handcrafted in ${BUSINESS_LOCATION_SHORT}` },
+            ].map(({ icon: Icon, title, desc }) => (
+              <div key={title} className="text-center">
+                <div className="w-12 h-12 bg-rose/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Icon className="w-5 h-5 text-rose" />
+                </div>
+                <h3 className="font-medium text-charcoal text-sm">{title}</h3>
+                <p className="text-xs text-warm-gray mt-1">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Our Story teaser */}
       <section className="py-16 md:py-24 bg-gradient-to-br from-blush to-champagne">
